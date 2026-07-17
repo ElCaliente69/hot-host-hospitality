@@ -29,6 +29,9 @@ function servicePage(key,d){return `<main><section class="page-hero"><div class=
 function setupContactLogic(){
   const form=document.querySelector('#contactForm');
   if(!form)return;
+  const conditionalStyles=document.createElement('style');
+  conditionalStyles.textContent='[hidden]{display:none!important}';
+  document.head.appendChild(conditionalStyles);
   const propertyType=form.querySelector('#propertyType');
   const touristRental=form.querySelector('#touristRental');
   const toggle=(field,input,show)=>{field.hidden=!show;input.required=show;if(!show)input.value='';};
