@@ -1,0 +1,24 @@
+{
+  "name": "hot-host-hospitality",
+  "version": "1.0.0",
+  "description": "Hot Host Hospitality - Gestión premium de alojamientos turísticos",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ElCaliente69/hot-host-hospitality.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ElCaliente69/hot-host-hospitality/issues"
+  },
+  "homepage": "https://github.com/ElCaliente69/hot-host-hospitality#readme",
+  "dependencies": {
+    "@vercel/speed-insights": "^2.0.0"
+  }
+}
