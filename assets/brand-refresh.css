@@ -1269,3 +1269,403 @@ main > .section:not(.soft) {
     height: 46px;
   }
 }
+
+/* Recorridos interactivos 01-04 y su explicacion visual ampliada. */
+.infographic {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.process-card {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  color: #2c1c05;
+  border: 1px solid rgba(187, 124, 20, .52);
+  background: #fffdf9;
+  box-shadow: 0 16px 38px rgba(91, 55, 8, .1);
+  font: inherit;
+  text-align: left;
+  appearance: none;
+  cursor: pointer;
+  transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+
+.process-card:focus-visible {
+  outline: 3px solid rgba(201, 47, 18, .34);
+  outline-offset: 4px;
+}
+
+.process-card-media {
+  display: block;
+  overflow: hidden;
+  background: #dcc28d;
+}
+
+.process-card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.9) contrast(1.03);
+  transition: transform .55s cubic-bezier(.22, .8, .26, 1), filter .55s ease;
+}
+
+.process-card-content,
+.process-card-kicker,
+.process-card-title,
+.process-card-summary {
+  display: block;
+}
+
+.process-card-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.process-card-number {
+  color: var(--fire-red);
+  font: 800 1rem/1 Arial, sans-serif;
+  letter-spacing: .12em;
+}
+
+.process-card-action {
+  color: #805715;
+  font-size: .67rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.process-card-title {
+  margin-top: 18px;
+  font: 700 clamp(1.35rem, 2.2vw, 1.75rem)/1.08 Georgia, serif;
+}
+
+.process-card-summary {
+  margin-top: 9px;
+  color: #6d6252;
+  font-size: .88rem;
+  line-height: 1.55;
+}
+
+.method-step {
+  display: grid;
+  grid-template-rows: 168px 1fr;
+  min-height: 350px;
+  border-radius: 28px 8px 28px 8px;
+  background:
+    linear-gradient(rgba(255, 253, 249, .97), rgba(255, 248, 231, .96)),
+    url("fondo-hot-host.png") center / cover no-repeat;
+}
+
+.method-step .process-card-media {
+  height: 168px;
+  border-bottom: 1px solid rgba(187, 124, 20, .44);
+}
+
+.method-step .process-card-content {
+  padding: 20px 22px 24px;
+}
+
+.journey-step {
+  position: relative;
+  display: flex;
+  min-height: 310px;
+  isolation: isolate;
+  border-color: rgba(255, 220, 139, .56);
+  border-radius: 8px 28px 8px 28px;
+  background: #362005;
+  box-shadow: 0 20px 46px rgba(58, 32, 3, .2);
+}
+
+.journey-step .process-card-media {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+}
+
+.journey-step .process-card-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(34, 18, 1, .24), transparent 34%),
+    linear-gradient(0deg, rgba(31, 15, 1, .94), rgba(46, 23, 2, .14) 76%);
+}
+
+.journey-step .process-card-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 20px;
+}
+
+.journey-step .process-card-kicker {
+  color: #fff;
+}
+
+.journey-step .process-card-number {
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 45px;
+  color: #4b2b04;
+  border: 1px solid rgba(255, 255, 255, .62);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f8df99, var(--sun-gold));
+  box-shadow: 0 8px 22px rgba(28, 14, 1, .28);
+}
+
+.journey-step .process-card-action {
+  padding: 8px 10px;
+  color: #fff5d9;
+  border: 1px solid rgba(255, 235, 185, .5);
+  border-radius: 999px;
+  background: rgba(31, 15, 1, .38);
+  backdrop-filter: blur(7px);
+}
+
+.journey-step .process-card-title {
+  margin-top: auto;
+  color: #fff;
+  font-size: clamp(1.55rem, 2.4vw, 2rem);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, .38);
+}
+
+.journey-step .process-card-summary {
+  color: rgba(255, 250, 239, .86);
+}
+
+@media (hover: hover) {
+  .process-card:hover {
+    z-index: 2;
+    border-color: var(--sun-gold);
+    box-shadow: 0 24px 54px rgba(91, 55, 8, .2);
+    transform: translateY(-7px);
+  }
+
+  .process-card:hover .process-card-media img {
+    filter: saturate(1.06) contrast(1.04);
+    transform: scale(1.065);
+  }
+
+  .process-card:hover .process-card-action {
+    color: var(--fire-red);
+  }
+
+  .journey-step:hover .process-card-action {
+    color: #3a2002;
+    background: #f4d27c;
+  }
+}
+
+.process-dialog {
+  width: min(1080px, calc(100% - 32px));
+  max-width: none;
+  max-height: min(88vh, 780px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  color: #2c1c05;
+  border: 1px solid rgba(225, 170, 63, .76);
+  border-radius: 34px 12px 34px 12px;
+  background: #fffdf9;
+  box-shadow: 0 38px 100px rgba(32, 15, 1, .42), 0 0 0 8px rgba(255, 255, 255, .14);
+}
+
+.process-dialog[open] {
+  animation: processDialogIn .34s cubic-bezier(.22, .8, .26, 1);
+}
+
+.process-dialog::backdrop {
+  background: rgba(29, 15, 3, .72);
+  backdrop-filter: blur(7px);
+}
+
+.process-dialog-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.14fr) minmax(330px, .86fr);
+  min-height: min(650px, 80vh);
+}
+
+.process-dialog-media {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  background: #dcc28d;
+}
+
+.process-dialog-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  animation: processImageIn .55s ease both;
+}
+
+.process-dialog-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(42px, 6vw, 76px) clamp(30px, 5vw, 62px);
+  background:
+    radial-gradient(circle at 100% 0, rgba(244, 210, 124, .28), transparent 32%),
+    linear-gradient(rgba(255, 253, 249, .97), rgba(255, 248, 231, .97)),
+    url("fondo-hot-host.png") center / cover no-repeat;
+}
+
+.process-dialog-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 22px;
+}
+
+.process-dialog-meta .eyebrow {
+  margin: 0;
+}
+
+.process-dialog-number {
+  color: rgba(201, 47, 18, .44);
+  font: 800 clamp(2.8rem, 6vw, 5rem)/.8 Georgia, serif;
+}
+
+.process-dialog h2 {
+  margin: 0;
+  color: #342007;
+  font-size: clamp(2.4rem, 5vw, 4.6rem);
+  line-height: .95;
+}
+
+.process-dialog-summary {
+  margin: 28px 0 0;
+  color: #7d250e;
+  font: 700 1.05rem/1.5 Georgia, serif;
+}
+
+.process-dialog-detail {
+  margin: 16px 0 0;
+  color: #685b49;
+  font-size: .98rem;
+  line-height: 1.75;
+}
+
+.process-dialog-close {
+  position: absolute;
+  z-index: 3;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: #fff;
+  border: 1px solid rgba(255, 236, 184, .72);
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--fire-red-deep), var(--fire-orange));
+  box-shadow: 0 10px 24px rgba(64, 25, 2, .25);
+  font: 400 1.65rem/1 Arial, sans-serif;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease;
+}
+
+.process-dialog-close:hover,
+.process-dialog-close:focus-visible {
+  color: #402603;
+  outline: 3px solid rgba(225, 170, 63, .32);
+  outline-offset: 3px;
+  background: var(--light-gold);
+  transform: rotate(5deg) scale(1.04);
+}
+
+@keyframes processDialogIn {
+  from { opacity: 0; transform: translateY(22px) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes processImageIn {
+  from { opacity: .35; transform: scale(1.035); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 900px) {
+  .infographic {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .process-dialog-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, .9fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .infographic {
+    grid-template-columns: 1fr;
+  }
+
+  .journey-step {
+    min-height: 270px;
+  }
+
+  .process-dialog {
+    width: calc(100% - 24px);
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    border-radius: 24px 8px 24px 8px;
+  }
+
+  .process-dialog-shell {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .process-dialog-media {
+    height: clamp(235px, 38vh, 330px);
+  }
+
+  .process-dialog-content {
+    padding: 34px 25px 38px;
+  }
+
+  .process-dialog-meta {
+    margin-bottom: 16px;
+  }
+
+  .process-dialog h2 {
+    font-size: clamp(2.2rem, 13vw, 3.5rem);
+  }
+
+  .process-dialog-summary {
+    margin-top: 22px;
+  }
+
+  .process-dialog-close {
+    position: fixed;
+    top: max(24px, env(safe-area-inset-top));
+    right: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-card,
+  .process-card-media img,
+  .process-dialog[open],
+  .process-dialog-media img {
+    animation: none;
+    transition: none;
+  }
+}

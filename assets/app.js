@@ -18,6 +18,21 @@
     { id: "photo-1600596542815-ffad4c1539a9", position: "center" }
   ];
 
+  const PROCESS_IMAGES = {
+    journey: [
+      { id: "photo-1600596542815-ffad4c1539a9", position: "center" },
+      { id: "photo-1551288049-bebda4e38f71", position: "center" },
+      { id: "photo-1618773928121-c32242e63f39", position: "center" },
+      { id: "photo-1600210492486-724fe5c67fb0", position: "center" }
+    ],
+    method: [
+      { id: "photo-1762427354397-854a52e0ded7", position: "center" },
+      { id: "photo-1600566753051-f0b89df2dd90", position: "center" },
+      { id: "photo-1741156386380-0236c72eb6f9", position: "center" },
+      { id: "photo-1551288049-bebda4e38f71", position: "center" }
+    ]
+  };
+
   const SERVICE_DEFINITIONS = [
     { key: "gestion-integral", path: "gestion-integral.html", icon: "⌂", imageId: "photo-1484480974693-6ca0a78fb36b", imagePosition: "center" },
     { key: "guest-experience", path: "guest-experience.html", icon: "✦", imageId: "photo-1600210492486-724fe5c67fb0", imagePosition: "center" },
@@ -339,7 +354,10 @@
         carouselRole: "carrusel",
         previousImage: "Imagen anterior",
         nextImage: "Imagen siguiente",
-        imageCounter: "Imagen {current} de {total}"
+        imageCounter: "Imagen {current} de {total}",
+        viewStep: "Ver paso",
+        closeStep: "Cerrar explicación",
+        processImageAlt: "Imagen del paso {step}"
       },
       home: {
         eyebrow: "Gestión hotelera para alojamientos que quieren crecer",
@@ -367,17 +385,23 @@
         methodTitle: ["La magia existe.", "Pero lleva checklist."],
         methodLead: "Combinamos empatía, tecnología, operación y medición. El huésped siente cercanía; tú conservas el control y recibes bastantes menos mensajes a deshoras.",
         steps: [
-          ["Diagnóstico", "Analizamos propiedad, posicionamiento y potencial."],
-          ["Diseño", "Definimos operación, estándares y experiencia."],
-          ["Ejecución", "Coordinamos huéspedes, calendario y proveedores."],
-          ["Optimización", "Medimos, aprendemos y mejoramos continuamente."]
+          ["Diagnóstico", "Analizamos propiedad, posicionamiento y potencial.", "Revisamos el anuncio, la demanda, la competencia, los costes y la experiencia actual para separar intuiciones de oportunidades reales."],
+          ["Diseño", "Definimos operación, estándares y experiencia.", "Convertimos el diagnóstico en estándares, mensajes, precios, automatizaciones y una experiencia coherente con la identidad del alojamiento."],
+          ["Ejecución", "Coordinamos huéspedes, calendario y proveedores.", "Ponemos el plan en marcha y conectamos calendario, huéspedes y proveedores para que cada tarea tenga responsable y momento."],
+          ["Optimización", "Medimos, aprendemos y mejoramos continuamente.", "Leemos resultados, detectamos desvíos y ajustamos la estrategia. Lo que funciona se potencia; lo que no, se corrige sin drama."]
         ]
       },
       servicesPage: {
         eyebrow: "Una solución para cada dolor de cabeza",
         title: ["Gestión que se nota.", "Problemas que dejan de notarse."],
         lead: "Cuidamos la estrategia, la operación y cada detalle de la estancia. Porque publicar un anuncio y cruzar los dedos no cuenta como Revenue Management.",
-        stages: ["Atraer", "Convertir", "Cuidar", "Fidelizar"]
+        processLabel: "Del primer clic a la próxima reserva",
+        stages: [
+          ["Atraer", "Ponemos tu alojamiento delante del huésped adecuado.", "Combinamos fotografía, contenido y posicionamiento para destacar donde tu público busca, compara y empieza a imaginar su estancia."],
+          ["Convertir", "Convertimos interés en reservas rentables.", "Afinamos propuesta de valor, precio, canales y reserva directa para reducir fricción y proteger el margen sin competir solo por precio."],
+          ["Cuidar", "Cuidamos cada momento de la estancia.", "Diseñamos comunicaciones y estándares operativos que anticipan necesidades, coordinan al equipo y hacen que todo parezca fácil."],
+          ["Fidelizar", "Hacemos que una buena estancia siga trabajando.", "Activamos reputación, recomendación y recurrencia para convertir huéspedes satisfechos en reseñas, embajadores y próximas reservas."]
+        ]
       },
       about: {
         breadcrumb: "Sobre Hot Host",
@@ -669,7 +693,10 @@
         carouselRole: "carousel",
         previousImage: "Previous image",
         nextImage: "Next image",
-        imageCounter: "Image {current} of {total}"
+        imageCounter: "Image {current} of {total}",
+        viewStep: "View step",
+        closeStep: "Close explanation",
+        processImageAlt: "Image for the {step} step"
       },
       home: {
         eyebrow: "Hotel management for accommodation ready to grow",
@@ -697,17 +724,23 @@
         methodTitle: ["Magic exists.", "But it comes with a checklist."],
         methodLead: "We combine empathy, technology, operations and measurement. Guests feel the personal touch; you stay in control and receive far fewer late-night messages.",
         steps: [
-          ["Diagnosis", "We analyse the property, its positioning and its potential."],
-          ["Design", "We define operations, standards and the guest experience."],
-          ["Delivery", "We coordinate guests, calendars and suppliers."],
-          ["Optimisation", "We measure, learn and improve continuously."]
+          ["Diagnosis", "We analyse the property, its positioning and its potential.", "We review the listing, demand, competitors, costs and the current guest journey to separate assumptions from genuine opportunities."],
+          ["Design", "We define operations, standards and the guest experience.", "We turn the diagnosis into standards, messaging, pricing, automations and an experience consistent with the property's identity."],
+          ["Delivery", "We coordinate guests, calendars and suppliers.", "We put the plan into action and connect calendars, guests and suppliers so every task has an owner and a moment."],
+          ["Optimisation", "We measure, learn and improve continuously.", "We read the results, spot deviations and adjust the strategy. What works is strengthened; what does not is corrected without drama."]
         ]
       },
       servicesPage: {
         eyebrow: "A solution for every operational headache",
         title: ["Management you notice.", "Problems you stop noticing."],
         lead: "We handle strategy, operations and every detail of the stay. Posting a listing and crossing your fingers does not count as Revenue Management.",
-        stages: ["Attract", "Convert", "Care", "Build loyalty"]
+        processLabel: "From first click to the next booking",
+        stages: [
+          ["Attract", "We put your accommodation in front of the right guest.", "We combine photography, content and positioning to stand out wherever your audience searches, compares and begins to picture their stay."],
+          ["Convert", "We turn interest into profitable bookings.", "We refine value proposition, pricing, channels and direct booking to reduce friction and protect margin without competing on price alone."],
+          ["Care", "We look after every moment of the stay.", "We design communications and operating standards that anticipate needs, coordinate the team and make everything feel effortless."],
+          ["Build loyalty", "We make a great stay keep working.", "We activate reputation, recommendations and repeat business to turn satisfied guests into reviews, advocates and future bookings."]
+        ]
       },
       about: {
         breadcrumb: "About Hot Host",
@@ -999,7 +1032,10 @@
         carouselRole: "carrousel",
         previousImage: "Image précédente",
         nextImage: "Image suivante",
-        imageCounter: "Image {current} sur {total}"
+        imageCounter: "Image {current} sur {total}",
+        viewStep: "Voir l’étape",
+        closeStep: "Fermer l’explication",
+        processImageAlt: "Image de l’étape {step}"
       },
       home: {
         eyebrow: "Une gestion hôtelière pour les hébergements qui veulent grandir",
@@ -1027,17 +1063,23 @@
         methodTitle: ["La magie existe.", "Mais elle suit une checklist."],
         methodLead: "Nous combinons empathie, technologie, opérations et mesure. Le voyageur ressent la proximité ; vous gardez le contrôle et recevez beaucoup moins de messages tard le soir.",
         steps: [
-          ["Diagnostic", "Nous analysons le bien, son positionnement et son potentiel."],
-          ["Conception", "Nous définissons les opérations, les standards et l’expérience."],
-          ["Exécution", "Nous coordonnons voyageurs, calendrier et prestataires."],
-          ["Optimisation", "Nous mesurons, apprenons et améliorons en continu."]
+          ["Diagnostic", "Nous analysons le bien, son positionnement et son potentiel.", "Nous étudions l’annonce, la demande, la concurrence, les coûts et le parcours actuel pour distinguer les intuitions des véritables opportunités."],
+          ["Conception", "Nous définissons les opérations, les standards et l’expérience.", "Nous transformons le diagnostic en standards, messages, prix, automatisations et en une expérience cohérente avec l’identité de l’hébergement."],
+          ["Exécution", "Nous coordonnons voyageurs, calendrier et prestataires.", "Nous déployons le plan et relions calendrier, voyageurs et prestataires afin que chaque tâche ait un responsable et un moment précis."],
+          ["Optimisation", "Nous mesurons, apprenons et améliorons en continu.", "Nous lisons les résultats, repérons les écarts et ajustons la stratégie. Ce qui fonctionne est renforcé ; le reste est corrigé sans drame."]
         ]
       },
       servicesPage: {
         eyebrow: "Une solution pour chaque casse-tête opérationnel",
         title: ["Une gestion qui se remarque.", "Des problèmes que l’on ne remarque plus."],
         lead: "Nous gérons la stratégie, les opérations et chaque détail du séjour. Publier une annonce et croiser les doigts ne compte pas comme Revenue Management.",
-        stages: ["Attirer", "Convertir", "Prendre soin", "Fidéliser"]
+        processLabel: "Du premier clic à la prochaine réservation",
+        stages: [
+          ["Attirer", "Nous plaçons votre hébergement devant le bon voyageur.", "Nous combinons photographie, contenu et positionnement pour émerger là où votre public cherche, compare et commence à imaginer son séjour."],
+          ["Convertir", "Nous transformons l’intérêt en réservations rentables.", "Nous affinons la proposition de valeur, les prix, les canaux et la réservation directe pour réduire les frictions et protéger la marge."],
+          ["Prendre soin", "Nous soignons chaque moment du séjour.", "Nous concevons des communications et standards opérationnels qui anticipent les besoins, coordonnent l’équipe et rendent tout fluide."],
+          ["Fidéliser", "Nous faisons travailler chaque excellent séjour dans la durée.", "Nous activons réputation, recommandation et récurrence pour transformer les voyageurs satisfaits en avis, ambassadeurs et futures réservations."]
+        ]
       },
       about: {
         breadcrumb: "À propos de Hot Host",
@@ -1329,7 +1371,10 @@
         carouselRole: "carosello",
         previousImage: "Immagine precedente",
         nextImage: "Immagine successiva",
-        imageCounter: "Immagine {current} di {total}"
+        imageCounter: "Immagine {current} di {total}",
+        viewStep: "Vedi fase",
+        closeStep: "Chiudi spiegazione",
+        processImageAlt: "Immagine della fase {step}"
       },
       home: {
         eyebrow: "Gestione alberghiera per alloggi che vogliono crescere",
@@ -1357,17 +1402,23 @@
         methodTitle: ["La magia esiste.", "Ma richiede una checklist."],
         methodLead: "Uniamo empatia, tecnologia, operazioni e misurazione. L’ospite percepisce vicinanza; tu mantieni il controllo e ricevi molti meno messaggi a tarda notte.",
         steps: [
-          ["Diagnosi", "Analizziamo proprietà, posizionamento e potenziale."],
-          ["Progettazione", "Definiamo operazioni, standard ed esperienza."],
-          ["Esecuzione", "Coordiniamo ospiti, calendario e fornitori."],
-          ["Ottimizzazione", "Misuriamo, impariamo e miglioriamo continuamente."]
+          ["Diagnosi", "Analizziamo proprietà, posizionamento e potenziale.", "Esaminiamo annuncio, domanda, concorrenza, costi ed esperienza attuale per distinguere le intuizioni dalle opportunità concrete."],
+          ["Progettazione", "Definiamo operazioni, standard ed esperienza.", "Trasformiamo la diagnosi in standard, messaggi, prezzi, automazioni e un’esperienza coerente con l’identità dell’alloggio."],
+          ["Esecuzione", "Coordiniamo ospiti, calendario e fornitori.", "Mettiamo in moto il piano e colleghiamo calendario, ospiti e fornitori affinché ogni attività abbia un responsabile e un momento preciso."],
+          ["Ottimizzazione", "Misuriamo, impariamo e miglioriamo continuamente.", "Leggiamo i risultati, individuiamo gli scostamenti e adattiamo la strategia. Potenziamo ciò che funziona e correggiamo il resto senza drammi."]
         ]
       },
       servicesPage: {
         eyebrow: "Una soluzione per ogni grattacapo operativo",
         title: ["Una gestione che si nota.", "Problemi che smetti di notare."],
         lead: "Curiamo strategia, operazioni e ogni dettaglio del soggiorno. Pubblicare un annuncio e incrociare le dita non è Revenue Management.",
-        stages: ["Attrarre", "Convertire", "Prendersi cura", "Fidelizzare"]
+        processLabel: "Dal primo clic alla prossima prenotazione",
+        stages: [
+          ["Attrarre", "Portiamo il tuo alloggio davanti all’ospite giusto.", "Uniamo fotografia, contenuti e posizionamento per emergere dove il tuo pubblico cerca, confronta e comincia a immaginare il soggiorno."],
+          ["Convertire", "Trasformiamo l’interesse in prenotazioni redditizie.", "Affiniamo proposta di valore, prezzi, canali e prenotazione diretta per ridurre gli ostacoli e proteggere il margine."],
+          ["Prendersi cura", "Curiamo ogni momento del soggiorno.", "Progettiamo comunicazioni e standard operativi che anticipano le esigenze, coordinano il team e fanno sembrare tutto semplice."],
+          ["Fidelizzare", "Facciamo sì che un ottimo soggiorno continui a lavorare.", "Attiviamo reputazione, passaparola e ritorno per trasformare ospiti soddisfatti in recensioni, ambasciatori e future prenotazioni."]
+        ]
       },
       about: {
         breadcrumb: "Chi è Hot Host",
@@ -1701,6 +1752,16 @@
     return template.replace("{current}", String(current)).replace("{total}", String(total));
   }
 
+  function renderProcessStep(step, photo, index, variant, eyebrow, locale) {
+    const number = String(index + 1).padStart(2, "0");
+    const imageAlt = locale.common.processImageAlt.replace("{step}", step[0]);
+    return `<button class="process-card ${variant}-step" type="button" aria-haspopup="dialog" aria-controls="processDialog" data-process-trigger data-process-number="${number}" data-process-eyebrow="${escapeHtml(eyebrow)}" data-process-title="${escapeHtml(step[0])}" data-process-summary="${escapeHtml(step[1])}" data-process-detail="${escapeHtml(step[2])}" data-process-photo="${escapeHtml(photo.id)}" data-process-position="${escapeHtml(photo.position)}" data-process-image-alt="${escapeHtml(imageAlt)}"><span class="process-card-media" aria-hidden="true"><img src="${imageUrl(photo.id, 720, 520)}" alt="" width="720" height="520" loading="lazy" decoding="async" style="object-position:${escapeHtml(photo.position)}"></span><span class="process-card-content"><span class="process-card-kicker"><span class="process-card-number">${number}</span><span class="process-card-action">${escapeHtml(locale.common.viewStep)} <span aria-hidden="true">↗</span></span></span><strong class="process-card-title">${escapeHtml(step[0])}</strong><span class="process-card-summary">${escapeHtml(step[1])}</span></span></button>`;
+  }
+
+  function renderProcessDialog(locale) {
+    return `<dialog class="process-dialog" id="processDialog" aria-labelledby="processDialogTitle"><div class="process-dialog-shell"><button class="process-dialog-close" type="button" data-process-close aria-label="${escapeHtml(locale.common.closeStep)}"><span aria-hidden="true">×</span></button><figure class="process-dialog-media"><img data-process-dialog-image alt="" width="1400" height="1000" decoding="async" hidden></figure><div class="process-dialog-content"><div class="process-dialog-meta"><span class="eyebrow" data-process-dialog-eyebrow></span><span class="process-dialog-number" data-process-dialog-number></span></div><h2 id="processDialogTitle" data-process-dialog-title></h2><p class="process-dialog-summary" data-process-dialog-summary></p><p class="process-dialog-detail" data-process-dialog-detail></p></div></div></dialog>`;
+  }
+
   function renderServiceGallery(definition, service, locale) {
     if (!definition.gallery || !definition.gallery.length) return "";
     const total = definition.gallery.length;
@@ -1718,7 +1779,7 @@
   function renderHome(locale, services) {
     const home = locale.home;
     const steps = home.steps.map(function (step, index) {
-      return `<article class="step"><span class="step-num">${String(index + 1).padStart(2, "0")}</span><h3>${escapeHtml(step[0])}</h3><p>${escapeHtml(step[1])}</p></article>`;
+      return renderProcessStep(step, PROCESS_IMAGES.method[index], index, "method", home.methodEyebrow, locale);
     }).join("");
 
     return `<main class="home-page">
@@ -1732,7 +1793,7 @@
   function renderServices(locale, services) {
     const page = locale.servicesPage;
     const stages = page.stages.map(function (stage, index) {
-      return `<div class="info-node"><span>${String(index + 1).padStart(2, "0")}</span>${escapeHtml(stage)}</div>`;
+      return renderProcessStep(stage, PROCESS_IMAGES.journey[index], index, "journey", page.processLabel, locale);
     }).join("");
     return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p><div class="infographic">${stages}</div></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderCta(locale)}</main>`;
   }
@@ -1831,7 +1892,7 @@
     }).join("");
     const services = getServices(locale);
 
-    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><div class="language-switcher"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div><a class="nav-cta" href="contacto.html">${escapeHtml(locale.shell.assess)}</a></nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>`;
+    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><div class="language-switcher"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div><a class="nav-cta" href="contacto.html">${escapeHtml(locale.shell.assess)}</a></nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
   }
 
   function getLocalizedCountries(language) {
@@ -2120,6 +2181,53 @@
 
   }
 
+  function setupProcessDialog() {
+    const dialog = document.querySelector("#processDialog");
+    const triggers = document.querySelectorAll("[data-process-trigger]");
+    if (!dialog || !triggers.length) return;
+
+    const image = dialog.querySelector("[data-process-dialog-image]");
+    const eyebrow = dialog.querySelector("[data-process-dialog-eyebrow]");
+    const number = dialog.querySelector("[data-process-dialog-number]");
+    const title = dialog.querySelector("[data-process-dialog-title]");
+    const summary = dialog.querySelector("[data-process-dialog-summary]");
+    const detail = dialog.querySelector("[data-process-dialog-detail]");
+    const closeButton = dialog.querySelector("[data-process-close]");
+    let activeTrigger = null;
+
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener("click", function () {
+        activeTrigger = trigger;
+        eyebrow.textContent = trigger.dataset.processEyebrow;
+        number.textContent = trigger.dataset.processNumber;
+        title.textContent = trigger.dataset.processTitle;
+        summary.textContent = trigger.dataset.processSummary;
+        detail.textContent = trigger.dataset.processDetail;
+        image.src = imageUrl(trigger.dataset.processPhoto, 1400, 1000);
+        image.alt = trigger.dataset.processImageAlt;
+        image.style.objectPosition = trigger.dataset.processPosition;
+        image.hidden = false;
+        dialog.showModal();
+      });
+    });
+
+    closeButton.addEventListener("click", function () {
+      dialog.close();
+    });
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener("close", function () {
+      const triggerToFocus = activeTrigger;
+      image.hidden = true;
+      image.removeAttribute("src");
+      activeTrigger = null;
+      if (triggerToFocus) {
+        window.setTimeout(function () { triggerToFocus.focus(); }, 0);
+      }
+    });
+  }
+
   function setupCarousels(locale) {
     document.querySelectorAll("[data-carousel]").forEach(function (carousel) {
       const track = carousel.querySelector(".carousel-track");
@@ -2234,6 +2342,7 @@
     renderShell(content, currentPage, locale);
     setupShellInteractions(locale);
     setupContactForm(locale, formState);
+    setupProcessDialog();
     setupCarousels(locale);
     setupRevealAnimations();
     setupScrollHeader();
