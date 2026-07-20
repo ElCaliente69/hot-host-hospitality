@@ -6,15 +6,44 @@
   const WHATSAPP_NUMBER = "34600907716";
   const CONTACT_EMAIL = "direccion@hhosthospitality.com";
 
-  const SERVICE_DEFINITIONS = [
-    { key: "gestion-integral", path: "gestion-integral.html", icon: "⌂" },
-    { key: "guest-experience", path: "guest-experience.html", icon: "✦" },
-    { key: "revenue-management", path: "revenue-management.html", icon: "↗" },
-    { key: "check-in-operaciones", path: "check-in-operaciones.html", icon: "⌁" },
-    { key: "limpieza-lavanderia", path: "limpieza-lavanderia.html", icon: "◇" },
-    { key: "fotografia-profesional", path: "fotografia-profesional.html", icon: "◉" },
-    { key: "auditoria-rentabilidad", path: "auditoria-rentabilidad.html", icon: "◎" }
+  const favicon = document.createElement("link");
+  favicon.rel = "icon";
+  favicon.type = "image/png";
+  favicon.href = "assets/logo-3h.png";
+  document.head.appendChild(favicon);
+
+  const HERO_IMAGES = [
+    { id: "photo-1600573472592-401b489a3cdc", position: "center" },
+    { id: "photo-1600585154340-be6161a56a0c", position: "center" },
+    { id: "photo-1600596542815-ffad4c1539a9", position: "center" }
   ];
+
+  const SERVICE_DEFINITIONS = [
+    { key: "gestion-integral", path: "gestion-integral.html", icon: "⌂", imageId: "photo-1484480974693-6ca0a78fb36b", imagePosition: "center" },
+    { key: "guest-experience", path: "guest-experience.html", icon: "✦", imageId: "photo-1600210492486-724fe5c67fb0", imagePosition: "center" },
+    { key: "revenue-management", path: "revenue-management.html", icon: "↗", imageId: "photo-1551288049-bebda4e38f71", imagePosition: "center" },
+    { key: "check-in-operaciones", path: "check-in-operaciones.html", icon: "⌁", imageId: "photo-1741156386380-0236c72eb6f9", imagePosition: "center" },
+    { key: "limpieza-lavanderia", path: "limpieza-lavanderia.html", icon: "◇", imageId: "photo-1618773928121-c32242e63f39", imagePosition: "center" },
+    {
+      key: "fotografia-profesional",
+      path: "fotografia-profesional.html",
+      icon: "◉",
+      imageId: "photo-1726713356854-182a8a52f8f0",
+      imagePosition: "center",
+      gallery: [
+        { id: "photo-1600596542815-ffad4c1539a9", position: "center" },
+        { id: "photo-1600210492486-724fe5c67fb0", position: "center" },
+        { id: "photo-1600607687920-4e2a09cf159d", position: "center" },
+        { id: "photo-1600566753051-f0b89df2dd90", position: "center" },
+        { id: "photo-1600607688066-890987f18a86", position: "center" }
+      ]
+    },
+    { key: "auditoria-rentabilidad", path: "auditoria-rentabilidad.html", icon: "◎", imageId: "photo-1762427354397-854a52e0ded7", imagePosition: "center" }
+  ];
+
+  function imageUrl(photoId, width, height) {
+    return `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=${width}&h=${height}&q=85`;
+  }
 
   // ISO 3166-1 coverage plus Kosovo, with local fallback names and international dialling codes.
   const COUNTRIES = [
@@ -306,7 +335,11 @@
         requestAssessment: "Solicitar valoración",
         ctaEyebrow: "Hablemos claro, sin compromiso",
         ctaTitle: "¿Tu alojamiento podría ganar más y darte bastante menos trabajo?",
-        ctaButton: "Vamos a verlo →"
+        ctaButton: "Vamos a verlo →",
+        carouselRole: "carrusel",
+        previousImage: "Imagen anterior",
+        nextImage: "Imagen siguiente",
+        imageCounter: "Imagen {current} de {total}"
       },
       home: {
         eyebrow: "Gestión hotelera para alojamientos que quieren crecer",
@@ -320,6 +353,11 @@
         starsLabel: "Cinco estrellas",
         experiences: "Experiencias que dejan huella",
         logoAlt: "Logotipo de Hot Host Hospitality con tres haches",
+        heroPropertyAlts: [
+          "Terraza de una vivienda moderna con piscina y cielo abierto",
+          "Casa contemporánea iluminada al atardecer entre árboles",
+          "Villa blanca contemporánea con piscina exterior"
+        ],
         badge: "Premium con personalidad",
         servicesEyebrow: "Estrategia, operación y hospitalidad",
         servicesTitle: "Todo lo que hace que un alojamiento funcione de verdad.",
@@ -489,6 +527,7 @@
       services: {
         "gestion-integral": {
           title: "Gestión integral",
+          imageAlt: "Checklist de gestión operativa preparado sobre una mesa",
           summary: "Tu alojamiento, gestionado de principio a fin con visión hotelera, control operativo y comunicación transparente.",
           tag: "Control total, tranquilidad real",
           intro: "Centralizamos la operación del alojamiento para que el propietario conserve visibilidad sin cargar con la gestión diaria.",
@@ -501,6 +540,7 @@
         },
         "guest-experience": {
           title: "Guest Experience",
+          imageAlt: "Salón luminoso preparado para recibir a los huéspedes",
           summary: "Diseñamos estancias memorables, resolvemos necesidades y convertimos pequeños detalles en grandes reseñas.",
           tag: "Estancias que generan recuerdo",
           intro: "Diseñamos cada punto de contacto para que el huésped se sienta esperado, atendido y genuinamente bienvenido.",
@@ -514,6 +554,7 @@
         },
         "revenue-management": {
           title: "Revenue Management",
+          imageAlt: "Panel de analítica con gráficos de rendimiento",
           summary: "Precios dinámicos basados en demanda, eventos, competencia, ocupación y objetivos reales de rentabilidad.",
           tag: "Precio correcto, en el momento correcto",
           intro: "Transformamos datos de mercado en una estrategia de precios dinámica, coherente con tu posicionamiento y tus objetivos.",
@@ -526,6 +567,7 @@
         },
         "check-in-operaciones": {
           title: "Check-in & operaciones",
+          imageAlt: "Entrega de llaves en la entrada de una vivienda",
           summary: "Llegadas fluidas, salidas controladas, coordinación diaria y respuesta rápida ante incidencias.",
           tag: "Llegadas fluidas, control diario",
           intro: "Coordinamos los momentos críticos de cada estancia y mantenemos la operación en movimiento, incluso cuando aparece un imprevisto.",
@@ -538,6 +580,7 @@
         },
         "limpieza-lavanderia": {
           title: "Limpieza & lavandería",
+          imageAlt: "Dormitorio prístino con una cama impecable y luz cálida",
           summary: "Estándares verificables, coordinación profesional y una presentación impecable entre reservas.",
           tag: "Calidad visible en cada detalle",
           intro: "Coordinamos una preparación consistente del alojamiento, con estándares claros y controles antes de cada llegada.",
@@ -550,6 +593,17 @@
         },
         "fotografia-profesional": {
           title: "Fotografía profesional",
+          imageAlt: "Cámara profesional sobre trípode fotografiando un interior",
+          galleryEyebrow: "Una imagen vende antes de que leas una palabra",
+          galleryTitle: "Propiedades que entran por los ojos.",
+          galleryLead: "Una buena sesión no enseña habitaciones sueltas: cuenta cómo se sentiría una estancia completa.",
+          galleryAlts: [
+            "Villa blanca contemporánea con piscina exterior",
+            "Salón luminoso con mobiliario cálido y plantas",
+            "Comedor contemporáneo abierto hacia la cocina",
+            "Dormitorio moderno con madera y abundante luz natural",
+            "Baño contemporáneo de mármol con mueble de madera"
+          ],
           summary: "Una puesta en escena visual que aumenta el atractivo del anuncio y comunica el valor de la propiedad.",
           tag: "Haz visible el valor",
           intro: "Planificamos la imagen del alojamiento para atraer al huésped adecuado, elevar la percepción de calidad y mejorar la conversión.",
@@ -562,6 +616,7 @@
         },
         "auditoria-rentabilidad": {
           title: "Auditoría de rentabilidad",
+          imageAlt: "Gráficos, calculadora y lápiz sobre una mesa de análisis",
           summary: "Diagnóstico comercial y operativo para detectar fugas, oportunidades y prioridades de mejora.",
           tag: "Primero entender, luego mejorar",
           intro: "Analizamos el alojamiento como producto, operación y activo para identificar las acciones con mayor impacto potencial.",
@@ -610,7 +665,11 @@
         requestAssessment: "Request an assessment",
         ctaEyebrow: "A straight conversation, no commitment",
         ctaTitle: "Could your accommodation earn more while giving you far less work?",
-        ctaButton: "Let's find out →"
+        ctaButton: "Let's find out →",
+        carouselRole: "carousel",
+        previousImage: "Previous image",
+        nextImage: "Next image",
+        imageCounter: "Image {current} of {total}"
       },
       home: {
         eyebrow: "Hotel management for accommodation ready to grow",
@@ -624,6 +683,11 @@
         starsLabel: "Five stars",
         experiences: "Experiences that leave a mark",
         logoAlt: "Hot Host Hospitality logo with three letter Hs",
+        heroPropertyAlts: [
+          "Modern home terrace with a pool and open sky",
+          "Contemporary house illuminated at dusk among trees",
+          "Contemporary white villa with an outdoor pool"
+        ],
         badge: "Premium with personality",
         servicesEyebrow: "Strategy, operations and hospitality",
         servicesTitle: "Everything that makes accommodation work properly.",
@@ -793,6 +857,7 @@
       services: {
         "gestion-integral": {
           title: "Full management",
+          imageAlt: "Operational management checklist laid out on a desk",
           summary: "Your accommodation managed from start to finish with hotel expertise, operational control and transparent communication.",
           tag: "Total control, genuine peace of mind",
           intro: "We centralise accommodation operations so owners retain visibility without carrying the burden of day-to-day management.",
@@ -805,6 +870,7 @@
         },
         "guest-experience": {
           title: "Guest Experience",
+          imageAlt: "Bright living room prepared to welcome guests",
           summary: "We design memorable stays, solve needs and turn small details into excellent reviews.",
           tag: "Stays worth remembering",
           intro: "We design every touchpoint so guests feel expected, looked after and genuinely welcome.",
@@ -818,6 +884,7 @@
         },
         "revenue-management": {
           title: "Revenue Management",
+          imageAlt: "Analytics dashboard displaying performance charts",
           summary: "Dynamic pricing based on demand, events, competition, occupancy and real profitability targets.",
           tag: "The right price at the right time",
           intro: "We turn market data into a dynamic pricing strategy aligned with your positioning and objectives.",
@@ -830,6 +897,7 @@
         },
         "check-in-operaciones": {
           title: "Check-in & operations",
+          imageAlt: "Keys being handed over at the entrance to a home",
           summary: "Smooth arrivals, controlled departures, daily coordination and a rapid response to issues.",
           tag: "Smooth arrivals, daily control",
           intro: "We coordinate the critical moments of every stay and keep operations moving, even when something unexpected happens.",
@@ -842,6 +910,7 @@
         },
         "limpieza-lavanderia": {
           title: "Cleaning & laundry",
+          imageAlt: "Pristine bedroom with an immaculate bed and warm light",
           summary: "Verifiable standards, professional coordination and immaculate presentation between bookings.",
           tag: "Quality visible in every detail",
           intro: "We coordinate consistent accommodation preparation, with clear standards and checks before every arrival.",
@@ -854,6 +923,17 @@
         },
         "fotografia-profesional": {
           title: "Professional photography",
+          imageAlt: "Professional camera on a tripod photographing an interior",
+          galleryEyebrow: "An image sells before a word is read",
+          galleryTitle: "Properties that catch the eye.",
+          galleryLead: "A strong shoot does not show isolated rooms; it tells the story of an entire stay.",
+          galleryAlts: [
+            "Contemporary white villa with an outdoor pool",
+            "Bright living room with warm furniture and plants",
+            "Contemporary dining room opening onto the kitchen",
+            "Modern bedroom with wood finishes and abundant natural light",
+            "Contemporary marble bathroom with a wooden vanity"
+          ],
           summary: "Visual staging that makes the listing more appealing and communicates the property's value.",
           tag: "Make the value visible",
           intro: "We plan the accommodation's imagery to attract the right guest, raise perceived quality and improve conversion.",
@@ -866,6 +946,7 @@
         },
         "auditoria-rentabilidad": {
           title: "Profitability audit",
+          imageAlt: "Charts, calculator and pencil on an analysis desk",
           summary: "A commercial and operational diagnosis to identify leakage, opportunities and improvement priorities.",
           tag: "Understand first, then improve",
           intro: "We analyse the accommodation as a product, an operation and an asset to identify the actions with the greatest potential impact.",
@@ -914,7 +995,11 @@
         requestAssessment: "Demander une évaluation",
         ctaEyebrow: "Parlons franchement, sans engagement",
         ctaTitle: "Votre hébergement pourrait-il rapporter plus tout en vous donnant bien moins de travail ?",
-        ctaButton: "Vérifions-le →"
+        ctaButton: "Vérifions-le →",
+        carouselRole: "carrousel",
+        previousImage: "Image précédente",
+        nextImage: "Image suivante",
+        imageCounter: "Image {current} sur {total}"
       },
       home: {
         eyebrow: "Une gestion hôtelière pour les hébergements qui veulent grandir",
@@ -928,6 +1013,11 @@
         starsLabel: "Cinq étoiles",
         experiences: "Des expériences qui marquent",
         logoAlt: "Logo Hot Host Hospitality composé de trois lettres H",
+        heroPropertyAlts: [
+          "Terrasse d’une maison moderne avec piscine et ciel dégagé",
+          "Maison contemporaine éclairée au crépuscule parmi les arbres",
+          "Villa blanche contemporaine avec piscine extérieure"
+        ],
         badge: "Premium avec personnalité",
         servicesEyebrow: "Stratégie, opérations et hospitalité",
         servicesTitle: "Tout ce qui fait vraiment fonctionner un hébergement.",
@@ -1097,6 +1187,7 @@
       services: {
         "gestion-integral": {
           title: "Gestion intégrale",
+          imageAlt: "Checklist de gestion opérationnelle posée sur un bureau",
           summary: "Votre hébergement géré de bout en bout avec une vision hôtelière, un contrôle opérationnel et une communication transparente.",
           tag: "Contrôle total, sérénité réelle",
           intro: "Nous centralisons les opérations de l’hébergement afin que le propriétaire conserve une visibilité complète sans supporter la gestion quotidienne.",
@@ -1109,6 +1200,7 @@
         },
         "guest-experience": {
           title: "Guest Experience",
+          imageAlt: "Salon lumineux préparé pour accueillir les voyageurs",
           summary: "Nous concevons des séjours mémorables, répondons aux besoins et transformons les petits détails en excellents avis.",
           tag: "Des séjours qui restent en mémoire",
           intro: "Nous concevons chaque point de contact pour que le voyageur se sente attendu, accompagné et sincèrement bienvenu.",
@@ -1122,6 +1214,7 @@
         },
         "revenue-management": {
           title: "Revenue Management",
+          imageAlt: "Tableau de bord analytique affichant des graphiques de performance",
           summary: "Tarification dynamique fondée sur la demande, les événements, la concurrence, l’occupation et de vrais objectifs de rentabilité.",
           tag: "Le bon prix au bon moment",
           intro: "Nous transformons les données du marché en stratégie tarifaire dynamique, cohérente avec votre positionnement et vos objectifs.",
@@ -1134,6 +1227,7 @@
         },
         "check-in-operaciones": {
           title: "Check-in & opérations",
+          imageAlt: "Remise de clés à l’entrée d’un logement",
           summary: "Des arrivées fluides, des départs maîtrisés, une coordination quotidienne et une réponse rapide aux incidents.",
           tag: "Arrivées fluides, contrôle quotidien",
           intro: "Nous coordonnons les moments critiques de chaque séjour et maintenons les opérations en mouvement, même face à un imprévu.",
@@ -1146,6 +1240,7 @@
         },
         "limpieza-lavanderia": {
           title: "Nettoyage & blanchisserie",
+          imageAlt: "Chambre impeccable avec un lit parfaitement préparé et une lumière chaleureuse",
           summary: "Des standards vérifiables, une coordination professionnelle et une présentation impeccable entre les réservations.",
           tag: "Une qualité visible dans chaque détail",
           intro: "Nous coordonnons une préparation constante de l’hébergement, avec des standards clairs et des contrôles avant chaque arrivée.",
@@ -1158,6 +1253,17 @@
         },
         "fotografia-profesional": {
           title: "Photographie professionnelle",
+          imageAlt: "Appareil photo professionnel sur trépied photographiant un intérieur",
+          galleryEyebrow: "Une image vend avant même la première phrase",
+          galleryTitle: "Des propriétés qui attirent le regard.",
+          galleryLead: "Une bonne séance ne montre pas des pièces isolées ; elle raconte la promesse d’un séjour complet.",
+          galleryAlts: [
+            "Villa blanche contemporaine avec piscine extérieure",
+            "Salon lumineux au mobilier chaleureux et végétalisé",
+            "Salle à manger contemporaine ouverte sur la cuisine",
+            "Chambre moderne avec bois et abondante lumière naturelle",
+            "Salle de bains contemporaine en marbre avec meuble en bois"
+          ],
           summary: "Une mise en scène visuelle qui renforce l’attrait de l’annonce et communique la valeur du bien.",
           tag: "Rendez la valeur visible",
           intro: "Nous planifions l’image de l’hébergement pour attirer le bon voyageur, renforcer la perception de qualité et améliorer la conversion.",
@@ -1170,6 +1276,7 @@
         },
         "auditoria-rentabilidad": {
           title: "Audit de rentabilité",
+          imageAlt: "Graphiques, calculatrice et crayon sur une table d’analyse",
           summary: "Un diagnostic commercial et opérationnel pour détecter les fuites, les opportunités et les priorités d’amélioration.",
           tag: "Comprendre d’abord, améliorer ensuite",
           intro: "Nous analysons l’hébergement comme produit, opération et actif afin d’identifier les actions au plus fort impact potentiel.",
@@ -1218,7 +1325,11 @@
         requestAssessment: "Richiedi una valutazione",
         ctaEyebrow: "Parliamone con chiarezza, senza impegno",
         ctaTitle: "Il tuo alloggio potrebbe rendere di più e darti molto meno lavoro?",
-        ctaButton: "Scopriamolo →"
+        ctaButton: "Scopriamolo →",
+        carouselRole: "carosello",
+        previousImage: "Immagine precedente",
+        nextImage: "Immagine successiva",
+        imageCounter: "Immagine {current} di {total}"
       },
       home: {
         eyebrow: "Gestione alberghiera per alloggi che vogliono crescere",
@@ -1232,6 +1343,11 @@
         starsLabel: "Cinque stelle",
         experiences: "Esperienze che lasciano il segno",
         logoAlt: "Logo Hot Host Hospitality con tre lettere H",
+        heroPropertyAlts: [
+          "Terrazza di una casa moderna con piscina e cielo aperto",
+          "Casa contemporanea illuminata al tramonto tra gli alberi",
+          "Villa bianca contemporanea con piscina esterna"
+        ],
         badge: "Premium con personalità",
         servicesEyebrow: "Strategia, operazioni e ospitalità",
         servicesTitle: "Tutto ciò che fa funzionare davvero un alloggio.",
@@ -1401,6 +1517,7 @@
       services: {
         "gestion-integral": {
           title: "Gestione completa",
+          imageAlt: "Checklist di gestione operativa disposta su una scrivania",
           summary: "Il tuo alloggio gestito dall’inizio alla fine con visione alberghiera, controllo operativo e comunicazione trasparente.",
           tag: "Controllo totale, vera serenità",
           intro: "Centralizziamo le operazioni dell’alloggio affinché il proprietario mantenga piena visibilità senza il peso della gestione quotidiana.",
@@ -1413,6 +1530,7 @@
         },
         "guest-experience": {
           title: "Guest Experience",
+          imageAlt: "Soggiorno luminoso preparato per accogliere gli ospiti",
           summary: "Progettiamo soggiorni memorabili, rispondiamo alle esigenze e trasformiamo piccoli dettagli in ottime recensioni.",
           tag: "Soggiorni che diventano ricordi",
           intro: "Progettiamo ogni punto di contatto affinché l’ospite si senta atteso, seguito e sinceramente benvenuto.",
@@ -1426,6 +1544,7 @@
         },
         "revenue-management": {
           title: "Revenue Management",
+          imageAlt: "Dashboard analitica con grafici delle prestazioni",
           summary: "Prezzi dinamici basati su domanda, eventi, concorrenza, occupazione e obiettivi reali di redditività.",
           tag: "Il prezzo giusto al momento giusto",
           intro: "Trasformiamo i dati di mercato in una strategia tariffaria dinamica, coerente con il tuo posizionamento e i tuoi obiettivi.",
@@ -1438,6 +1557,7 @@
         },
         "check-in-operaciones": {
           title: "Check-in & operazioni",
+          imageAlt: "Consegna delle chiavi all’ingresso di un’abitazione",
           summary: "Arrivi fluidi, partenze controllate, coordinamento quotidiano e risposta rapida ai problemi.",
           tag: "Arrivi fluidi, controllo quotidiano",
           intro: "Coordiniamo i momenti critici di ogni soggiorno e manteniamo le operazioni in movimento, anche quando si presenta un imprevisto.",
@@ -1450,6 +1570,7 @@
         },
         "limpieza-lavanderia": {
           title: "Pulizia & lavanderia",
+          imageAlt: "Camera immacolata con letto perfettamente preparato e luce calda",
           summary: "Standard verificabili, coordinamento professionale e presentazione impeccabile tra una prenotazione e l’altra.",
           tag: "Qualità visibile in ogni dettaglio",
           intro: "Coordiniamo una preparazione costante dell’alloggio, con standard chiari e controlli prima di ogni arrivo.",
@@ -1462,6 +1583,17 @@
         },
         "fotografia-profesional": {
           title: "Fotografia professionale",
+          imageAlt: "Fotocamera professionale su treppiede mentre fotografa un interno",
+          galleryEyebrow: "Un’immagine vende prima ancora di leggere una parola",
+          galleryTitle: "Proprietà che conquistano lo sguardo.",
+          galleryLead: "Un buon servizio fotografico non mostra stanze isolate: racconta la promessa di un intero soggiorno.",
+          galleryAlts: [
+            "Villa bianca contemporanea con piscina esterna",
+            "Soggiorno luminoso con arredi caldi e piante",
+            "Sala da pranzo contemporanea aperta sulla cucina",
+            "Camera moderna con legno e abbondante luce naturale",
+            "Bagno contemporaneo in marmo con mobile in legno"
+          ],
           summary: "Una presentazione visiva che aumenta l’attrattiva dell’annuncio e comunica il valore della proprietà.",
           tag: "Rendi visibile il valore",
           intro: "Pianifichiamo l’immagine dell’alloggio per attirare l’ospite giusto, aumentare la qualità percepita e migliorare la conversione.",
@@ -1474,6 +1606,7 @@
         },
         "auditoria-rentabilidad": {
           title: "Audit di redditività",
+          imageAlt: "Grafici, calcolatrice e matita su un tavolo di analisi",
           summary: "Una diagnosi commerciale e operativa per individuare perdite, opportunità e priorità di miglioramento.",
           tag: "Prima capire, poi migliorare",
           intro: "Analizziamo l’alloggio come prodotto, operazione e bene per individuare le azioni con il maggiore impatto potenziale.",
@@ -1545,12 +1678,37 @@
     });
   }
 
+  function renderHeroVisual(home) {
+    const photos = HERO_IMAGES.map(function (photo, index) {
+      const isPrimary = index === 0;
+      const width = isPrimary ? 900 : 720;
+      const height = isPrimary ? 1200 : 600;
+      return `<figure class="hero-property-photo hero-property-photo-${index + 1}"><img src="${imageUrl(photo.id, width, height)}" alt="${escapeHtml(home.heroPropertyAlts[index])}" width="${width}" height="${height}" ${isPrimary ? "fetchpriority=\"high\"" : "loading=\"eager\""} decoding="async" style="object-position:${escapeHtml(photo.position)}"></figure>`;
+    }).join("");
+
+    return `<div class="hero-brand-visual"><div class="hero-property-collage">${photos}</div><div class="hero-logo-seal"><img class="hero-logo" src="assets/logo-3h.png" alt="${escapeHtml(home.logoAlt)}" width="1254" height="1254"></div><div class="visual-badge">${escapeHtml(home.badge)}</div></div>`;
+  }
+
   function renderServiceCard(service, locale) {
-    return `<article class="card reveal"><div class="icon">${escapeHtml(service.icon)}</div><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p><a class="card-link" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.exploreService)}</a></article>`;
+    return `<article class="card service-card reveal"><div class="service-card-media"><img src="${imageUrl(service.imageId, 800, 520)}" alt="${escapeHtml(service.imageAlt)}" width="800" height="520" loading="lazy" decoding="async" style="object-position:${escapeHtml(service.imagePosition)}"><div class="icon" aria-hidden="true">${escapeHtml(service.icon)}</div></div><div class="service-card-body"><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p><a class="card-link" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.exploreService)}</a></div></article>`;
   }
 
   function renderServiceRow(service, locale) {
-    return `<article class="service-row reveal"><div class="icon">${escapeHtml(service.icon)}</div><div><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p></div><a class="btn ghost" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.viewDetail)}</a></article>`;
+    return `<article class="service-row service-row-visual reveal"><div class="service-row-media"><img src="${imageUrl(service.imageId, 520, 360)}" alt="${escapeHtml(service.imageAlt)}" width="520" height="360" loading="lazy" decoding="async" style="object-position:${escapeHtml(service.imagePosition)}"><div class="icon" aria-hidden="true">${escapeHtml(service.icon)}</div></div><div><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p></div><a class="btn ghost" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.viewDetail)}</a></article>`;
+  }
+
+  function renderCounter(template, current, total) {
+    return template.replace("{current}", String(current)).replace("{total}", String(total));
+  }
+
+  function renderServiceGallery(definition, service, locale) {
+    if (!definition.gallery || !definition.gallery.length) return "";
+    const total = definition.gallery.length;
+    const slides = definition.gallery.map(function (photo, index) {
+      return `<figure class="property-slide" data-slide aria-hidden="${index === 0 ? "false" : "true"}"><img src="${imageUrl(photo.id, 1200, 900)}" alt="${escapeHtml(service.galleryAlts[index])}" width="1200" height="900" loading="lazy" decoding="async" style="object-position:${escapeHtml(photo.position)}"><figcaption>${escapeHtml(service.galleryAlts[index])}</figcaption></figure>`;
+    }).join("");
+
+    return `<section class="section service-gallery-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(service.galleryEyebrow)}</div><h2>${escapeHtml(service.galleryTitle)}</h2></div><p>${escapeHtml(service.galleryLead)}</p></div><div class="property-carousel" data-carousel role="region" aria-roledescription="${escapeHtml(locale.common.carouselRole)}" aria-label="${escapeHtml(service.galleryTitle)}" tabindex="0"><div class="carousel-viewport"><div class="carousel-track">${slides}</div></div><div class="carousel-controls"><button class="carousel-button" type="button" data-carousel-previous aria-label="${escapeHtml(locale.common.previousImage)}">←</button><span class="carousel-status" data-carousel-status aria-live="polite">${escapeHtml(renderCounter(locale.common.imageCounter, 1, total))}</span><button class="carousel-button" type="button" data-carousel-next aria-label="${escapeHtml(locale.common.nextImage)}">→</button></div></div></div></section>`;
   }
 
   function renderCta(locale) {
@@ -1564,7 +1722,7 @@
     }).join("");
 
     return `<main class="home-page">
-      <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="servicios.html">${escapeHtml(home.discover)}</a><a class="btn ghost" href="contacto.html">${escapeHtml(home.analyse)}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div><div class="hero-brand-visual"><img src="assets/logo-3h.png" alt="${escapeHtml(home.logoAlt)}" width="1254" height="1254" fetchpriority="high"><div class="visual-badge">${escapeHtml(home.badge)}</div></div></div></section>
+      <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="servicios.html">${escapeHtml(home.discover)}</a><a class="btn ghost" href="contacto.html">${escapeHtml(home.analyse)}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
       <section class="section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.servicesEyebrow)}</div><h2>${escapeHtml(home.servicesTitle)}</h2></div><p>${escapeHtml(home.servicesLead)}</p></div><div class="grid grid-3">${services.map(function (service) { return renderServiceCard(service, locale); }).join("")}</div><div style="text-align:center;margin-top:34px"><a class="btn ghost" href="servicios.html">${escapeHtml(home.allServices)}</a></div></div></section>
       <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.methodEyebrow)}</div><h2>${renderLines(home.methodTitle)}</h2></div><p>${escapeHtml(home.methodLead)}</p></div><div class="grid grid-4">${steps}</div></div></section>
       ${renderCta(locale)}
@@ -1650,7 +1808,8 @@
     const benefits = service.benefits.map(function (benefit) {
       return `<li>✓ ${escapeHtml(benefit)}</li>`;
     }).join("");
-    return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="servicios.html">${escapeHtml(locale.common.services)}</a> / ${escapeHtml(service.title)}</div><div class="eyebrow">${escapeHtml(service.tag)}</div><h1>${escapeHtml(service.title)}</h1><p class="lead">${escapeHtml(service.intro)}</p></div></section><section class="section"><div class="wrap service-detail"><article class="prose">${renderServiceContent(service.content)}</article><aside class="side-panel"><div class="icon">${escapeHtml(definition.icon)}</div><h3>${escapeHtml(locale.common.includes)}</h3><ul>${benefits}</ul><a class="btn primary" style="margin-top:18px;width:100%;background:#e7c46a;color:#171717" href="contacto.html">${escapeHtml(locale.common.requestAssessment)}</a></aside></div></section>${renderCta(locale)}</main>`;
+    const gallery = renderServiceGallery(definition, service, locale);
+    return `<main><section class="page-hero service-page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="servicios.html">${escapeHtml(locale.common.services)}</a> / ${escapeHtml(service.title)}</div><div class="service-hero-grid"><div class="service-hero-copy"><div class="eyebrow">${escapeHtml(service.tag)}</div><h1>${escapeHtml(service.title)}</h1><p class="lead">${escapeHtml(service.intro)}</p></div><figure class="service-hero-media"><img src="${imageUrl(definition.imageId, 1400, 850)}" alt="${escapeHtml(service.imageAlt)}" width="1400" height="850" fetchpriority="high" decoding="async" style="object-position:${escapeHtml(definition.imagePosition)}"><span class="service-hero-icon" aria-hidden="true">${escapeHtml(definition.icon)}</span></figure></div></div></section>${gallery}<section class="section"><div class="wrap service-detail"><article class="prose">${renderServiceContent(service.content)}</article><aside class="side-panel"><div class="icon">${escapeHtml(definition.icon)}</div><h3>${escapeHtml(locale.common.includes)}</h3><ul>${benefits}</ul><a class="btn primary" style="margin-top:18px;width:100%;background:#e7c46a;color:#171717" href="contacto.html">${escapeHtml(locale.common.requestAssessment)}</a></aside></div></section>${renderCta(locale)}</main>`;
   }
 
   function renderBrand() {
@@ -1961,6 +2120,54 @@
 
   }
 
+  function setupCarousels(locale) {
+    document.querySelectorAll("[data-carousel]").forEach(function (carousel) {
+      const track = carousel.querySelector(".carousel-track");
+      const slides = Array.from(carousel.querySelectorAll("[data-slide]"));
+      const previousButton = carousel.querySelector("[data-carousel-previous]");
+      const nextButton = carousel.querySelector("[data-carousel-next]");
+      const status = carousel.querySelector("[data-carousel-status]");
+      let currentIndex = 0;
+
+      function updateCarousel() {
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        slides.forEach(function (slide, index) {
+          slide.setAttribute("aria-hidden", String(index !== currentIndex));
+        });
+        previousButton.disabled = currentIndex === 0;
+        nextButton.disabled = currentIndex === slides.length - 1;
+        status.textContent = renderCounter(locale.common.imageCounter, currentIndex + 1, slides.length);
+      }
+
+      function showPrevious() {
+        if (currentIndex > 0) {
+          currentIndex -= 1;
+          updateCarousel();
+        }
+      }
+
+      function showNext() {
+        if (currentIndex < slides.length - 1) {
+          currentIndex += 1;
+          updateCarousel();
+        }
+      }
+
+      previousButton.addEventListener("click", showPrevious);
+      nextButton.addEventListener("click", showNext);
+      carousel.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          showPrevious();
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          showNext();
+        }
+      });
+      updateCarousel();
+    });
+  }
+
   function setupRevealAnimations() {
     if (revealObserver) revealObserver.disconnect();
     const revealElements = document.querySelectorAll(".reveal");
@@ -2027,6 +2234,7 @@
     renderShell(content, currentPage, locale);
     setupShellInteractions(locale);
     setupContactForm(locale, formState);
+    setupCarousels(locale);
     setupRevealAnimations();
     setupScrollHeader();
   }
