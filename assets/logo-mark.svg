@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <defs>
+    <linearGradient id="ember" x1="18" y1="12" x2="162" y2="168" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8f1908"/>
+      <stop offset="0.58" stop-color="#c92f12"/>
+      <stop offset="1" stop-color="#ff651f"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="34" y1="24" x2="146" y2="152" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff0b8"/>
+      <stop offset="0.45" stop-color="#e3b652"/>
+      <stop offset="1" stop-color="#a86c12"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#4c1004" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+  <rect x="5" y="5" width="170" height="170" rx="43" fill="url(#ember)" stroke="url(#gold)" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="14" y="14" width="152" height="152" rx="34" fill="none" stroke="#f7d987" stroke-opacity="0.32"/>
+  <path d="M34 61 90 27l56 34" fill="none" stroke="url(#gold)" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter"/>
+  <g fill="none" stroke-linecap="square" stroke-width="7">
+    <path d="M41 70v67M65 70v67M41 103h24" stroke="#fff8e8"/>
+    <path d="M78 70v67M102 70v67M78 103h24" stroke="url(#gold)"/>
+    <path d="M115 70v67M139 70v67M115 103h24" stroke="#fff8e8"/>
+  </g>
+  <g fill="#f7d987">
+    <rect x="84" y="49" width="5" height="5"/>
+    <rect x="92" y="49" width="5" height="5"/>
+    <rect x="84" y="57" width="5" height="5"/>
+    <rect x="92" y="57" width="5" height="5"/>
+  </g>
+  <path d="M31 150h118" stroke="url(#gold)" stroke-width="2"/>
+  <path d="m90 143 4 4-4 4-4-4z" fill="#fff0b8"/>
+</svg>

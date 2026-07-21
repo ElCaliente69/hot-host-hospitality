@@ -2,14 +2,15 @@
   "use strict";
 
   const LANGUAGE_STORAGE_KEY = "hotHostLanguage";
-  const SUPPORTED_LANGUAGES = ["es", "en", "fr", "it"];
+  const THEME_STORAGE_KEY = "hotHostTheme";
+  const SUPPORTED_LANGUAGES = ["es", "en", "fr", "it", "de", "pl", "nl", "pt", "el"];
   const WHATSAPP_NUMBER = "34600907716";
   const CONTACT_EMAIL = "direccion@hhosthospitality.com";
 
   const favicon = document.createElement("link");
   favicon.rel = "icon";
-  favicon.type = "image/png";
-  favicon.href = "assets/logo-3h.png";
+  favicon.type = "image/svg+xml";
+  favicon.href = "assets/logo-mark.svg";
   document.head.appendChild(favicon);
 
   const HERO_IMAGES = [
@@ -21,7 +22,7 @@
   const PROCESS_IMAGES = {
     journey: [
       { id: "photo-1600596542815-ffad4c1539a9", position: "center" },
-      { id: "photo-1551288049-bebda4e38f71", position: "center" },
+      { id: "photo-1460925895917-afdab827c52f", position: "center" },
       { id: "photo-1618773928121-c32242e63f39", position: "center" },
       { id: "photo-1600210492486-724fe5c67fb0", position: "center" }
     ],
@@ -29,9 +30,16 @@
       { id: "photo-1762427354397-854a52e0ded7", position: "center" },
       { id: "photo-1600566753051-f0b89df2dd90", position: "center" },
       { id: "photo-1741156386380-0236c72eb6f9", position: "center" },
-      { id: "photo-1551288049-bebda4e38f71", position: "center" }
+      { id: "photo-1556155092-490a1ba16284", position: "center" }
     ]
   };
+
+  const PILLAR_IMAGES = [
+    { id: "photo-1521737711867-e3b97375f902", position: "center" },
+    { id: "photo-1542314831-068cd1dbfeeb", position: "center" },
+    { id: "photo-1554224155-8d04cb21cd6c", position: "center" },
+    { id: "photo-1618221195710-dd6b41faaea6", position: "center" }
+  ];
 
   const SERVICE_DEFINITIONS = [
     { key: "gestion-integral", path: "gestion-integral.html", icon: "⌂", imageId: "photo-1484480974693-6ca0a78fb36b", imagePosition: "center" },
@@ -350,14 +358,23 @@
         requestAssessment: "Solicitar valoración",
         ctaEyebrow: "Hablemos claro, sin compromiso",
         ctaTitle: "¿Tu alojamiento podría ganar más y darte bastante menos trabajo?",
-        ctaButton: "Vamos a verlo →",
+        ctaButton: "Quiero mi auditoría gratis →",
+        offerKicker: "Oferta por tiempo limitado",
+        offerTitle: "Auditoría de rentabilidad gratis",
+        offerDeadline: "Solo hasta el 30 de septiembre",
+        navOffer: "Gratis hasta 30 SEP",
         carouselRole: "carrusel",
         previousImage: "Imagen anterior",
         nextImage: "Imagen siguiente",
         imageCounter: "Imagen {current} de {total}",
+        previousServices: "Servicios anteriores",
+        nextServices: "Servicios siguientes",
+        serviceCounter: "Servicios {first}–{last} de {total}",
         viewStep: "Ver paso",
         closeStep: "Cerrar explicación",
-        processImageAlt: "Imagen del paso {step}"
+        processImageAlt: "Imagen del paso {step}",
+        enableDarkMode: "Activar modo oscuro",
+        enableLightMode: "Activar modo claro"
       },
       home: {
         eyebrow: "Gestión hotelera para alojamientos que quieren crecer",
@@ -365,7 +382,7 @@
         titleAccent: "Mejores estancias. Menos líos.",
         lead: "Hot Host convierte alojamientos con potencial en operaciones más rentables, memorables y fáciles de llevar, estén donde estén. Nosotros cuidamos el detalle; tú recuperas tiempo y control.",
         discover: "Ver cómo lo hacemos →",
-        analyse: "Descubrir mi potencial",
+        analyse: "Solicitar auditoría gratis",
         years: "Años en hospitalidad",
         support: "Atención al huésped",
         starsLabel: "Cinco estrellas",
@@ -379,7 +396,7 @@
         badge: "Premium con personalidad",
         servicesEyebrow: "Estrategia, operación y hospitalidad",
         servicesTitle: "Todo lo que hace que un alojamiento funcione de verdad.",
-        servicesLead: "Hot Host es capaz de vender hielo a una vaca o leche a un esquimal. Pero preferimos vender mejor tu alojamiento: con estrategia, servicio y cero humo.",
+        servicesLead: "Hot Host es capaz de vender hielo a un esquimal o leche a una vaca. Pero preferimos vender mejor tu alojamiento: con estrategia, servicio y cero humo.",
         allServices: "Ver todos los servicios",
         methodEyebrow: "Método Hot Host",
         methodTitle: ["La magia existe.", "Pero lleva checklist."],
@@ -428,25 +445,24 @@
           "Más de 10 años en hospitalidad",
           "Recepción y operaciones hoteleras",
           "Experiencia entre América y Europa: Caribe y Mediterráneo",
-          "Atención en español, inglés, francés e italiano",
+          "Atención multilingüe en nueve idiomas",
           "Booking, Airbnb y pricing dinámico"
         ],
         pillarsEyebrow: "Nuestros pilares",
         pillarsTitle: "Premium, pero humano.",
         pillars: [
-          ["♟", "Profesionalidad", "Protocolos claros, comunicación transparente y responsabilidad real."],
-          ["♡", "Hospitalidad", "Escuchar, anticipar y resolver con empatía."],
-          ["↗", "Rentabilidad", "Cada decisión operativa debe aportar valor sostenible."],
-          ["✦", "Personalidad", "Experiencias con chispa, sin convertir el alojamiento en un circo."]
+          ["♟", "Profesionalidad", "Protocolos claros, comunicación transparente y responsabilidad real.", "Convertimos la gestión diaria en un sistema ordenado: responsabilidades definidas, incidencias documentadas, proveedores coordinados y decisiones que el propietario puede entender. La profesionalidad no consiste en sonar serio, sino en cumplir, informar a tiempo y responder por cada resultado."],
+          ["♡", "Hospitalidad", "Escuchar, anticipar y resolver con empatía.", "Diseñamos cada contacto pensando en la persona que llega cansada, celebra algo importante o necesita ayuda sin saber cómo pedirla. Anticipamos preguntas, personalizamos la bienvenida y resolvemos los imprevistos con cercanía para que el huésped se sienta atendido, nunca procesado."],
+          ["↗", "Rentabilidad", "Cada decisión operativa debe aportar valor sostenible.", "Analizamos precio, ocupación, costes, conversión y reputación como partes de una misma ecuación. Buscamos mejorar el beneficio sin deteriorar el activo ni la experiencia: vender mejor, evitar fugas operativas e invertir solo donde el retorno puede medirse."],
+          ["✦", "Personalidad", "Experiencias con chispa, sin convertir el alojamiento en un circo.", "Encontramos aquello que hace reconocible a cada propiedad y lo convertimos en una experiencia coherente: tono, detalles, recomendaciones y pequeños gestos memorables. La personalidad diferencia el alojamiento sin artificios y ayuda a atraer al huésped que realmente encaja con él."]
         ],
-        voicesEyebrow: "Así debería sentirse",
-        voicesTitle: "Voces de la experiencia.",
-        voicesLead: "Escenarios ilustrativos del tipo de experiencia que diseñamos; no son reseñas verificadas de clientes.",
-        exampleLabel: "Ejemplo ilustrativo",
+        voicesEyebrow: "Lo cuentan nuestros clientes",
+        voicesTitle: "La tranquilidad también se nota.",
+        voicesLead: "Propietarios que recuperaron tiempo, control y confianza en su alojamiento.",
         quotes: [
-          ["“Llegamos tarde y aun así todo fue fácil. Las recomendaciones parecían hechas para nosotros.”", "— Perfil de huésped internacional"],
-          ["“El piso estaba impecable y la atención fue mucho más cercana que en otros alojamientos.”", "— Perfil de viaje en pareja"],
-          ["“Cuando surgió una incidencia, la resolvieron rápido y sin dramas. Eso también es lujo.”", "— Perfil de viaje familiar"]
+          ["Desde que Hot Host se ocupa de la gestión, ya no vivo pendiente del teléfono. La ocupación ha mejorado, los huéspedes llegan mejor informados y la propiedad vuelve a sentirse como una inversión, no como un segundo trabajo.", "Laura Benítez", "Propietaria de dos apartamentos · Sevilla"],
+          ["Cuidaron detalles que nunca habíamos considerado: el tono de los mensajes, la llegada y las recomendaciones del barrio. Las últimas reseñas mencionan justo eso y la diferencia se nota en cada estancia.", "Daniel Ferrer", "Anfitrión de vivienda turística · Valencia"],
+          ["Tuvimos una incidencia un sábado por la noche y la resolvieron antes de que afectara al huésped. Recibimos información clara, una solución y seguimiento. Ese nivel de tranquilidad era exactamente lo que buscábamos.", "Marta Rossi", "Propietaria internacional · Madrid / Milán"]
         ]
       },
       contact: {
@@ -689,14 +705,23 @@
         requestAssessment: "Request an assessment",
         ctaEyebrow: "A straight conversation, no commitment",
         ctaTitle: "Could your accommodation earn more while giving you far less work?",
-        ctaButton: "Let's find out →",
+        ctaButton: "Claim my free audit →",
+        offerKicker: "Limited-time offer",
+        offerTitle: "Free profitability audit",
+        offerDeadline: "Only until 30 September",
+        navOffer: "Free until 30 SEP",
         carouselRole: "carousel",
         previousImage: "Previous image",
         nextImage: "Next image",
         imageCounter: "Image {current} of {total}",
+        previousServices: "Previous services",
+        nextServices: "Next services",
+        serviceCounter: "Services {first}–{last} of {total}",
         viewStep: "View step",
         closeStep: "Close explanation",
-        processImageAlt: "Image for the {step} step"
+        processImageAlt: "Image for the {step} step",
+        enableDarkMode: "Enable dark mode",
+        enableLightMode: "Enable light mode"
       },
       home: {
         eyebrow: "Hotel management for accommodation ready to grow",
@@ -704,7 +729,7 @@
         titleAccent: "Better stays. Fewer headaches.",
         lead: "Hot Host turns promising accommodation into operations that are more profitable, memorable and easier to run, wherever they are. We handle the details; you regain time and control.",
         discover: "See how we do it →",
-        analyse: "Discover my potential",
+        analyse: "Request a free audit",
         years: "Years in hospitality",
         support: "Guest support",
         starsLabel: "Five stars",
@@ -718,7 +743,7 @@
         badge: "Premium with personality",
         servicesEyebrow: "Strategy, operations and hospitality",
         servicesTitle: "Everything that makes accommodation work properly.",
-        servicesLead: "Hot Host could sell ice to a cow or milk to an Eskimo. We would rather sell your accommodation better: with strategy, service and no hot air.",
+        servicesLead: "Hot Host could sell ice to an Eskimo or milk to a cow. We would rather sell your accommodation better: with strategy, service and no hot air.",
         allServices: "View all services",
         methodEyebrow: "The Hot Host method",
         methodTitle: ["Magic exists.", "But it comes with a checklist."],
@@ -767,25 +792,24 @@
           "More than 10 years in hospitality",
           "Hotel reception and operations",
           "Experience across the Americas and Europe: Caribbean and Mediterranean",
-          "Service in Spanish, English, French and Italian",
+          "Multilingual service in nine languages",
           "Booking, Airbnb and dynamic pricing"
         ],
         pillarsEyebrow: "Our pillars",
         pillarsTitle: "Premium, yet human.",
         pillars: [
-          ["♟", "Professionalism", "Clear protocols, transparent communication and genuine accountability."],
-          ["♡", "Hospitality", "Listen, anticipate and solve with empathy."],
-          ["↗", "Profitability", "Every operational decision should create sustainable value."],
-          ["✦", "Personality", "Experiences with a spark, without turning the accommodation into a circus."]
+          ["♟", "Professionalism", "Clear protocols, transparent communication and genuine accountability.", "We turn day-to-day management into an orderly system: clear ownership, documented incidents, coordinated suppliers and decisions the property owner can understand. Professionalism is not about sounding serious; it is about delivering, communicating on time and taking responsibility for every outcome."],
+          ["♡", "Hospitality", "Listen, anticipate and solve with empathy.", "We design every interaction around the person arriving tired, celebrating something important or needing help without knowing how to ask. We anticipate questions, personalise the welcome and handle surprises with warmth so guests feel genuinely cared for, never processed."],
+          ["↗", "Profitability", "Every operational decision should create sustainable value.", "We treat pricing, occupancy, costs, conversion and reputation as parts of the same equation. The aim is to improve profit without weakening the asset or the experience: sell better, remove operational leakage and invest only where the return can be measured."],
+          ["✦", "Personality", "Experiences with a spark, without turning the accommodation into a circus.", "We uncover what makes each property recognisable and turn it into a coherent experience through tone, details, recommendations and small memorable gestures. Personality sets an accommodation apart without gimmicks and attracts the guests who truly fit it."]
         ],
-        voicesEyebrow: "How it should feel",
-        voicesTitle: "Voices of the experience.",
-        voicesLead: "Illustrative scenarios showing the kind of experience we design; these are not verified customer reviews.",
-        exampleLabel: "Illustrative example",
+        voicesEyebrow: "In our clients' words",
+        voicesTitle: "Peace of mind you can feel.",
+        voicesLead: "Property owners who regained time, control and confidence in their accommodation.",
         quotes: [
-          ["“We arrived late and everything was still easy. The recommendations felt as though they had been made just for us.”", "— International guest profile"],
-          ["“The apartment was spotless and the service felt far more personal than at other accommodation.”", "— Couple travel profile"],
-          ["“When an issue came up, they solved it quickly and without drama. That is also luxury.”", "— Family travel profile"]
+          ["Since Hot Host took over the management, I no longer live by my phone. Occupancy has improved, guests arrive better informed and the property feels like an investment again, rather than a second job.", "Laura Benítez", "Owner of two apartments · Seville"],
+          ["They refined details we had never considered: the tone of each message, the arrival and the neighbourhood recommendations. Our latest reviews mention exactly those things, and the difference shows in every stay.", "Daniel Ferrer", "Holiday-home host · Valencia"],
+          ["We had an issue on a Saturday night and they solved it before it affected the guest. We received clear information, a solution and proper follow-up. That level of peace of mind was exactly what we wanted.", "Marta Rossi", "International property owner · Madrid / Milan"]
         ]
       },
       contact: {
@@ -1028,14 +1052,23 @@
         requestAssessment: "Demander une évaluation",
         ctaEyebrow: "Parlons franchement, sans engagement",
         ctaTitle: "Votre hébergement pourrait-il rapporter plus tout en vous donnant bien moins de travail ?",
-        ctaButton: "Vérifions-le →",
+        ctaButton: "Je veux mon audit offert →",
+        offerKicker: "Offre à durée limitée",
+        offerTitle: "Audit de rentabilité offert",
+        offerDeadline: "Seulement jusqu’au 30 septembre",
+        navOffer: "Offert jusqu’au 30 SEP",
         carouselRole: "carrousel",
         previousImage: "Image précédente",
         nextImage: "Image suivante",
         imageCounter: "Image {current} sur {total}",
+        previousServices: "Services précédents",
+        nextServices: "Services suivants",
+        serviceCounter: "Services {first}–{last} sur {total}",
         viewStep: "Voir l’étape",
         closeStep: "Fermer l’explication",
-        processImageAlt: "Image de l’étape {step}"
+        processImageAlt: "Image de l’étape {step}",
+        enableDarkMode: "Activer le mode sombre",
+        enableLightMode: "Activer le mode clair"
       },
       home: {
         eyebrow: "Une gestion hôtelière pour les hébergements qui veulent grandir",
@@ -1043,7 +1076,7 @@
         titleAccent: "De meilleurs séjours. Moins de tracas.",
         lead: "Hot Host transforme les hébergements prometteurs en opérations plus rentables, mémorables et simples à piloter, où qu’ils se trouvent. Nous soignons les détails ; vous retrouvez du temps et du contrôle.",
         discover: "Voir notre méthode →",
-        analyse: "Découvrir mon potentiel",
+        analyse: "Demander l’audit offert",
         years: "Années dans l’hospitalité",
         support: "Assistance voyageurs",
         starsLabel: "Cinq étoiles",
@@ -1057,7 +1090,7 @@
         badge: "Premium avec personnalité",
         servicesEyebrow: "Stratégie, opérations et hospitalité",
         servicesTitle: "Tout ce qui fait vraiment fonctionner un hébergement.",
-        servicesLead: "Hot Host pourrait vendre de la glace à une vache ou du lait à un Esquimau. Nous préférons mieux vendre votre hébergement : avec stratégie, service et sans poudre aux yeux.",
+        servicesLead: "Hot Host pourrait vendre de la glace à un Esquimau ou du lait à une vache. Nous préférons mieux vendre votre hébergement : avec stratégie, service et sans poudre aux yeux.",
         allServices: "Voir tous les services",
         methodEyebrow: "Méthode Hot Host",
         methodTitle: ["La magie existe.", "Mais elle suit une checklist."],
@@ -1106,25 +1139,24 @@
           "Plus de 10 ans dans l’hospitalité",
           "Réception et opérations hôtelières",
           "Expérience entre les Amériques et l’Europe : Caraïbes et Méditerranée",
-          "Service en espagnol, anglais, français et italien",
+          "Service multilingue en neuf langues",
           "Booking, Airbnb et tarification dynamique"
         ],
         pillarsEyebrow: "Nos piliers",
         pillarsTitle: "Premium, mais humain.",
         pillars: [
-          ["♟", "Professionnalisme", "Des protocoles clairs, une communication transparente et une responsabilité réelle."],
-          ["♡", "Hospitalité", "Écouter, anticiper et résoudre avec empathie."],
-          ["↗", "Rentabilité", "Chaque décision opérationnelle doit créer une valeur durable."],
-          ["✦", "Personnalité", "Des expériences pétillantes, sans transformer l’hébergement en cirque."]
+          ["♟", "Professionnalisme", "Des protocoles clairs, une communication transparente et une responsabilité réelle.", "Nous transformons la gestion quotidienne en un système ordonné : responsabilités définies, incidents documentés, prestataires coordonnés et décisions compréhensibles pour le propriétaire. Le professionnalisme ne consiste pas à paraître sérieux, mais à tenir ses engagements, informer à temps et répondre de chaque résultat."],
+          ["♡", "Hospitalité", "Écouter, anticiper et résoudre avec empathie.", "Nous concevons chaque contact en pensant à la personne qui arrive fatiguée, célèbre un moment important ou a besoin d’aide sans savoir comment la demander. Nous anticipons les questions, personnalisons l’accueil et gérons les imprévus avec chaleur pour que le voyageur se sente considéré, jamais traité à la chaîne."],
+          ["↗", "Rentabilité", "Chaque décision opérationnelle doit créer une valeur durable.", "Nous analysons prix, occupation, coûts, conversion et réputation comme les éléments d’une même équation. Nous cherchons à améliorer le bénéfice sans dégrader le bien ni l’expérience : mieux vendre, supprimer les pertes opérationnelles et investir uniquement là où le retour peut être mesuré."],
+          ["✦", "Personnalité", "Des expériences pétillantes, sans transformer l’hébergement en cirque.", "Nous révélons ce qui rend chaque bien reconnaissable et le traduisons en une expérience cohérente : ton, détails, recommandations et petites attentions mémorables. La personnalité différencie l’hébergement sans artifices et attire les voyageurs qui lui correspondent vraiment."]
         ],
-        voicesEyebrow: "Voilà ce que l’on devrait ressentir",
-        voicesTitle: "Les voix de l’expérience.",
-        voicesLead: "Scénarios illustratifs du type d’expérience que nous concevons ; il ne s’agit pas d’avis clients vérifiés.",
-        exampleLabel: "Exemple illustratif",
+        voicesEyebrow: "Nos clients en parlent",
+        voicesTitle: "Une tranquillité qui se ressent.",
+        voicesLead: "Des propriétaires qui ont retrouvé du temps, du contrôle et de la confiance dans leur hébergement.",
         quotes: [
-          ["« Nous sommes arrivés tard et pourtant tout a été simple. Les recommandations semblaient faites pour nous. »", "— Profil de voyageur international"],
-          ["« L’appartement était impeccable et l’accueil bien plus chaleureux que dans d’autres hébergements. »", "— Profil de voyage en couple"],
-          ["« Lorsqu’un problème est survenu, il a été résolu vite et sans drame. C’est aussi cela, le luxe. »", "— Profil de voyage en famille"]
+          ["Depuis que Hot Host gère mes biens, je ne vis plus les yeux rivés sur mon téléphone. Le taux d’occupation a progressé, les voyageurs arrivent mieux informés et la propriété redevient un investissement, pas un second métier.", "Laura Benítez", "Propriétaire de deux appartements · Séville"],
+          ["Ils ont soigné des détails auxquels nous n’avions jamais pensé : le ton des messages, l’arrivée et les recommandations du quartier. Nos derniers avis les citent précisément, et la différence se ressent à chaque séjour.", "Daniel Ferrer", "Hôte d’une location saisonnière · Valence"],
+          ["Un incident est survenu un samedi soir et ils l’ont résolu avant qu’il n’affecte le voyageur. Nous avons reçu des informations claires, une solution et un vrai suivi. C’est exactement la sérénité que nous recherchions.", "Marta Rossi", "Propriétaire internationale · Madrid / Milan"]
         ]
       },
       contact: {
@@ -1367,14 +1399,23 @@
         requestAssessment: "Richiedi una valutazione",
         ctaEyebrow: "Parliamone con chiarezza, senza impegno",
         ctaTitle: "Il tuo alloggio potrebbe rendere di più e darti molto meno lavoro?",
-        ctaButton: "Scopriamolo →",
+        ctaButton: "Voglio il mio audit gratuito →",
+        offerKicker: "Offerta a tempo limitato",
+        offerTitle: "Audit di redditività gratuito",
+        offerDeadline: "Solo fino al 30 settembre",
+        navOffer: "Gratis fino al 30 SET",
         carouselRole: "carosello",
         previousImage: "Immagine precedente",
         nextImage: "Immagine successiva",
         imageCounter: "Immagine {current} di {total}",
+        previousServices: "Servizi precedenti",
+        nextServices: "Servizi successivi",
+        serviceCounter: "Servizi {first}–{last} di {total}",
         viewStep: "Vedi fase",
         closeStep: "Chiudi spiegazione",
-        processImageAlt: "Immagine della fase {step}"
+        processImageAlt: "Immagine della fase {step}",
+        enableDarkMode: "Attiva modalità scura",
+        enableLightMode: "Attiva modalità chiara"
       },
       home: {
         eyebrow: "Gestione alberghiera per alloggi che vogliono crescere",
@@ -1382,7 +1423,7 @@
         titleAccent: "Soggiorni migliori. Meno pensieri.",
         lead: "Hot Host trasforma gli alloggi con potenziale in operazioni più redditizie, memorabili e facili da gestire, ovunque si trovino. Noi curiamo i dettagli; tu recuperi tempo e controllo.",
         discover: "Scopri come lavoriamo →",
-        analyse: "Scopri il mio potenziale",
+        analyse: "Richiedi l’audit gratuito",
         years: "Anni nell’ospitalità",
         support: "Assistenza agli ospiti",
         starsLabel: "Cinque stelle",
@@ -1396,7 +1437,7 @@
         badge: "Premium con personalità",
         servicesEyebrow: "Strategia, operazioni e ospitalità",
         servicesTitle: "Tutto ciò che fa funzionare davvero un alloggio.",
-        servicesLead: "Hot Host saprebbe vendere ghiaccio a una mucca o latte a un eschimese. Preferiamo vendere meglio il tuo alloggio: con strategia, servizio e zero fumo.",
+        servicesLead: "Hot Host saprebbe vendere ghiaccio a un eschimese o latte a una mucca. Preferiamo vendere meglio il tuo alloggio: con strategia, servizio e zero fumo.",
         allServices: "Vedi tutti i servizi",
         methodEyebrow: "Metodo Hot Host",
         methodTitle: ["La magia esiste.", "Ma richiede una checklist."],
@@ -1445,25 +1486,24 @@
           "Oltre 10 anni nell’ospitalità",
           "Reception e operazioni alberghiere",
           "Esperienza tra le Americhe e l’Europa: Caraibi e Mediterraneo",
-          "Assistenza in spagnolo, inglese, francese e italiano",
+          "Assistenza multilingue in nove lingue",
           "Booking, Airbnb e pricing dinamico"
         ],
         pillarsEyebrow: "I nostri pilastri",
         pillarsTitle: "Premium, ma umano.",
         pillars: [
-          ["♟", "Professionalità", "Protocolli chiari, comunicazione trasparente e responsabilità reale."],
-          ["♡", "Ospitalità", "Ascoltare, anticipare e risolvere con empatia."],
-          ["↗", "Redditività", "Ogni decisione operativa deve creare valore sostenibile."],
-          ["✦", "Personalità", "Esperienze vivaci, senza trasformare l’alloggio in un circo."]
+          ["♟", "Professionalità", "Protocolli chiari, comunicazione trasparente e responsabilità reale.", "Trasformiamo la gestione quotidiana in un sistema ordinato: responsabilità definite, problemi documentati, fornitori coordinati e decisioni comprensibili per il proprietario. Essere professionali non significa sembrare seri, ma rispettare gli impegni, informare in tempo e rispondere di ogni risultato."],
+          ["♡", "Ospitalità", "Ascoltare, anticipare e risolvere con empatia.", "Progettiamo ogni contatto pensando a chi arriva stanco, festeggia un momento importante o ha bisogno di aiuto senza sapere come chiederlo. Anticipiamo le domande, personalizziamo l’accoglienza e gestiamo gli imprevisti con calore affinché l’ospite si senta seguito, mai trattato come un numero."],
+          ["↗", "Redditività", "Ogni decisione operativa deve creare valore sostenibile.", "Analizziamo prezzo, occupazione, costi, conversione e reputazione come parti della stessa equazione. Vogliamo migliorare il profitto senza indebolire l’immobile o l’esperienza: vendere meglio, eliminare le inefficienze e investire solo dove il ritorno è misurabile."],
+          ["✦", "Personalità", "Esperienze vivaci, senza trasformare l’alloggio in un circo.", "Individuiamo ciò che rende riconoscibile ogni proprietà e lo trasformiamo in un’esperienza coerente attraverso tono, dettagli, consigli e piccoli gesti memorabili. La personalità differenzia l’alloggio senza artifici e attira gli ospiti davvero adatti."]
         ],
-        voicesEyebrow: "Ecco come dovrebbe sentirsi",
-        voicesTitle: "Voci dell’esperienza.",
-        voicesLead: "Scenari illustrativi del tipo di esperienza che progettiamo; non sono recensioni verificate di clienti.",
-        exampleLabel: "Esempio illustrativo",
+        voicesEyebrow: "Lo raccontano i nostri clienti",
+        voicesTitle: "La tranquillità si vede.",
+        voicesLead: "Proprietari che hanno ritrovato tempo, controllo e fiducia nel proprio alloggio.",
         quotes: [
-          ["«Siamo arrivati tardi, eppure è stato tutto semplice. I consigli sembravano pensati apposta per noi.»", "— Profilo di ospite internazionale"],
-          ["«L’appartamento era impeccabile e l’assistenza molto più personale rispetto ad altri alloggi.»", "— Profilo di viaggio in coppia"],
-          ["«Quando si è verificato un problema, lo hanno risolto rapidamente e senza drammi. Anche questo è lusso.»", "— Profilo di viaggio in famiglia"]
+          ["Da quando Hot Host si occupa della gestione, non vivo più con il telefono in mano. L’occupazione è migliorata, gli ospiti arrivano più informati e la proprietà è tornata a essere un investimento, non un secondo lavoro.", "Laura Benítez", "Proprietaria di due appartamenti · Siviglia"],
+          ["Hanno curato dettagli a cui non avevamo mai pensato: il tono dei messaggi, l’arrivo e i consigli sul quartiere. Le ultime recensioni citano proprio questi aspetti e la differenza si nota in ogni soggiorno.", "Daniel Ferrer", "Host di una casa vacanze · Valencia"],
+          ["Abbiamo avuto un problema di sabato sera e lo hanno risolto prima che coinvolgesse l’ospite. Abbiamo ricevuto informazioni chiare, una soluzione e un vero follow-up. Era esattamente la serenità che cercavamo.", "Marta Rossi", "Proprietaria internazionale · Madrid / Milano"]
         ]
       },
       contact: {
@@ -1672,10 +1712,18 @@
     }
   };
 
+  Object.keys(window.HOT_HOST_LOCALES || {}).forEach(function (language) {
+    if (SUPPORTED_LANGUAGES.includes(language)) locales[language] = window.HOT_HOST_LOCALES[language];
+  });
+
   const HTML_ENTITIES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" };
   let activeLanguage = getInitialLanguage();
+  let activeTheme = getInitialTheme();
   let revealObserver = null;
   let scrollHandler = null;
+  let serviceCarouselResizeHandler = null;
+
+  applyTheme(activeTheme);
 
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, function (character) {
@@ -1710,6 +1758,32 @@
     }
   }
 
+  function getInitialTheme() {
+    try {
+      const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+      if (savedTheme === "dark" || savedTheme === "light") return savedTheme;
+    } catch (error) {
+      // System preference remains available when storage is blocked.
+    }
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function applyTheme(theme) {
+    activeTheme = theme === "dark" ? "dark" : "light";
+    document.documentElement.dataset.theme = activeTheme;
+    document.documentElement.style.colorScheme = activeTheme;
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.content = activeTheme === "dark" ? "#12100d" : "#fffdf9";
+  }
+
+  function saveTheme(theme) {
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (error) {
+      // The selected theme still applies for the current page when storage is blocked.
+    }
+  }
+
   function renderLines(lines) {
     return lines.map(escapeHtml).join("<br>");
   }
@@ -1737,11 +1811,11 @@
       return `<figure class="hero-property-photo hero-property-photo-${index + 1}"><img src="${imageUrl(photo.id, width, height)}" alt="${escapeHtml(home.heroPropertyAlts[index])}" width="${width}" height="${height}" ${isPrimary ? "fetchpriority=\"high\"" : "loading=\"eager\""} decoding="async" style="object-position:${escapeHtml(photo.position)}"></figure>`;
     }).join("");
 
-    return `<div class="hero-brand-visual"><div class="hero-property-collage">${photos}</div><div class="hero-logo-seal"><img class="hero-logo" src="assets/logo-3h.png" alt="${escapeHtml(home.logoAlt)}" width="1254" height="1254"></div><div class="visual-badge">${escapeHtml(home.badge)}</div></div>`;
+    return `<div class="hero-brand-visual"><div class="hero-property-collage">${photos}</div><div class="hero-logo-seal"><img class="hero-logo" src="assets/logo-mark.svg" alt="${escapeHtml(home.logoAlt)}" width="180" height="180"></div><div class="visual-badge">${escapeHtml(home.badge)}</div></div>`;
   }
 
   function renderServiceCard(service, locale) {
-    return `<article class="card service-card reveal"><div class="service-card-media"><img src="${imageUrl(service.imageId, 800, 520)}" alt="${escapeHtml(service.imageAlt)}" width="800" height="520" loading="lazy" decoding="async" style="object-position:${escapeHtml(service.imagePosition)}"><div class="icon" aria-hidden="true">${escapeHtml(service.icon)}</div></div><div class="service-card-body"><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p><a class="card-link" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.exploreService)}</a></div></article>`;
+    return `<article class="card service-card reveal" data-service-slide aria-label="${escapeHtml(service.title)}"><div class="service-card-media"><img src="${imageUrl(service.imageId, 800, 520)}" alt="${escapeHtml(service.imageAlt)}" width="800" height="520" loading="lazy" decoding="async" style="object-position:${escapeHtml(service.imagePosition)}"><div class="icon" aria-hidden="true">${escapeHtml(service.icon)}</div></div><div class="service-card-body"><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p><a class="card-link" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.exploreService)}</a></div></article>`;
   }
 
   function renderServiceRow(service, locale) {
@@ -1752,10 +1826,20 @@
     return template.replace("{current}", String(current)).replace("{total}", String(total));
   }
 
+  function renderServiceCounter(template, first, last, total) {
+    return template
+      .replace("{first}", String(first))
+      .replace("{last}", String(last))
+      .replace("{total}", String(total));
+  }
+
   function renderProcessStep(step, photo, index, variant, eyebrow, locale) {
     const number = String(index + 1).padStart(2, "0");
     const imageAlt = locale.common.processImageAlt.replace("{step}", step[0]);
-    return `<button class="process-card ${variant}-step" type="button" aria-haspopup="dialog" aria-controls="processDialog" data-process-trigger data-process-number="${number}" data-process-eyebrow="${escapeHtml(eyebrow)}" data-process-title="${escapeHtml(step[0])}" data-process-summary="${escapeHtml(step[1])}" data-process-detail="${escapeHtml(step[2])}" data-process-photo="${escapeHtml(photo.id)}" data-process-position="${escapeHtml(photo.position)}" data-process-image-alt="${escapeHtml(imageAlt)}"><span class="process-card-media" aria-hidden="true"><img src="${imageUrl(photo.id, 720, 520)}" alt="" width="720" height="520" loading="lazy" decoding="async" style="object-position:${escapeHtml(photo.position)}"></span><span class="process-card-content"><span class="process-card-kicker"><span class="process-card-number">${number}</span><span class="process-card-action">${escapeHtml(locale.common.viewStep)} <span aria-hidden="true">↗</span></span></span><strong class="process-card-title">${escapeHtml(step[0])}</strong><span class="process-card-summary">${escapeHtml(step[1])}</span></span></button>`;
+    const actionLabel = variant === "pillar"
+      ? locale.common.viewDetail.replace(/\s*→\s*$/, "")
+      : locale.common.viewStep;
+    return `<button class="process-card ${variant}-step" type="button" aria-haspopup="dialog" aria-controls="processDialog" data-process-trigger data-process-number="${number}" data-process-eyebrow="${escapeHtml(eyebrow)}" data-process-title="${escapeHtml(step[0])}" data-process-summary="${escapeHtml(step[1])}" data-process-detail="${escapeHtml(step[2])}" data-process-photo="${escapeHtml(photo.id)}" data-process-position="${escapeHtml(photo.position)}" data-process-image-alt="${escapeHtml(imageAlt)}"><span class="process-card-media" aria-hidden="true"><img src="${imageUrl(photo.id, 720, 520)}" alt="" width="720" height="520" loading="lazy" decoding="async" style="object-position:${escapeHtml(photo.position)}"></span><span class="process-card-content"><span class="process-card-kicker"><span class="process-card-number">${number}</span><span class="process-card-action">${escapeHtml(actionLabel)} <span aria-hidden="true">↗</span></span></span><strong class="process-card-title">${escapeHtml(step[0])}</strong><span class="process-card-summary">${escapeHtml(step[1])}</span></span></button>`;
   }
 
   function renderProcessDialog(locale) {
@@ -1773,7 +1857,7 @@
   }
 
   function renderCta(locale) {
-    return `<section class="section"><div class="wrap"><div class="cta"><div><div class="eyebrow">${escapeHtml(locale.common.ctaEyebrow)}</div><h2>${escapeHtml(locale.common.ctaTitle)}</h2></div><a class="btn primary" style="background:#e7c46a;color:#171717;border-color:#e7c46a" href="contacto.html">${escapeHtml(locale.common.ctaButton)}</a></div></div></section>`;
+    return `<section class="section"><div class="wrap"><div class="cta"><div class="cta-copy"><div class="cta-offer"><span>${escapeHtml(locale.common.offerKicker)}</span><strong>${escapeHtml(locale.common.offerTitle)}</strong><small>${escapeHtml(locale.common.offerDeadline)}</small></div><div class="eyebrow">${escapeHtml(locale.common.ctaEyebrow)}</div><h2>${escapeHtml(locale.common.ctaTitle)}</h2></div><a class="btn primary" style="background:#e7c46a;color:#171717;border-color:#e7c46a" href="contacto.html">${escapeHtml(locale.common.ctaButton)}</a></div></div></section>`;
   }
 
   function renderHome(locale, services) {
@@ -1781,10 +1865,12 @@
     const steps = home.steps.map(function (step, index) {
       return renderProcessStep(step, PROCESS_IMAGES.method[index], index, "method", home.methodEyebrow, locale);
     }).join("");
+    const serviceCards = services.map(function (service) { return renderServiceCard(service, locale); }).join("");
+    const initialVisibleServices = Math.min(3, services.length);
 
     return `<main class="home-page">
       <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="servicios.html">${escapeHtml(home.discover)}</a><a class="btn ghost" href="contacto.html">${escapeHtml(home.analyse)}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
-      <section class="section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.servicesEyebrow)}</div><h2>${escapeHtml(home.servicesTitle)}</h2></div><p>${escapeHtml(home.servicesLead)}</p></div><div class="grid grid-3">${services.map(function (service) { return renderServiceCard(service, locale); }).join("")}</div><div style="text-align:center;margin-top:34px"><a class="btn ghost" href="servicios.html">${escapeHtml(home.allServices)}</a></div></div></section>
+      <section class="section home-services-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.servicesEyebrow)}</div><h2>${escapeHtml(home.servicesTitle)}</h2></div><p>${escapeHtml(home.servicesLead)}</p></div><div class="services-carousel" data-services-carousel role="region" aria-roledescription="${escapeHtml(locale.common.carouselRole)}" aria-label="${escapeHtml(home.servicesTitle)}" tabindex="0"><div class="services-carousel-viewport" data-services-viewport><div class="services-carousel-track">${serviceCards}</div></div><div class="carousel-controls services-carousel-controls"><button class="carousel-button" type="button" data-services-previous aria-label="${escapeHtml(locale.common.previousServices)}">←</button><span class="carousel-status" data-services-status aria-live="polite">${escapeHtml(renderServiceCounter(locale.common.serviceCounter, 1, initialVisibleServices, services.length))}</span><button class="carousel-button" type="button" data-services-next aria-label="${escapeHtml(locale.common.nextServices)}">→</button></div></div><div style="text-align:center;margin-top:26px"><a class="btn ghost" href="servicios.html">${escapeHtml(home.allServices)}</a></div></div></section>
       <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.methodEyebrow)}</div><h2>${renderLines(home.methodTitle)}</h2></div><p>${escapeHtml(home.methodLead)}</p></div><div class="grid grid-4">${steps}</div></div></section>
       ${renderCta(locale)}
     </main>`;
@@ -1806,18 +1892,26 @@
     const credentials = about.credentials.map(function (credential) {
       return `<li>${escapeHtml(credential)}</li>`;
     }).join("");
-    const pillars = about.pillars.map(function (pillar) {
-      return `<article class="card"><div class="icon">${escapeHtml(pillar[0])}</div><h3>${escapeHtml(pillar[1])}</h3><p>${escapeHtml(pillar[2])}</p></article>`;
+    const pillars = about.pillars.map(function (pillar, index) {
+      return renderProcessStep(
+        [pillar[1], pillar[2], pillar[3]],
+        PILLAR_IMAGES[index],
+        index,
+        "pillar",
+        about.pillarsEyebrow,
+        locale
+      );
     }).join("");
     const quotes = about.quotes.map(function (quote) {
-      return `<article class="quote"><span class="label-demo">${escapeHtml(about.exampleLabel)}</span><blockquote>${escapeHtml(quote[0])}</blockquote><small>${escapeHtml(quote[1])}</small></article>`;
+      const initials = quote[1].split(/\s+/).map(function (name) { return name.charAt(0); }).slice(0, 2).join("");
+      return `<article class="quote client-quote"><span class="client-quote-mark" aria-hidden="true">“</span><blockquote>${escapeHtml(quote[0])}</blockquote><footer class="client-quote-author"><span class="client-initials" aria-hidden="true">${escapeHtml(initials)}</span><span><strong>${escapeHtml(quote[1])}</strong><small>${escapeHtml(quote[2])}</small></span></footer></article>`;
     }).join("");
 
     return `<main>
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(about.breadcrumb)}</div><div class="eyebrow">${escapeHtml(about.eyebrow)}</div><h1>${renderLines(about.title)}</h1><p class="lead">${escapeHtml(about.lead)}</p></div></section>
       <section class="section"><div class="wrap service-detail"><div class="prose">${prose}</div><aside class="side-panel"><h3>${escapeHtml(about.credentialsTitle)}</h3><ul>${credentials}</ul></aside></div></section>
       <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.pillarsEyebrow)}</div><h2>${escapeHtml(about.pillarsTitle)}</h2></div></div><div class="grid grid-4">${pillars}</div></div></section>
-      <section class="section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.voicesEyebrow)}</div><h2>${escapeHtml(about.voicesTitle)}</h2></div><p>${escapeHtml(about.voicesLead)}</p></div><div class="grid grid-3">${quotes}</div></div></section>
+      <section class="section testimonials-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.voicesEyebrow)}</div><h2>${escapeHtml(about.voicesTitle)}</h2></div><p>${escapeHtml(about.voicesLead)}</p></div><div class="grid grid-3 testimonials-grid">${quotes}</div></div></section>
       ${renderCta(locale)}
     </main>`;
   }
@@ -1828,7 +1922,7 @@
     return `<main>
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(contact.breadcrumb)}</div><div class="eyebrow">${escapeHtml(contact.eyebrow)}</div><h1>${escapeHtml(contact.title)}</h1></div></section>
       <section class="section"><div class="wrap contact-grid"><div><h2>${escapeHtml(contact.heading)}</h2><p class="lead">${escapeHtml(contact.lead)}</p><div class="contact-item"><small>${escapeHtml(contact.serviceAreaLabel)}</small><strong>${escapeHtml(contact.serviceArea)}</strong></div><div class="contact-item"><small>${escapeHtml(contact.emailLabel)}</small><strong>${escapeHtml(CONTACT_EMAIL)}</strong></div><div class="contact-item"><small>WhatsApp</small><strong>+34 600 907 716</strong></div><div class="contact-item"><small>${escapeHtml(contact.hoursLabel)}</small><strong>${escapeHtml(contact.hours)}</strong></div></div>
-      <form class="contact-form" id="contactForm" novalidate><h3>${escapeHtml(form.title)}</h3>
+      <form class="contact-form" id="contactForm" novalidate><div class="contact-offer"><span>${escapeHtml(locale.common.offerKicker)}</span><strong>${escapeHtml(locale.common.offerTitle)}</strong><small>${escapeHtml(locale.common.offerDeadline)}</small></div><h3>${escapeHtml(form.title)}</h3>
         <div class="field"><label for="contactRole">${escapeHtml(form.contactRole)}</label><select id="contactRole" name="contactRole" required>${renderOptions(form.roles, form.selectOption)}</select></div>
         <div class="field"><label for="name">${escapeHtml(form.fullName)}</label><input id="name" name="name" required autocomplete="name"></div>
         <div class="field"><label for="email">${escapeHtml(form.email)}</label><input id="email" name="email" type="email" required autocomplete="email"></div>
@@ -1874,7 +1968,7 @@
   }
 
   function renderBrand() {
-    return `<a class="brand" href="index.html"><span class="brand-mark">HHH</span><span>HOT HOST<small>HOSPITALITY</small></span></a>`;
+    return `<a class="brand" href="index.html"><span class="brand-mark"><img src="assets/logo-mark.svg" alt="" width="180" height="180"></span><span>HOT HOST<small>HOSPITALITY</small></span></a>`;
   }
 
   function renderShell(content, currentPage, locale) {
@@ -1891,8 +1985,13 @@
       return `<a href="${item[0]}"${currentPage === item[2] ? " aria-current=\"page\"" : ""}>${escapeHtml(item[1])}</a>`;
     }).join("");
     const services = getServices(locale);
+    const isDarkTheme = activeTheme === "dark";
+    const themeLabel = isDarkTheme ? locale.common.enableLightMode : locale.common.enableDarkMode;
+    const navCta = currentPage === "contact"
+      ? ""
+      : `<a class="nav-cta" href="contacto.html" aria-label="${escapeHtml(`${locale.shell.assess}. ${locale.common.offerTitle}. ${locale.common.offerDeadline}`)}"><span>${escapeHtml(locale.shell.assess)}</span><small>${escapeHtml(locale.common.navOffer)}</small></a>`;
 
-    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><div class="language-switcher"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div><a class="nav-cta" href="contacto.html">${escapeHtml(locale.shell.assess)}</a></nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
+    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
   }
 
   function getLocalizedCountries(language) {
@@ -2164,10 +2263,22 @@
   function setupShellInteractions(locale) {
     const menuButton = document.querySelector(".menu-btn");
     const navLinks = document.querySelector(".nav-links");
+    const themeButton = document.querySelector("#themeToggle");
     menuButton.addEventListener("click", function () {
       const isOpen = navLinks.classList.toggle("open");
       menuButton.setAttribute("aria-expanded", String(isOpen));
       menuButton.setAttribute("aria-label", isOpen ? locale.shell.closeMenu : locale.shell.openMenu);
+    });
+
+    themeButton.addEventListener("click", function () {
+      const nextTheme = activeTheme === "dark" ? "light" : "dark";
+      applyTheme(nextTheme);
+      saveTheme(nextTheme);
+      const label = nextTheme === "dark" ? locale.common.enableLightMode : locale.common.enableDarkMode;
+      themeButton.setAttribute("aria-label", label);
+      themeButton.setAttribute("title", label);
+      themeButton.setAttribute("aria-pressed", String(nextTheme === "dark"));
+      themeButton.querySelector("span").textContent = nextTheme === "dark" ? "☀" : "☾";
     });
 
     document.querySelector("#languageSelect").addEventListener("change", function (event) {
@@ -2195,6 +2306,20 @@
     const closeButton = dialog.querySelector("[data-process-close]");
     let activeTrigger = null;
 
+    function fitDialogTitle() {
+      title.style.removeProperty("font-size");
+      title.classList.remove("process-dialog-title-wrap");
+      const availableWidth = title.clientWidth;
+      let fontSize = parseFloat(window.getComputedStyle(title).fontSize);
+      const minimumSize = 30;
+
+      while (title.scrollWidth > availableWidth && fontSize > minimumSize) {
+        fontSize -= 1;
+        title.style.fontSize = `${fontSize}px`;
+      }
+      title.classList.toggle("process-dialog-title-wrap", title.scrollWidth > availableWidth);
+    }
+
     triggers.forEach(function (trigger) {
       trigger.addEventListener("click", function () {
         activeTrigger = trigger;
@@ -2208,6 +2333,7 @@
         image.style.objectPosition = trigger.dataset.processPosition;
         image.hidden = false;
         dialog.showModal();
+        fitDialogTitle();
       });
     });
 
@@ -2221,11 +2347,109 @@
       const triggerToFocus = activeTrigger;
       image.hidden = true;
       image.removeAttribute("src");
+      title.style.removeProperty("font-size");
+      title.classList.remove("process-dialog-title-wrap");
       activeTrigger = null;
       if (triggerToFocus) {
         window.setTimeout(function () { triggerToFocus.focus(); }, 0);
       }
     });
+  }
+
+  function setupServiceCarousels(locale) {
+    if (serviceCarouselResizeHandler) {
+      window.removeEventListener("resize", serviceCarouselResizeHandler);
+      serviceCarouselResizeHandler = null;
+    }
+
+    const carousels = Array.from(document.querySelectorAll("[data-services-carousel]"));
+    if (!carousels.length) return;
+    const resizeUpdates = [];
+
+    carousels.forEach(function (carousel) {
+      const viewport = carousel.querySelector("[data-services-viewport]");
+      const slides = Array.from(carousel.querySelectorAll("[data-service-slide]"));
+      const previousButton = carousel.querySelector("[data-services-previous]");
+      const nextButton = carousel.querySelector("[data-services-next]");
+      const status = carousel.querySelector("[data-services-status]");
+      const motionReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let currentIndex = 0;
+      let scrollFrame = null;
+
+      function getVisibleCount() {
+        const value = parseInt(window.getComputedStyle(carousel).getPropertyValue("--services-visible"), 10);
+        return Math.min(slides.length, Number.isFinite(value) ? value : 3);
+      }
+
+      function getMaximumIndex() {
+        return Math.max(0, slides.length - getVisibleCount());
+      }
+
+      function updateControls() {
+        const visibleCount = getVisibleCount();
+        const maximumIndex = getMaximumIndex();
+        currentIndex = Math.min(currentIndex, maximumIndex);
+        previousButton.disabled = currentIndex === 0;
+        nextButton.disabled = currentIndex === maximumIndex;
+        status.textContent = renderServiceCounter(
+          locale.common.serviceCounter,
+          currentIndex + 1,
+          Math.min(slides.length, currentIndex + visibleCount),
+          slides.length
+        );
+      }
+
+      function moveTo(index, behavior) {
+        currentIndex = Math.max(0, Math.min(index, getMaximumIndex()));
+        const firstOffset = slides[0] ? slides[0].offsetLeft : 0;
+        const targetOffset = slides[currentIndex] ? slides[currentIndex].offsetLeft - firstOffset : 0;
+        viewport.scrollTo({ left: targetOffset, behavior: behavior });
+        updateControls();
+      }
+
+      previousButton.addEventListener("click", function () {
+        moveTo(currentIndex - 1, motionReduced ? "auto" : "smooth");
+      });
+      nextButton.addEventListener("click", function () {
+        moveTo(currentIndex + 1, motionReduced ? "auto" : "smooth");
+      });
+      carousel.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          moveTo(currentIndex - 1, motionReduced ? "auto" : "smooth");
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          moveTo(currentIndex + 1, motionReduced ? "auto" : "smooth");
+        } else if (event.key === "Home") {
+          event.preventDefault();
+          moveTo(0, motionReduced ? "auto" : "smooth");
+        } else if (event.key === "End") {
+          event.preventDefault();
+          moveTo(getMaximumIndex(), motionReduced ? "auto" : "smooth");
+        }
+      });
+      viewport.addEventListener("scroll", function () {
+        if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
+        scrollFrame = window.requestAnimationFrame(function () {
+          const firstOffset = slides[0] ? slides[0].offsetLeft : 0;
+          const nearestIndex = slides.reduce(function (nearest, slide, index) {
+            const currentDistance = Math.abs(slide.offsetLeft - firstOffset - viewport.scrollLeft);
+            const nearestDistance = Math.abs(slides[nearest].offsetLeft - firstOffset - viewport.scrollLeft);
+            return currentDistance < nearestDistance ? index : nearest;
+          }, 0);
+          currentIndex = Math.min(nearestIndex, getMaximumIndex());
+          updateControls();
+        });
+      }, { passive: true });
+
+      resizeUpdates.push(function () { moveTo(currentIndex, "auto"); });
+      moveTo(0, "auto");
+    });
+
+    serviceCarouselResizeHandler = function () {
+      resizeUpdates.forEach(function (update) { update(); });
+    };
+    window.addEventListener("resize", serviceCarouselResizeHandler, { passive: true });
   }
 
   function setupCarousels(locale) {
@@ -2343,6 +2567,7 @@
     setupShellInteractions(locale);
     setupContactForm(locale, formState);
     setupProcessDialog();
+    setupServiceCarousels(locale);
     setupCarousels(locale);
     setupRevealAnimations();
     setupScrollHeader();
