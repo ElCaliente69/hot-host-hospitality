@@ -15,4 +15,4 @@ Abre `index.html` en un navegador o publica la carpeta completa en Netlify, Verc
 
 Antes de publicar, añade aviso legal, privacidad y cookies cuando estén definidos los datos fiscales y las herramientas de analítica.
 
-El formulario abre el cliente de correo del visitante, por lo que no necesita servidor. Para recepción automática, conéctalo a Formspree, Netlify Forms o un backend propio.
+El formulario abre Gmail o WhatsApp con la consulta preparada. La subida opcional de fotografias utiliza Google Apps Script; mientras `assets/config.js` no tenga un endpoint valido, el formulario solicita un enlace compartido en su lugar. Consulta `google-apps-script/README.md` antes de desplegarla.

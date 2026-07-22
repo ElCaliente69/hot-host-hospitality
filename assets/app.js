@@ -4,8 +4,37 @@
   const LANGUAGE_STORAGE_KEY = "hotHostLanguage";
   const THEME_STORAGE_KEY = "hotHostTheme";
   const SUPPORTED_LANGUAGES = ["es", "en", "fr", "it", "de", "pl", "nl", "pt", "el"];
+  const LANGUAGE_NAMES = { es: "Español", en: "English", fr: "Français", it: "Italiano", de: "Deutsch", pl: "Polski", nl: "Nederlands", pt: "Português", el: "Ελληνικά" };
+  const SUPPORTED_CURRENCIES = ["EUR", "USD", "GBP", "CHF", "PLN"];
+  const CURRENCY_SYMBOLS = { EUR: "€", USD: "$", GBP: "£", CHF: "CHF", PLN: "zł" };
+  const EXCHANGE_RATES_ENDPOINT = "https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD,GBP,CHF,PLN";
+  // ECB reference fallback from 2026-07-21; live public rates replace it when available.
+  const FALLBACK_RATES_PER_EUR = { EUR: 1, USD: 1.1418, GBP: 0.85205, CHF: 0.9259, PLN: 4.3305 };
+  const MAX_EARNINGS_SCALE = 100;
   const WHATSAPP_NUMBER = "34600907716";
   const CONTACT_EMAIL = "direccion@hhosthospitality.com";
+  const MAX_PROPERTY_PHOTOS = 10;
+  const MAX_PROPERTY_PHOTO_BYTES = 20 * 1024 * 1024;
+  const MAX_OPTIMISED_PHOTO_BYTES = 4 * 1024 * 1024;
+  const MAX_UPLOAD_REQUEST_CHARACTERS = 30 * 1024 * 1024;
+  const MAX_PROPERTY_PHOTO_DIMENSION = 1920;
+  const PHOTO_PROCESS_TIMEOUT_MS = 20000;
+  const PHOTO_UPLOAD_TIMEOUT_MS = 45000;
+  const AUDIT_OFFER_END = Date.parse("2026-09-30T23:59:59+02:00");
+  const MARKET_OCCUPANCY = 63;
+  const HOT_HOST_OCCUPANCY = 72;
+  const HOT_HOST_RATE_MULTIPLIER = 1.17;
+  const DEFAULT_EARNINGS = {
+    rentalModel: "traditional",
+    currency: "EUR",
+    traditionalRent: 1200,
+    touristRate: 110,
+    touristOccupancy: MARKET_OCCUPANCY,
+    hotHostRate: 110 * HOT_HOST_RATE_MULTIPLIER,
+    hotHostOccupancy: HOT_HOST_OCCUPANCY
+  };
+  let exchangeRatesPerEur = Object.assign({}, FALLBACK_RATES_PER_EUR);
+  let exchangeRatesRequest = null;
 
   const favicon = document.createElement("link");
   favicon.rel = "icon";
@@ -66,6 +95,37 @@
 
   function imageUrl(photoId, width, height) {
     return `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=${width}&h=${height}&q=85`;
+  }
+
+  function loadExchangeRates() {
+    if (exchangeRatesRequest) return exchangeRatesRequest;
+    if (!window.fetch) return Promise.resolve(exchangeRatesPerEur);
+
+    exchangeRatesRequest = window.fetch(EXCHANGE_RATES_ENDPOINT, { headers: { Accept: "application/json" } })
+      .then(function (response) {
+        if (!response.ok) throw new Error("Exchange-rate request failed");
+        return response.json();
+      })
+      .then(function (data) {
+        const nextRates = { EUR: 1 };
+        SUPPORTED_CURRENCIES.slice(1).forEach(function (currency) {
+          const rate = Number(data && data.rates && data.rates[currency]);
+          if (!Number.isFinite(rate) || rate <= 0) throw new Error("Invalid exchange rate");
+          nextRates[currency] = rate;
+        });
+        exchangeRatesPerEur = nextRates;
+        return exchangeRatesPerEur;
+      })
+      .catch(function () {
+        exchangeRatesRequest = null;
+        return exchangeRatesPerEur;
+      });
+
+    return exchangeRatesRequest;
+  }
+
+  function isAuditOfferActive() {
+    return Date.now() <= AUDIT_OFFER_END;
   }
 
   // ISO 3166-1 coverage plus Kosovo, with local fallback names and international dialling codes.
@@ -335,12 +395,12 @@
           home: "Gestión premium para alojamientos turísticos más rentables, memorables y fáciles de operar.",
           services: "Servicios de gestión, operaciones, experiencia del huésped y rentabilidad para alojamientos turísticos.",
           about: "Más de una década de experiencia hotelera entre América y Europa al servicio de tu alojamiento.",
-          contact: "Descubre cuánto potencial tiene tu alojamiento con una primera valoración de Hot Host Hospitality."
+          contact: "Descubre el potencial de tu alojamiento con una primera auditoría de rentabilidad y operación de Hot Host Hospitality."
         }
       },
       shell: {
         nav: { home: "Inicio", services: "Servicios", about: "Sobre Hot Host", contact: "Contacto" },
-        assess: "Valorar propiedad",
+        assess: "Auditar mi propiedad",
         openMenu: "Abrir menú",
         closeMenu: "Cerrar menú",
         languageLabel: "Seleccionar idioma del sitio",
@@ -355,14 +415,15 @@
         exploreService: "Explorar servicio →",
         viewDetail: "Ver detalle →",
         includes: "Incluye",
-        requestAssessment: "Solicitar valoración",
+        requestAssessment: "Solicitar auditoría",
+        priceDisclaimer: "Los precios no incluyen impuestos ni costes de terceros.",
         ctaEyebrow: "Hablemos claro, sin compromiso",
         ctaTitle: "¿Tu alojamiento podría ganar más y darte bastante menos trabajo?",
-        ctaButton: "Quiero mi auditoría gratis →",
+        ctaButton: "Solicitar auditoría →",
         offerKicker: "Oferta por tiempo limitado",
         offerTitle: "Auditoría de rentabilidad gratis",
-        offerDeadline: "Solo hasta el 30 de septiembre",
-        navOffer: "Gratis hasta 30 SEP",
+        offerDeadline: "Gratis hasta 30 de septiembre",
+        navOffer: "Gratis hasta 30 de septiembre",
         carouselRole: "carrusel",
         previousImage: "Imagen anterior",
         nextImage: "Imagen siguiente",
@@ -382,7 +443,7 @@
         titleAccent: "Mejores estancias. Menos líos.",
         lead: "Hot Host convierte alojamientos con potencial en operaciones más rentables, memorables y fáciles de llevar, estén donde estén. Nosotros cuidamos el detalle; tú recuperas tiempo y control.",
         discover: "Ver cómo lo hacemos →",
-        analyse: "Solicitar auditoría gratis",
+        analyse: "Solicitar auditoría",
         years: "Años en hospitalidad",
         support: "Atención al huésped",
         starsLabel: "Cinco estrellas",
@@ -394,10 +455,52 @@
           "Villa blanca contemporánea con piscina exterior"
         ],
         badge: "Premium con personalidad",
+        auditPromptLead: "Descubre cuánto podría rendir tu propiedad con una revisión clara de precio, ocupación y oportunidades. Gratis y sin compromiso.",
+        auditPromptButton: "Quiero mi auditoría gratis →",
+        auditPromptClose: "Cerrar esta oferta",
         servicesEyebrow: "Estrategia, operación y hospitalidad",
         servicesTitle: "Todo lo que hace que un alojamiento funcione de verdad.",
         servicesLead: "Hot Host es capaz de vender hielo a un esquimal o leche a una vaca. Pero preferimos vender mejor tu alojamiento: con estrategia, servicio y cero humo.",
         allServices: "Ver todos los servicios",
+        comparison: {
+          eyebrow: "Comparador de ingresos",
+          title: "Tres formas de rentabilizar la misma propiedad.",
+          lead: "Selecciona tu modelo de alquiler actual e introduce solo el precio que cobras. El resto de los supuestos se calcula automáticamente.",
+          inputsTitle: "Tu situación actual",
+          modelLabel: "¿Cómo alquilas actualmente la propiedad?",
+          currencyLabel: "Seleccionar moneda",
+          assumptionsTitle: "Supuestos calculados",
+          traditionalRent: "Alquiler tradicional al mes",
+          touristRate: "Tarifa turística media por noche",
+          touristOccupancy: "Ocupación media de otra agencia",
+          hotHostRate: "Tarifa por noche con Hot Host",
+          hotHostOccupancy: "Ocupación con Hot Host",
+          metric: "Indicador",
+          traditional: "Alquiler tradicional",
+          tourist: "Otra agencia turística",
+          hotHost: "Gestión Hot Host",
+          monthlyIncome: "Ingreso bruto mensual",
+          annualIncome: "Ingreso bruto anual",
+          occupiedNights: "Noches ocupadas al año",
+          averageRate: "Precio medio por noche",
+          ownerTime: "Dedicación del propietario",
+          pricing: "Estrategia de precios",
+          guestCare: "Atención al huésped",
+          traditionalNights: "100% de ocupación",
+          traditionalRate: "Renta fija",
+          ownerTimeHigh: "Baja",
+          ownerTimeLow: "Muy baja",
+          pricingFixed: "Fija",
+          pricingManual: "Gestionada por la agencia",
+          pricingDynamic: "Dinámica y supervisada",
+          guestCareTenant: "Relación con el inquilino",
+          guestCareOwner: "Coordinada por la agencia",
+          guestCareHotHost: "Coordinada por Hot Host",
+          resultLabel: "Ingreso bruto anual estimado con Hot Host",
+          versusTraditional: "frente al alquiler tradicional",
+          versusTourist: "frente a otra agencia turística",
+          disclaimer: "Estimación orientativa de ingresos brutos a partir de los datos introducidos y criterios internos de rendimiento. Valores antes de impuestos, financiación, mantenimiento, plataformas y honorarios; no constituyen una garantía."
+        },
         methodEyebrow: "Método Hot Host",
         methodTitle: ["La magia existe.", "Pero lleva checklist."],
         methodLead: "Combinamos empatía, tecnología, operación y medición. El huésped siente cercanía; tú conservas el control y recibes bastantes menos mensajes a deshoras.",
@@ -440,14 +543,21 @@
             ]
           }
         ],
-        credentialsTitle: "Credenciales",
+        credentialsTitle: "Experiencia que se convierte en resultados",
+        credentialsLead: "Experiencia hotelera real, visión comercial y ejecución diaria: la combinación que convierte potencial en reservas, reputación y tranquilidad para el propietario.",
         credentials: [
-          "Más de 10 años en hospitalidad",
-          "Recepción y operaciones hoteleras",
-          "Experiencia entre América y Europa: Caribe y Mediterráneo",
-          "Atención multilingüe en nueve idiomas",
-          "Booking, Airbnb y pricing dinámico"
+          ["Más de una década en hospitalidad", "Experiencia operativa real en recepción, servicio, coordinación y resolución de incidencias. No teoría de manual: criterio probado frente al huésped."],
+          ["Visión 360° del alojamiento", "Conectamos experiencia, costes, procesos, reputación y rentabilidad para que cada decisión sume y ninguna oportunidad se pierda entre departamentos."],
+          ["Criterio internacional, atención cercana", "Trayectoria entre Caribe y Mediterráneo, Europa y América, adaptada al mercado, al entorno y a la personalidad de cada propiedad."],
+          ["Nueve idiomas, una comunicación impecable", "Reducimos malentendidos y acompañamos a propietarios y huéspedes con mensajes claros antes, durante y después de cada estancia."],
+          ["Booking, Airbnb y revenue con intención", "Optimizamos anuncios, precios y calendario para competir por valor y rentabilidad, no simplemente por ser la opción más barata."],
+          ["Conversión y reputación que se impulsan", "Alineamos fotografía, texto del anuncio, experiencia y reseñas para que cada estancia excelente ayude a conseguir la siguiente reserva."],
+          ["Operación documentada, control visible", "Protocolos, responsables claros, proveedores coordinados y seguimiento de incidencias dan al propietario visibilidad sin devolverle la carga diaria."],
+          ["Decisiones con datos, hospitalidad con personas", "Medimos precios, ocupación, conversión y feedback para actuar con criterio y empatía. La tecnología apoya el cuidado; nunca lo sustituye."]
         ],
+        credentialsCta: "Quiero saber cuánto puede rendir mi propiedad →",
+        credentialsExpand: "Ver todas las credenciales",
+        credentialsCollapse: "Ocultar credenciales",
         pillarsEyebrow: "Nuestros pilares",
         pillarsTitle: "Premium, pero humano.",
         pillars: [
@@ -470,7 +580,7 @@
         eyebrow: "Cuéntanos qué tienes entre manos",
         title: "Tu alojamiento puede dar más. Empecemos por entenderlo.",
         heading: "Hablemos de tu propiedad",
-        lead: "Cuéntanos lo esencial y prepararemos una valoración clara y concreta. No hace falta una presentación de 40 diapositivas; con datos honestos nos basta.",
+        lead: "Cuéntanos lo esencial y realizaremos una primera auditoría clara y concreta de rentabilidad y operación. No hace falta una presentación de 40 diapositivas; con datos honestos nos basta.",
         serviceAreaLabel: "Área de servicio",
         serviceArea: "Gestión presencial según proyecto · Coordinación remota internacional",
         emailLabel: "Correo",
@@ -478,7 +588,7 @@
         hours: "Lunes a viernes · 09:00–19:00"
       },
       form: {
-        title: "Solicita una primera valoración",
+        title: "Solicita una primera auditoría de rentabilidad y operación",
         selectOption: "Selecciona una opción",
         selectCountry: "Selecciona un país o territorio",
         contactRole: "Relación con la propiedad",
@@ -515,9 +625,23 @@
         photosUrl: "Enlace a las fotografías",
         photosPlaceholder: "Enlace de Google Drive o Dropbox",
         photosHelp: "Asegúrate de que el enlace permita ver las fotografías.",
+        photosUpload: "Subir fotografías de la propiedad",
+        photosUploadHelp: "Hasta 10 imágenes JPG, PNG o WebP, de menos de 20 MB cada una. Se optimizarán antes de enviarse.",
+        photosSelected: "Fotografías seleccionadas: {count}",
+        removePhoto: "Eliminar {name}",
+        photosRequired: "Sube al menos una fotografía o añade un enlace donde podamos verlas.",
+        photosTooMany: "Puedes subir un máximo de 10 fotografías.",
+        photosTooLarge: "Cada fotografía debe pesar menos de 20 MB.",
+        photosInvalidType: "Solo se admiten imágenes JPG, PNG o WebP.",
+        driveUploading: "Optimizando y enviando las fotografías a Google Drive…",
+        driveUploaded: "{count} fotografías enviadas a Drive para su procesamiento.",
+        driveNotConfigured: "La subida directa no está disponible ahora. Añade un enlace compartido a las fotografías.",
+        driveUploadError: "No se pudieron enviar las fotografías a Google Drive. Inténtalo de nuevo o añade un enlace.",
         comments: "Comentarios adicionales",
         optional: "(opcional)",
         commentsPlaceholder: "Objetivos, dudas o cualquier dato relevante...",
+        privacyConsent: "Autorizo a Hot Host Hospitality a utilizar los datos y fotografías enviados únicamente para evaluar esta solicitud.",
+        privacyNote: "No incluyas personas ni documentos sensibles. Puedes solicitar la eliminación de la información escribiendo a direccion@hhosthospitality.com.",
         actionsLabel: "Elige cómo quieres enviar la consulta",
         sendEmail: "Enviar por correo →",
         sendWhatsapp: "Enviar por WhatsApp ↗",
@@ -561,6 +685,8 @@
           rental: "En alquiler turístico",
           listingUrl: "URL del anuncio",
           photosUrl: "Fotografías",
+          photosUploaded: "Referencia de envío a Drive",
+          consent: "Consentimiento de uso de datos",
           comments: "Comentarios"
         }
       },
@@ -569,6 +695,7 @@
           title: "Gestión integral",
           imageAlt: "Checklist de gestión operativa preparado sobre una mesa",
           summary: "Tu alojamiento, gestionado de principio a fin con visión hotelera, control operativo y comunicación transparente.",
+          price: ["18% de los ingresos del alojamiento", "Mínimo 220 €/mes · Incluye Guest Experience, Revenue Management y coordinación operativa remota"],
           tag: "Control total, tranquilidad real",
           intro: "Centralizamos la operación del alojamiento para que el propietario conserve visibilidad sin cargar con la gestión diaria.",
           benefits: ["Configuración y optimización de anuncios", "Gestión de reservas y calendario", "Comunicación con huéspedes antes, durante y después", "Coordinación de limpieza, lavandería y mantenimiento", "Seguimiento operativo e informes al propietario"],
@@ -582,6 +709,7 @@
           title: "Guest Experience",
           imageAlt: "Salón luminoso preparado para recibir a los huéspedes",
           summary: "Diseñamos estancias memorables, resolvemos necesidades y convertimos pequeños detalles en grandes reseñas.",
+          price: ["129 €/mes + 12 €/reserva", "Configuración inicial: 190 € en un único pago"],
           tag: "Estancias que generan recuerdo",
           intro: "Diseñamos cada punto de contacto para que el huésped se sienta esperado, atendido y genuinamente bienvenido.",
           benefits: ["Comunicación personalizada", "Guía local y recomendaciones segmentadas", "Detalles de bienvenida con identidad", "Seguimiento durante la estancia", "Gestión empática de incidencias"],
@@ -596,6 +724,7 @@
           title: "Revenue Management",
           imageAlt: "Panel de analítica con gráficos de rendimiento",
           summary: "Precios dinámicos basados en demanda, eventos, competencia, ocupación y objetivos reales de rentabilidad.",
+          price: ["179 €/mes", "Por propiedad"],
           tag: "Precio correcto, en el momento correcto",
           intro: "Transformamos datos de mercado en una estrategia de precios dinámica, coherente con tu posicionamiento y tus objetivos.",
           benefits: ["Análisis de competencia", "Demanda y calendario de eventos", "Reglas por anticipación y duración", "Control de ocupación y ADR", "Revisión periódica de estrategia"],
@@ -609,6 +738,7 @@
           title: "Check-in & operaciones",
           imageAlt: "Entrega de llaves en la entrada de una vivienda",
           summary: "Llegadas fluidas, salidas controladas, coordinación diaria y respuesta rápida ante incidencias.",
+          price: ["Desde 39 €/estancia", "Check-in presencial desde 59 € · Suplemento nocturno de 20 €"],
           tag: "Llegadas fluidas, control diario",
           intro: "Coordinamos los momentos críticos de cada estancia y mantenemos la operación en movimiento, incluso cuando aparece un imprevisto.",
           benefits: ["Instrucciones pre-llegada", "Check-in presencial o autónomo", "Verificación de identidad y normas", "Coordinación de check-out", "Gestión y escalado de incidencias"],
@@ -622,6 +752,7 @@
           title: "Limpieza & lavandería",
           imageAlt: "Dormitorio prístino con una cama impecable y luz cálida",
           summary: "Estándares verificables, coordinación profesional y una presentación impecable entre reservas.",
+          price: ["Desde 65 €/servicio", "+18 € por habitación adicional · Lavandería aparte"],
           tag: "Calidad visible en cada detalle",
           intro: "Coordinamos una preparación consistente del alojamiento, con estándares claros y controles antes de cada llegada.",
           benefits: ["Checklist por estancia", "Coordinación de equipos", "Gestión de lencería y amenities", "Control visual de calidad", "Reporte de daños o faltantes"],
@@ -645,6 +776,7 @@
             "Baño contemporáneo de mármol con mueble de madera"
           ],
           summary: "Una puesta en escena visual que aumenta el atractivo del anuncio y comunica el valor de la propiedad.",
+          price: ["295 €/sesión fotográfica", "Propiedades de gran tamaño desde 390 €"],
           tag: "Haz visible el valor",
           intro: "Planificamos la imagen del alojamiento para atraer al huésped adecuado, elevar la percepción de calidad y mejorar la conversión.",
           benefits: ["Dirección visual y estilismo", "Selección de encuadres", "Secuencia narrativa del anuncio", "Optimización para plataformas", "Recomendaciones de puesta en escena"],
@@ -658,6 +790,7 @@
           title: "Auditoría de rentabilidad",
           imageAlt: "Gráficos, calculadora y lápiz sobre una mesa de análisis",
           summary: "Diagnóstico comercial y operativo para detectar fugas, oportunidades y prioridades de mejora.",
+          price: ["249 €", "Gratis hasta el 30 de septiembre"],
           tag: "Primero entender, luego mejorar",
           intro: "Analizamos el alojamiento como producto, operación y activo para identificar las acciones con mayor impacto potencial.",
           benefits: ["Diagnóstico del anuncio", "Benchmark competitivo", "Revisión de costes y procesos", "Mapa de oportunidades", "Plan priorizado de 30–90 días"],
@@ -682,12 +815,12 @@
           home: "Premium management for more profitable, memorable and easier-to-run tourist accommodation.",
           services: "Management, operations, guest experience and profitability services for tourist accommodation.",
           about: "More than a decade of hotel experience across the Americas and Europe, working for your accommodation.",
-          contact: "Discover your accommodation's potential with an initial assessment from Hot Host Hospitality."
+          contact: "Discover your accommodation's potential with an initial profitability and operations audit from Hot Host Hospitality."
         }
       },
       shell: {
         nav: { home: "Home", services: "Services", about: "About Hot Host", contact: "Contact" },
-        assess: "Assess property",
+        assess: "Audit my property",
         openMenu: "Open menu",
         closeMenu: "Close menu",
         languageLabel: "Select site language",
@@ -702,14 +835,15 @@
         exploreService: "Explore service →",
         viewDetail: "View details →",
         includes: "Includes",
-        requestAssessment: "Request an assessment",
+        requestAssessment: "Request an audit",
+        priceDisclaimer: "Prices exclude taxes and third-party costs.",
         ctaEyebrow: "A straight conversation, no commitment",
         ctaTitle: "Could your accommodation earn more while giving you far less work?",
-        ctaButton: "Claim my free audit →",
+        ctaButton: "Request an audit →",
         offerKicker: "Limited-time offer",
         offerTitle: "Free profitability audit",
-        offerDeadline: "Only until 30 September",
-        navOffer: "Free until 30 SEP",
+        offerDeadline: "Free until 30 September",
+        navOffer: "Free until 30 September",
         carouselRole: "carousel",
         previousImage: "Previous image",
         nextImage: "Next image",
@@ -729,7 +863,7 @@
         titleAccent: "Better stays. Fewer headaches.",
         lead: "Hot Host turns promising accommodation into operations that are more profitable, memorable and easier to run, wherever they are. We handle the details; you regain time and control.",
         discover: "See how we do it →",
-        analyse: "Request a free audit",
+        analyse: "Request an audit",
         years: "Years in hospitality",
         support: "Guest support",
         starsLabel: "Five stars",
@@ -741,10 +875,52 @@
           "Contemporary white villa with an outdoor pool"
         ],
         badge: "Premium with personality",
+        auditPromptLead: "Discover how much your property could earn with a clear review of pricing, occupancy and opportunities. Free and with no obligation.",
+        auditPromptButton: "I want my free audit →",
+        auditPromptClose: "Close this offer",
         servicesEyebrow: "Strategy, operations and hospitality",
         servicesTitle: "Everything that makes accommodation work properly.",
         servicesLead: "Hot Host could sell ice to an Eskimo or milk to a cow. We would rather sell your accommodation better: with strategy, service and no hot air.",
         allServices: "View all services",
+        comparison: {
+          eyebrow: "Income comparison",
+          title: "Three ways to earn from the same property.",
+          lead: "Select your current rental model and enter only the price you charge. All remaining assumptions are calculated automatically.",
+          inputsTitle: "Your current situation",
+          modelLabel: "How do you currently rent the property?",
+          currencyLabel: "Select currency",
+          assumptionsTitle: "Calculated assumptions",
+          traditionalRent: "Traditional monthly rent",
+          touristRate: "Average tourist nightly rate",
+          touristOccupancy: "Other-agency market occupancy",
+          hotHostRate: "Nightly rate with Hot Host",
+          hotHostOccupancy: "Occupancy with Hot Host",
+          metric: "Metric",
+          traditional: "Traditional rental",
+          tourist: "Other tourist agency",
+          hotHost: "Hot Host management",
+          monthlyIncome: "Gross monthly income",
+          annualIncome: "Gross annual income",
+          occupiedNights: "Occupied nights per year",
+          averageRate: "Average nightly rate",
+          ownerTime: "Owner involvement",
+          pricing: "Pricing strategy",
+          guestCare: "Guest support",
+          traditionalNights: "100% occupancy",
+          traditionalRate: "Fixed rent",
+          ownerTimeHigh: "Low",
+          ownerTimeLow: "Very low",
+          pricingFixed: "Fixed",
+          pricingManual: "Managed by the agency",
+          pricingDynamic: "Dynamic and supervised",
+          guestCareTenant: "Tenant relationship",
+          guestCareOwner: "Coordinated by the agency",
+          guestCareHotHost: "Coordinated by Hot Host",
+          resultLabel: "Estimated annual gross income with Hot Host",
+          versusTraditional: "versus traditional rental",
+          versusTourist: "versus another tourist agency",
+          disclaimer: "Illustrative gross-income estimate based on the information entered and internal performance criteria. Figures are before taxes, financing, maintenance, platform costs and management fees and do not guarantee results."
+        },
         methodEyebrow: "The Hot Host method",
         methodTitle: ["Magic exists.", "But it comes with a checklist."],
         methodLead: "We combine empathy, technology, operations and measurement. Guests feel the personal touch; you stay in control and receive far fewer late-night messages.",
@@ -787,14 +963,21 @@
             ]
           }
         ],
-        credentialsTitle: "Credentials",
+        credentialsTitle: "Experience that turns into results",
+        credentialsLead: "Real hotel expertise, commercial judgement and consistent daily execution: the combination that turns potential into bookings, reputation and owner peace of mind.",
         credentials: [
-          "More than 10 years in hospitality",
-          "Hotel reception and operations",
-          "Experience across the Americas and Europe: Caribbean and Mediterranean",
-          "Multilingual service in nine languages",
-          "Booking, Airbnb and dynamic pricing"
+          ["More than a decade in hospitality", "Hands-on experience across reception, service, coordination and incident resolution. Not textbook theory, but judgement tested in front of real guests."],
+          ["A 360° view of every accommodation", "We connect guest experience, costs, operations, reputation and profitability so every decision adds value and no opportunity is lost between teams."],
+          ["International judgement, genuinely local care", "Experience spanning the Caribbean and Mediterranean, Europe and the Americas, adapted to each market, setting and property's personality."],
+          ["Nine languages, one clear standard", "We reduce misunderstandings and guide owners and guests with clear communication before, during and after every stay."],
+          ["Booking, Airbnb and revenue with purpose", "We optimise listings, pricing and calendars to compete on value and profitability, not simply by being the cheapest option."],
+          ["Conversion and reputation that reinforce each other", "We align photography, listing copy, guest experience and reviews so every excellent stay helps secure the next booking."],
+          ["Documented operations, visible control", "Protocols, clear ownership, coordinated suppliers and incident follow-up give owners clarity without handing the daily workload back to them."],
+          ["Decisions with data, hospitality with people", "We track pricing, occupancy, conversion and feedback, then act with judgement and empathy. Technology supports care; it never replaces it."]
         ],
+        credentialsCta: "Show me how much my property could earn →",
+        credentialsExpand: "View all credentials",
+        credentialsCollapse: "Hide credentials",
         pillarsEyebrow: "Our pillars",
         pillarsTitle: "Premium, yet human.",
         pillars: [
@@ -817,7 +1000,7 @@
         eyebrow: "Tell us what you have in mind",
         title: "Your accommodation can do more. Let's understand how.",
         heading: "Let's talk about your property",
-        lead: "Share the essentials and we will prepare a clear, focused assessment. No 40-slide presentation required; honest information will do nicely.",
+        lead: "Share the essentials and we will conduct a clear, focused initial profitability and operations audit. No 40-slide presentation required; honest information will do nicely.",
         serviceAreaLabel: "Service area",
         serviceArea: "On-site management by project · International remote coordination",
         emailLabel: "Email",
@@ -825,7 +1008,7 @@
         hours: "Monday to Friday · 09:00–19:00"
       },
       form: {
-        title: "Request an initial assessment",
+        title: "Request an initial profitability and operations audit",
         selectOption: "Select an option",
         selectCountry: "Select a country or territory",
         contactRole: "Relationship to the property",
@@ -862,9 +1045,23 @@
         photosUrl: "Link to photographs",
         photosPlaceholder: "Google Drive or Dropbox link",
         photosHelp: "Make sure the link allows the photographs to be viewed.",
+        photosUpload: "Upload property photographs",
+        photosUploadHelp: "Up to 10 JPG, PNG or WebP images, each smaller than 20 MB. They will be optimised before sending.",
+        photosSelected: "Photographs selected: {count}",
+        removePhoto: "Remove {name}",
+        photosRequired: "Upload at least one photograph or add a link where we can view them.",
+        photosTooMany: "You can upload a maximum of 10 photographs.",
+        photosTooLarge: "Each photograph must be smaller than 20 MB.",
+        photosInvalidType: "Only JPG, PNG or WebP images are accepted.",
+        driveUploading: "Optimising and sending photographs to Google Drive…",
+        driveUploaded: "{count} photographs sent to Drive for processing.",
+        driveNotConfigured: "Direct upload is not available right now. Add a shared link to the photographs.",
+        driveUploadError: "The photographs could not be sent to Google Drive. Try again or add a link.",
         comments: "Additional comments",
         optional: "(optional)",
         commentsPlaceholder: "Goals, questions or any other relevant information...",
+        privacyConsent: "I authorise Hot Host Hospitality to use the submitted details and photographs solely to assess this enquiry.",
+        privacyNote: "Do not include people or sensitive documents. You may request deletion by emailing direccion@hhosthospitality.com.",
         actionsLabel: "Choose how you want to send the enquiry",
         sendEmail: "Send by email →",
         sendWhatsapp: "Send by WhatsApp ↗",
@@ -908,6 +1105,8 @@
           rental: "Currently a tourist rental",
           listingUrl: "Listing URL",
           photosUrl: "Photographs",
+          photosUploaded: "Drive submission reference",
+          consent: "Data-use consent",
           comments: "Comments"
         }
       },
@@ -916,6 +1115,7 @@
           title: "Full management",
           imageAlt: "Operational management checklist laid out on a desk",
           summary: "Your accommodation managed from start to finish with hotel expertise, operational control and transparent communication.",
+          price: ["18% of accommodation revenue", "Minimum €220/month · Includes Guest Experience, Revenue Management and remote operational coordination"],
           tag: "Total control, genuine peace of mind",
           intro: "We centralise accommodation operations so owners retain visibility without carrying the burden of day-to-day management.",
           benefits: ["Listing setup and optimisation", "Booking and calendar management", "Guest communication before, during and after each stay", "Cleaning, laundry and maintenance coordination", "Operational monitoring and owner reports"],
@@ -929,6 +1129,7 @@
           title: "Guest Experience",
           imageAlt: "Bright living room prepared to welcome guests",
           summary: "We design memorable stays, solve needs and turn small details into excellent reviews.",
+          price: ["€129/month + €12/booking", "One-time setup: €190"],
           tag: "Stays worth remembering",
           intro: "We design every touchpoint so guests feel expected, looked after and genuinely welcome.",
           benefits: ["Personalised communication", "Local guide and tailored recommendations", "Welcome touches with identity", "Support throughout the stay", "Empathetic issue management"],
@@ -943,6 +1144,7 @@
           title: "Revenue Management",
           imageAlt: "Analytics dashboard displaying performance charts",
           summary: "Dynamic pricing based on demand, events, competition, occupancy and real profitability targets.",
+          price: ["€179/month", "Per property"],
           tag: "The right price at the right time",
           intro: "We turn market data into a dynamic pricing strategy aligned with your positioning and objectives.",
           benefits: ["Competitor analysis", "Demand and event calendar", "Lead-time and length-of-stay rules", "Occupancy and ADR control", "Regular strategy reviews"],
@@ -956,6 +1158,7 @@
           title: "Check-in & operations",
           imageAlt: "Keys being handed over at the entrance to a home",
           summary: "Smooth arrivals, controlled departures, daily coordination and a rapid response to issues.",
+          price: ["From €39/stay", "In-person check-in from €59 · €20 night surcharge"],
           tag: "Smooth arrivals, daily control",
           intro: "We coordinate the critical moments of every stay and keep operations moving, even when something unexpected happens.",
           benefits: ["Pre-arrival instructions", "In-person or self check-in", "Identity and house-rule verification", "Check-out coordination", "Issue management and escalation"],
@@ -969,6 +1172,7 @@
           title: "Cleaning & laundry",
           imageAlt: "Pristine bedroom with an immaculate bed and warm light",
           summary: "Verifiable standards, professional coordination and immaculate presentation between bookings.",
+          price: ["From €65/service", "+€18 per additional bedroom · Laundry charged separately"],
           tag: "Quality visible in every detail",
           intro: "We coordinate consistent accommodation preparation, with clear standards and checks before every arrival.",
           benefits: ["Checklist for every stay", "Team coordination", "Linen and amenities management", "Visual quality control", "Damage or missing-item reports"],
@@ -992,6 +1196,7 @@
             "Contemporary marble bathroom with a wooden vanity"
           ],
           summary: "Visual staging that makes the listing more appealing and communicates the property's value.",
+          price: ["€295/photo session", "Large properties from €390"],
           tag: "Make the value visible",
           intro: "We plan the accommodation's imagery to attract the right guest, raise perceived quality and improve conversion.",
           benefits: ["Visual direction and styling", "Shot selection", "Narrative listing sequence", "Platform optimisation", "Staging recommendations"],
@@ -1005,6 +1210,7 @@
           title: "Profitability audit",
           imageAlt: "Charts, calculator and pencil on an analysis desk",
           summary: "A commercial and operational diagnosis to identify leakage, opportunities and improvement priorities.",
+          price: ["€249", "Free until 30 September"],
           tag: "Understand first, then improve",
           intro: "We analyse the accommodation as a product, an operation and an asset to identify the actions with the greatest potential impact.",
           benefits: ["Listing diagnosis", "Competitive benchmarking", "Cost and process review", "Opportunity map", "Prioritised 30–90 day plan"],
@@ -1029,12 +1235,12 @@
           home: "Gestion premium pour des hébergements touristiques plus rentables, mémorables et simples à piloter.",
           services: "Services de gestion, opérations, expérience client et rentabilité pour hébergements touristiques.",
           about: "Plus de dix ans d’expérience hôtelière entre les Amériques et l’Europe au service de votre hébergement.",
-          contact: "Découvrez le potentiel de votre hébergement avec une première évaluation de Hot Host Hospitality."
+          contact: "Découvrez le potentiel de votre hébergement grâce à un premier audit de rentabilité et d’exploitation par Hot Host Hospitality."
         }
       },
       shell: {
         nav: { home: "Accueil", services: "Services", about: "À propos de Hot Host", contact: "Contact" },
-        assess: "Évaluer le bien",
+        assess: "Auditer mon bien",
         openMenu: "Ouvrir le menu",
         closeMenu: "Fermer le menu",
         languageLabel: "Sélectionner la langue du site",
@@ -1049,14 +1255,15 @@
         exploreService: "Découvrir le service →",
         viewDetail: "Voir le détail →",
         includes: "Inclus",
-        requestAssessment: "Demander une évaluation",
+        requestAssessment: "Demander un audit",
+        priceDisclaimer: "Les prix n’incluent ni les taxes ni les frais de tiers.",
         ctaEyebrow: "Parlons franchement, sans engagement",
         ctaTitle: "Votre hébergement pourrait-il rapporter plus tout en vous donnant bien moins de travail ?",
-        ctaButton: "Je veux mon audit offert →",
+        ctaButton: "Demander un audit →",
         offerKicker: "Offre à durée limitée",
         offerTitle: "Audit de rentabilité offert",
-        offerDeadline: "Seulement jusqu’au 30 septembre",
-        navOffer: "Offert jusqu’au 30 SEP",
+        offerDeadline: "Offert jusqu’au 30 septembre",
+        navOffer: "Offert jusqu’au 30 septembre",
         carouselRole: "carrousel",
         previousImage: "Image précédente",
         nextImage: "Image suivante",
@@ -1076,7 +1283,7 @@
         titleAccent: "De meilleurs séjours. Moins de tracas.",
         lead: "Hot Host transforme les hébergements prometteurs en opérations plus rentables, mémorables et simples à piloter, où qu’ils se trouvent. Nous soignons les détails ; vous retrouvez du temps et du contrôle.",
         discover: "Voir notre méthode →",
-        analyse: "Demander l’audit offert",
+        analyse: "Demander un audit",
         years: "Années dans l’hospitalité",
         support: "Assistance voyageurs",
         starsLabel: "Cinq étoiles",
@@ -1088,10 +1295,52 @@
           "Villa blanche contemporaine avec piscine extérieure"
         ],
         badge: "Premium avec personnalité",
+        auditPromptLead: "Découvrez le potentiel de votre bien grâce à une analyse claire des tarifs, de l’occupation et des opportunités. Offerte et sans engagement.",
+        auditPromptButton: "Je veux mon audit offert →",
+        auditPromptClose: "Fermer cette offre",
         servicesEyebrow: "Stratégie, opérations et hospitalité",
         servicesTitle: "Tout ce qui fait vraiment fonctionner un hébergement.",
         servicesLead: "Hot Host pourrait vendre de la glace à un Esquimau ou du lait à une vache. Nous préférons mieux vendre votre hébergement : avec stratégie, service et sans poudre aux yeux.",
         allServices: "Voir tous les services",
+        comparison: {
+          eyebrow: "Comparaison des revenus",
+          title: "Trois façons de rentabiliser le même bien.",
+          lead: "Sélectionnez votre modèle de location actuel et indiquez uniquement le prix pratiqué. Les autres hypothèses sont calculées automatiquement.",
+          inputsTitle: "Votre situation actuelle",
+          modelLabel: "Comment louez-vous actuellement le bien ?",
+          currencyLabel: "Sélectionner la devise",
+          assumptionsTitle: "Hypothèses calculées",
+          traditionalRent: "Loyer traditionnel mensuel",
+          touristRate: "Tarif touristique moyen par nuit",
+          touristOccupancy: "Occupation du marché / d’une autre agence",
+          hotHostRate: "Prix par nuit avec Hot Host",
+          hotHostOccupancy: "Occupation avec Hot Host",
+          metric: "Indicateur",
+          traditional: "Location traditionnelle",
+          tourist: "Autre agence touristique",
+          hotHost: "Gestion Hot Host",
+          monthlyIncome: "Revenu brut mensuel",
+          annualIncome: "Revenu brut annuel",
+          occupiedNights: "Nuits occupées par an",
+          averageRate: "Prix moyen par nuit",
+          ownerTime: "Implication du propriétaire",
+          pricing: "Stratégie tarifaire",
+          guestCare: "Assistance voyageur",
+          traditionalNights: "100 % d’occupation",
+          traditionalRate: "Loyer fixe",
+          ownerTimeHigh: "Faible",
+          ownerTimeLow: "Très faible",
+          pricingFixed: "Fixe",
+          pricingManual: "Gérée par l’agence",
+          pricingDynamic: "Dynamique et supervisée",
+          guestCareTenant: "Relation avec le locataire",
+          guestCareOwner: "Coordonnée par l’agence",
+          guestCareHotHost: "Coordonnée par Hot Host",
+          resultLabel: "Revenu brut annuel estimé avec Hot Host",
+          versusTraditional: "par rapport à la location traditionnelle",
+          versusTourist: "par rapport à une autre agence touristique",
+          disclaimer: "Estimation indicative des revenus bruts fondée sur les informations saisies et des critères de performance internes. Montants avant impôts, financement, entretien, plateformes et honoraires, sans garantie de résultat."
+        },
         methodEyebrow: "Méthode Hot Host",
         methodTitle: ["La magie existe.", "Mais elle suit une checklist."],
         methodLead: "Nous combinons empathie, technologie, opérations et mesure. Le voyageur ressent la proximité ; vous gardez le contrôle et recevez beaucoup moins de messages tard le soir.",
@@ -1134,14 +1383,21 @@
             ]
           }
         ],
-        credentialsTitle: "Références",
+        credentialsTitle: "Une expérience qui se transforme en résultats",
+        credentialsLead: "Une vraie expertise hôtelière, une vision commerciale et une exécution rigoureuse au quotidien : la combinaison qui transforme le potentiel en réservations, réputation et sérénité.",
         credentials: [
-          "Plus de 10 ans dans l’hospitalité",
-          "Réception et opérations hôtelières",
-          "Expérience entre les Amériques et l’Europe : Caraïbes et Méditerranée",
-          "Service multilingue en neuf langues",
-          "Booking, Airbnb et tarification dynamique"
+          ["Plus de dix ans dans l’hospitalité", "Une expérience concrète en réception, service, coordination et gestion des incidents. Pas de théorie abstraite, mais un jugement éprouvé face aux voyageurs."],
+          ["Une vision à 360° de l’hébergement", "Nous relions expérience voyageur, coûts, opérations, réputation et rentabilité afin que chaque décision crée de la valeur."],
+          ["Une expertise internationale, une attention de proximité", "Un parcours entre Caraïbes et Méditerranée, Europe et Amériques, adapté au marché, à l’environnement et à la personnalité de chaque bien."],
+          ["Neuf langues, un même niveau de clarté", "Nous limitons les malentendus et accompagnons propriétaires et voyageurs avant, pendant et après chaque séjour."],
+          ["Booking, Airbnb et revenue avec intention", "Nous optimisons annonces, tarifs et calendrier pour gagner par la valeur et la rentabilité, jamais seulement par le prix le plus bas."],
+          ["Conversion et réputation qui se renforcent", "Nous alignons photographie, texte de l’annonce, expérience et avis afin que chaque excellent séjour facilite la réservation suivante."],
+          ["Des opérations documentées, un contrôle visible", "Protocoles, responsabilités claires, prestataires coordonnés et suivi des incidents offrent de la visibilité sans rendre au propriétaire la charge quotidienne."],
+          ["Des décisions guidées par les données, une hospitalité humaine", "Nous suivons tarifs, occupation, conversion et retours, puis agissons avec discernement et empathie. La technologie soutient l’attention, sans jamais la remplacer."]
         ],
+        credentialsCta: "Je veux connaître le potentiel de mon bien →",
+        credentialsExpand: "Voir toutes les références",
+        credentialsCollapse: "Masquer les références",
         pillarsEyebrow: "Nos piliers",
         pillarsTitle: "Premium, mais humain.",
         pillars: [
@@ -1164,7 +1420,7 @@
         eyebrow: "Dites-nous ce que vous avez entre les mains",
         title: "Votre hébergement peut faire mieux. Commençons par le comprendre.",
         heading: "Parlons de votre bien",
-        lead: "Donnez-nous l’essentiel et nous préparerons une évaluation claire et précise. Inutile de prévoir une présentation de 40 diapositives ; des informations sincères nous suffisent.",
+        lead: "Donnez-nous l’essentiel et nous réaliserons un premier audit clair et précis de rentabilité et d’exploitation. Inutile de prévoir une présentation de 40 diapositives ; des informations sincères nous suffisent.",
         serviceAreaLabel: "Zone de service",
         serviceArea: "Gestion sur place selon le projet · Coordination internationale à distance",
         emailLabel: "E-mail",
@@ -1172,7 +1428,7 @@
         hours: "Du lundi au vendredi · 09:00–19:00"
       },
       form: {
-        title: "Demandez une première évaluation",
+        title: "Demandez un premier audit de rentabilité et d’exploitation",
         selectOption: "Sélectionnez une option",
         selectCountry: "Sélectionnez un pays ou territoire",
         contactRole: "Lien avec le bien",
@@ -1209,9 +1465,23 @@
         photosUrl: "Lien vers les photographies",
         photosPlaceholder: "Lien Google Drive ou Dropbox",
         photosHelp: "Vérifiez que le lien permet de consulter les photographies.",
+        photosUpload: "Importer des photographies du bien",
+        photosUploadHelp: "Jusqu’à 10 images JPG, PNG ou WebP de moins de 20 Mo chacune. Elles seront optimisées avant l’envoi.",
+        photosSelected: "Photographies sélectionnées : {count}",
+        removePhoto: "Supprimer {name}",
+        photosRequired: "Importez au moins une photographie ou ajoutez un lien permettant de les consulter.",
+        photosTooMany: "Vous pouvez importer jusqu’à 10 photographies.",
+        photosTooLarge: "Chaque photographie doit peser moins de 20 Mo.",
+        photosInvalidType: "Seules les images JPG, PNG ou WebP sont acceptées.",
+        driveUploading: "Optimisation et envoi des photographies vers Google Drive…",
+        driveUploaded: "{count} photographies envoyées vers Drive pour traitement.",
+        driveNotConfigured: "L’importation directe n’est pas disponible actuellement. Ajoutez un lien partagé vers les photographies.",
+        driveUploadError: "Impossible d’envoyer les photographies vers Google Drive. Réessayez ou ajoutez un lien.",
         comments: "Commentaires complémentaires",
         optional: "(facultatif)",
         commentsPlaceholder: "Objectifs, questions ou toute autre information utile...",
+        privacyConsent: "J’autorise Hot Host Hospitality à utiliser les informations et photographies transmises uniquement pour évaluer cette demande.",
+        privacyNote: "N’incluez ni personnes ni documents sensibles. Vous pouvez demander la suppression des informations à direccion@hhosthospitality.com.",
         actionsLabel: "Choisissez comment envoyer la demande",
         sendEmail: "Envoyer par e-mail →",
         sendWhatsapp: "Envoyer par WhatsApp ↗",
@@ -1255,6 +1525,8 @@
           rental: "En location touristique",
           listingUrl: "URL de l’annonce",
           photosUrl: "Photographies",
+          photosUploaded: "Référence d’envoi vers Drive",
+          consent: "Consentement à l’utilisation des données",
           comments: "Commentaires"
         }
       },
@@ -1263,6 +1535,7 @@
           title: "Gestion intégrale",
           imageAlt: "Checklist de gestion opérationnelle posée sur un bureau",
           summary: "Votre hébergement géré de bout en bout avec une vision hôtelière, un contrôle opérationnel et une communication transparente.",
+          price: ["18 % des revenus de l’hébergement", "Minimum 220 €/mois · Inclut la Guest Experience, le Revenue Management et la coordination opérationnelle à distance"],
           tag: "Contrôle total, sérénité réelle",
           intro: "Nous centralisons les opérations de l’hébergement afin que le propriétaire conserve une visibilité complète sans supporter la gestion quotidienne.",
           benefits: ["Configuration et optimisation des annonces", "Gestion des réservations et du calendrier", "Communication avec les voyageurs avant, pendant et après", "Coordination du nettoyage, de la blanchisserie et de la maintenance", "Suivi opérationnel et rapports au propriétaire"],
@@ -1276,6 +1549,7 @@
           title: "Guest Experience",
           imageAlt: "Salon lumineux préparé pour accueillir les voyageurs",
           summary: "Nous concevons des séjours mémorables, répondons aux besoins et transformons les petits détails en excellents avis.",
+          price: ["129 €/mois + 12 €/réservation", "Frais de mise en place uniques : 190 €"],
           tag: "Des séjours qui restent en mémoire",
           intro: "Nous concevons chaque point de contact pour que le voyageur se sente attendu, accompagné et sincèrement bienvenu.",
           benefits: ["Communication personnalisée", "Guide local et recommandations ciblées", "Attentions de bienvenue identitaires", "Suivi pendant le séjour", "Gestion empathique des incidents"],
@@ -1290,6 +1564,7 @@
           title: "Revenue Management",
           imageAlt: "Tableau de bord analytique affichant des graphiques de performance",
           summary: "Tarification dynamique fondée sur la demande, les événements, la concurrence, l’occupation et de vrais objectifs de rentabilité.",
+          price: ["179 €/mois", "Par bien"],
           tag: "Le bon prix au bon moment",
           intro: "Nous transformons les données du marché en stratégie tarifaire dynamique, cohérente avec votre positionnement et vos objectifs.",
           benefits: ["Analyse de la concurrence", "Demande et calendrier des événements", "Règles d’anticipation et de durée", "Contrôle de l’occupation et de l’ADR", "Révision périodique de la stratégie"],
@@ -1303,6 +1578,7 @@
           title: "Check-in & opérations",
           imageAlt: "Remise de clés à l’entrée d’un logement",
           summary: "Des arrivées fluides, des départs maîtrisés, une coordination quotidienne et une réponse rapide aux incidents.",
+          price: ["À partir de 39 €/séjour", "Check-in en personne à partir de 59 € · Supplément de nuit de 20 €"],
           tag: "Arrivées fluides, contrôle quotidien",
           intro: "Nous coordonnons les moments critiques de chaque séjour et maintenons les opérations en mouvement, même face à un imprévu.",
           benefits: ["Instructions avant l’arrivée", "Check-in en personne ou autonome", "Vérification de l’identité et du règlement", "Coordination du check-out", "Gestion et escalade des incidents"],
@@ -1316,6 +1592,7 @@
           title: "Nettoyage & blanchisserie",
           imageAlt: "Chambre impeccable avec un lit parfaitement préparé et une lumière chaleureuse",
           summary: "Des standards vérifiables, une coordination professionnelle et une présentation impeccable entre les réservations.",
+          price: ["À partir de 65 €/service", "+18 € par chambre supplémentaire · Blanchisserie facturée séparément"],
           tag: "Une qualité visible dans chaque détail",
           intro: "Nous coordonnons une préparation constante de l’hébergement, avec des standards clairs et des contrôles avant chaque arrivée.",
           benefits: ["Checklist à chaque séjour", "Coordination des équipes", "Gestion du linge et des amenities", "Contrôle visuel de la qualité", "Signalement des dommages ou manquants"],
@@ -1339,6 +1616,7 @@
             "Salle de bains contemporaine en marbre avec meuble en bois"
           ],
           summary: "Une mise en scène visuelle qui renforce l’attrait de l’annonce et communique la valeur du bien.",
+          price: ["295 €/séance photo", "Biens de grande taille à partir de 390 €"],
           tag: "Rendez la valeur visible",
           intro: "Nous planifions l’image de l’hébergement pour attirer le bon voyageur, renforcer la perception de qualité et améliorer la conversion.",
           benefits: ["Direction visuelle et stylisme", "Sélection des cadrages", "Séquence narrative de l’annonce", "Optimisation pour les plateformes", "Recommandations de mise en scène"],
@@ -1352,6 +1630,7 @@
           title: "Audit de rentabilité",
           imageAlt: "Graphiques, calculatrice et crayon sur une table d’analyse",
           summary: "Un diagnostic commercial et opérationnel pour détecter les fuites, les opportunités et les priorités d’amélioration.",
+          price: ["249 €", "Offert jusqu’au 30 septembre"],
           tag: "Comprendre d’abord, améliorer ensuite",
           intro: "Nous analysons l’hébergement comme produit, opération et actif afin d’identifier les actions au plus fort impact potentiel.",
           benefits: ["Diagnostic de l’annonce", "Benchmark concurrentiel", "Révision des coûts et processus", "Carte des opportunités", "Plan priorisé sur 30 à 90 jours"],
@@ -1376,12 +1655,12 @@
           home: "Gestione premium per alloggi turistici più redditizi, memorabili e facili da gestire.",
           services: "Servizi di gestione, operazioni, guest experience e redditività per alloggi turistici.",
           about: "Oltre dieci anni di esperienza alberghiera tra le Americhe e l’Europa al servizio del tuo alloggio.",
-          contact: "Scopri il potenziale del tuo alloggio con una prima valutazione di Hot Host Hospitality."
+          contact: "Scopri il potenziale del tuo alloggio con un primo audit di redditività e operatività di Hot Host Hospitality."
         }
       },
       shell: {
         nav: { home: "Home", services: "Servizi", about: "Chi è Hot Host", contact: "Contatti" },
-        assess: "Valuta la proprietà",
+        assess: "Audit della proprietà",
         openMenu: "Apri menu",
         closeMenu: "Chiudi menu",
         languageLabel: "Seleziona la lingua del sito",
@@ -1396,14 +1675,15 @@
         exploreService: "Scopri il servizio →",
         viewDetail: "Vedi dettagli →",
         includes: "Include",
-        requestAssessment: "Richiedi una valutazione",
+        requestAssessment: "Richiedi un audit",
+        priceDisclaimer: "I prezzi non includono imposte né costi di terzi.",
         ctaEyebrow: "Parliamone con chiarezza, senza impegno",
         ctaTitle: "Il tuo alloggio potrebbe rendere di più e darti molto meno lavoro?",
-        ctaButton: "Voglio il mio audit gratuito →",
+        ctaButton: "Richiedi un audit →",
         offerKicker: "Offerta a tempo limitato",
         offerTitle: "Audit di redditività gratuito",
-        offerDeadline: "Solo fino al 30 settembre",
-        navOffer: "Gratis fino al 30 SET",
+        offerDeadline: "Gratis fino al 30 settembre",
+        navOffer: "Gratis fino al 30 settembre",
         carouselRole: "carosello",
         previousImage: "Immagine precedente",
         nextImage: "Immagine successiva",
@@ -1423,7 +1703,7 @@
         titleAccent: "Soggiorni migliori. Meno pensieri.",
         lead: "Hot Host trasforma gli alloggi con potenziale in operazioni più redditizie, memorabili e facili da gestire, ovunque si trovino. Noi curiamo i dettagli; tu recuperi tempo e controllo.",
         discover: "Scopri come lavoriamo →",
-        analyse: "Richiedi l’audit gratuito",
+        analyse: "Richiedi un audit",
         years: "Anni nell’ospitalità",
         support: "Assistenza agli ospiti",
         starsLabel: "Cinque stelle",
@@ -1435,10 +1715,52 @@
           "Villa bianca contemporanea con piscina esterna"
         ],
         badge: "Premium con personalità",
+        auditPromptLead: "Scopri quanto potrebbe rendere la tua proprietà con un’analisi chiara di prezzi, occupazione e opportunità. Gratuita e senza impegno.",
+        auditPromptButton: "Voglio il mio audit gratuito →",
+        auditPromptClose: "Chiudi questa offerta",
         servicesEyebrow: "Strategia, operazioni e ospitalità",
         servicesTitle: "Tutto ciò che fa funzionare davvero un alloggio.",
         servicesLead: "Hot Host saprebbe vendere ghiaccio a un eschimese o latte a una mucca. Preferiamo vendere meglio il tuo alloggio: con strategia, servizio e zero fumo.",
         allServices: "Vedi tutti i servizi",
+        comparison: {
+          eyebrow: "Confronto dei ricavi",
+          title: "Tre modi per far rendere la stessa proprietà.",
+          lead: "Seleziona il modello di affitto attuale e inserisci solo il prezzo applicato. Le altre ipotesi vengono calcolate automaticamente.",
+          inputsTitle: "La tua situazione attuale",
+          modelLabel: "Come affitti attualmente la proprietà?",
+          currencyLabel: "Seleziona valuta",
+          assumptionsTitle: "Ipotesi calcolate",
+          traditionalRent: "Affitto tradizionale mensile",
+          touristRate: "Tariffa turistica media per notte",
+          touristOccupancy: "Occupazione di mercato / altra agenzia",
+          hotHostRate: "Prezzo per notte con Hot Host",
+          hotHostOccupancy: "Occupazione con Hot Host",
+          metric: "Indicatore",
+          traditional: "Affitto tradizionale",
+          tourist: "Altra agenzia turistica",
+          hotHost: "Gestione Hot Host",
+          monthlyIncome: "Ricavo lordo mensile",
+          annualIncome: "Ricavo lordo annuale",
+          occupiedNights: "Notti occupate all’anno",
+          averageRate: "Prezzo medio per notte",
+          ownerTime: "Impegno del proprietario",
+          pricing: "Strategia tariffaria",
+          guestCare: "Assistenza agli ospiti",
+          traditionalNights: "Occupazione al 100%",
+          traditionalRate: "Canone fisso",
+          ownerTimeHigh: "Basso",
+          ownerTimeLow: "Molto basso",
+          pricingFixed: "Fissa",
+          pricingManual: "Gestita dall’agenzia",
+          pricingDynamic: "Dinamica e supervisionata",
+          guestCareTenant: "Rapporto con l’inquilino",
+          guestCareOwner: "Coordinata dall’agenzia",
+          guestCareHotHost: "Coordinata da Hot Host",
+          resultLabel: "Ricavo lordo annuale stimato con Hot Host",
+          versusTraditional: "rispetto all’affitto tradizionale",
+          versusTourist: "rispetto a un’altra agenzia turistica",
+          disclaimer: "Stima indicativa dei ricavi lordi basata sui dati inseriti e su criteri interni di rendimento. Valori prima di imposte, finanziamento, manutenzione, piattaforme e commissioni, senza garanzia di risultati."
+        },
         methodEyebrow: "Metodo Hot Host",
         methodTitle: ["La magia esiste.", "Ma richiede una checklist."],
         methodLead: "Uniamo empatia, tecnologia, operazioni e misurazione. L’ospite percepisce vicinanza; tu mantieni il controllo e ricevi molti meno messaggi a tarda notte.",
@@ -1481,14 +1803,21 @@
             ]
           }
         ],
-        credentialsTitle: "Credenziali",
+        credentialsTitle: "Esperienza che diventa risultato",
+        credentialsLead: "Esperienza alberghiera reale, visione commerciale ed esecuzione quotidiana: la combinazione che trasforma il potenziale in prenotazioni, reputazione e serenità per il proprietario.",
         credentials: [
-          "Oltre 10 anni nell’ospitalità",
-          "Reception e operazioni alberghiere",
-          "Esperienza tra le Americhe e l’Europa: Caraibi e Mediterraneo",
-          "Assistenza multilingue in nove lingue",
-          "Booking, Airbnb e pricing dinamico"
+          ["Oltre dieci anni nell’ospitalità", "Esperienza concreta tra reception, servizio, coordinamento e gestione degli imprevisti. Non teoria da manuale, ma giudizio maturato con ospiti reali."],
+          ["Una visione a 360° dell’alloggio", "Colleghiamo esperienza, costi, operazioni, reputazione e redditività affinché ogni decisione generi valore."],
+          ["Criterio internazionale, attenzione vicina", "Un percorso tra Caraibi e Mediterraneo, Europa e Americhe, adattato al mercato, al territorio e alla personalità di ogni proprietà."],
+          ["Nove lingue, una comunicazione impeccabile", "Riduciamo i malintesi e accompagniamo proprietari e ospiti con messaggi chiari prima, durante e dopo ogni soggiorno."],
+          ["Booking, Airbnb e revenue con strategia", "Ottimizziamo annunci, prezzi e calendario per competere sul valore e sulla redditività, non soltanto sul prezzo più basso."],
+          ["Conversione e reputazione che si alimentano", "Allineiamo fotografia, testo dell’annuncio, esperienza e recensioni affinché ogni soggiorno eccellente aiuti a conquistare la prenotazione successiva."],
+          ["Operazioni documentate, controllo visibile", "Protocolli, responsabilità chiare, fornitori coordinati e monitoraggio degli imprevisti danno visibilità al proprietario senza restituirgli il lavoro quotidiano."],
+          ["Decisioni basate sui dati, ospitalità fatta di persone", "Monitoriamo prezzi, occupazione, conversione e feedback, poi agiamo con criterio ed empatia. La tecnologia sostiene la cura, non la sostituisce."]
         ],
+        credentialsCta: "Voglio sapere quanto può rendere la mia proprietà →",
+        credentialsExpand: "Vedi tutte le credenziali",
+        credentialsCollapse: "Nascondi le credenziali",
         pillarsEyebrow: "I nostri pilastri",
         pillarsTitle: "Premium, ma umano.",
         pillars: [
@@ -1511,7 +1840,7 @@
         eyebrow: "Raccontaci cosa hai tra le mani",
         title: "Il tuo alloggio può dare di più. Iniziamo a capirlo.",
         heading: "Parliamo della tua proprietà",
-        lead: "Raccontaci l’essenziale e prepareremo una valutazione chiara e concreta. Non servono 40 slide; bastano informazioni sincere.",
+        lead: "Raccontaci l’essenziale e svolgeremo un primo audit chiaro e concreto di redditività e operatività. Non servono 40 slide; bastano informazioni sincere.",
         serviceAreaLabel: "Area di servizio",
         serviceArea: "Gestione in loco in base al progetto · Coordinamento internazionale da remoto",
         emailLabel: "E-mail",
@@ -1519,7 +1848,7 @@
         hours: "Da lunedì a venerdì · 09:00–19:00"
       },
       form: {
-        title: "Richiedi una prima valutazione",
+        title: "Richiedi un primo audit di redditività e operatività",
         selectOption: "Seleziona un’opzione",
         selectCountry: "Seleziona un paese o territorio",
         contactRole: "Rapporto con la proprietà",
@@ -1556,9 +1885,23 @@
         photosUrl: "Link alle fotografie",
         photosPlaceholder: "Link Google Drive o Dropbox",
         photosHelp: "Assicurati che il link consenta di visualizzare le fotografie.",
+        photosUpload: "Carica le fotografie della proprietà",
+        photosUploadHelp: "Fino a 10 immagini JPG, PNG o WebP, ciascuna inferiore a 20 MB. Verranno ottimizzate prima dell’invio.",
+        photosSelected: "Fotografie selezionate: {count}",
+        removePhoto: "Rimuovi {name}",
+        photosRequired: "Carica almeno una fotografia oppure aggiungi un link da cui possiamo visualizzarle.",
+        photosTooMany: "Puoi caricare un massimo di 10 fotografie.",
+        photosTooLarge: "Ogni fotografia deve pesare meno di 20 MB.",
+        photosInvalidType: "Sono ammesse solo immagini JPG, PNG o WebP.",
+        driveUploading: "Ottimizzazione e invio delle fotografie a Google Drive…",
+        driveUploaded: "{count} fotografie inviate a Drive per l’elaborazione.",
+        driveNotConfigured: "Il caricamento diretto non è disponibile al momento. Aggiungi un link condiviso alle fotografie.",
+        driveUploadError: "Non è stato possibile inviare le fotografie a Google Drive. Riprova o aggiungi un link.",
         comments: "Commenti aggiuntivi",
         optional: "(facoltativo)",
         commentsPlaceholder: "Obiettivi, domande o qualsiasi altra informazione utile...",
+        privacyConsent: "Autorizzo Hot Host Hospitality a utilizzare i dati e le fotografie inviati esclusivamente per valutare questa richiesta.",
+        privacyNote: "Non includere persone o documenti sensibili. Puoi richiedere la cancellazione scrivendo a direccion@hhosthospitality.com.",
         actionsLabel: "Scegli come inviare la richiesta",
         sendEmail: "Invia via e-mail →",
         sendWhatsapp: "Invia via WhatsApp ↗",
@@ -1602,6 +1945,8 @@
           rental: "In affitto turistico",
           listingUrl: "URL dell’annuncio",
           photosUrl: "Fotografie",
+          photosUploaded: "Riferimento dell’invio a Drive",
+          consent: "Consenso all’uso dei dati",
           comments: "Commenti"
         }
       },
@@ -1610,6 +1955,7 @@
           title: "Gestione completa",
           imageAlt: "Checklist di gestione operativa disposta su una scrivania",
           summary: "Il tuo alloggio gestito dall’inizio alla fine con visione alberghiera, controllo operativo e comunicazione trasparente.",
+          price: ["18% dei ricavi dell’alloggio", "Minimo 220 €/mese · Include Guest Experience, Revenue Management e coordinamento operativo da remoto"],
           tag: "Controllo totale, vera serenità",
           intro: "Centralizziamo le operazioni dell’alloggio affinché il proprietario mantenga piena visibilità senza il peso della gestione quotidiana.",
           benefits: ["Configurazione e ottimizzazione degli annunci", "Gestione di prenotazioni e calendario", "Comunicazione con gli ospiti prima, durante e dopo", "Coordinamento di pulizia, lavanderia e manutenzione", "Monitoraggio operativo e report al proprietario"],
@@ -1623,6 +1969,7 @@
           title: "Guest Experience",
           imageAlt: "Soggiorno luminoso preparato per accogliere gli ospiti",
           summary: "Progettiamo soggiorni memorabili, rispondiamo alle esigenze e trasformiamo piccoli dettagli in ottime recensioni.",
+          price: ["129 €/mese + 12 €/prenotazione", "Configurazione una tantum: 190 €"],
           tag: "Soggiorni che diventano ricordi",
           intro: "Progettiamo ogni punto di contatto affinché l’ospite si senta atteso, seguito e sinceramente benvenuto.",
           benefits: ["Comunicazione personalizzata", "Guida locale e consigli mirati", "Dettagli di benvenuto con identità", "Assistenza durante il soggiorno", "Gestione empatica dei problemi"],
@@ -1637,6 +1984,7 @@
           title: "Revenue Management",
           imageAlt: "Dashboard analitica con grafici delle prestazioni",
           summary: "Prezzi dinamici basati su domanda, eventi, concorrenza, occupazione e obiettivi reali di redditività.",
+          price: ["179 €/mese", "Per proprietà"],
           tag: "Il prezzo giusto al momento giusto",
           intro: "Trasformiamo i dati di mercato in una strategia tariffaria dinamica, coerente con il tuo posizionamento e i tuoi obiettivi.",
           benefits: ["Analisi della concorrenza", "Domanda e calendario degli eventi", "Regole per anticipo e durata", "Controllo di occupazione e ADR", "Revisione periodica della strategia"],
@@ -1650,6 +1998,7 @@
           title: "Check-in & operazioni",
           imageAlt: "Consegna delle chiavi all’ingresso di un’abitazione",
           summary: "Arrivi fluidi, partenze controllate, coordinamento quotidiano e risposta rapida ai problemi.",
+          price: ["Da 39 €/soggiorno", "Check-in in presenza da 59 € · Supplemento notturno di 20 €"],
           tag: "Arrivi fluidi, controllo quotidiano",
           intro: "Coordiniamo i momenti critici di ogni soggiorno e manteniamo le operazioni in movimento, anche quando si presenta un imprevisto.",
           benefits: ["Istruzioni prima dell’arrivo", "Check-in in presenza o autonomo", "Verifica dell’identità e delle regole", "Coordinamento del check-out", "Gestione ed escalation dei problemi"],
@@ -1663,6 +2012,7 @@
           title: "Pulizia & lavanderia",
           imageAlt: "Camera immacolata con letto perfettamente preparato e luce calda",
           summary: "Standard verificabili, coordinamento professionale e presentazione impeccabile tra una prenotazione e l’altra.",
+          price: ["Da 65 €/servizio", "+18 € per camera aggiuntiva · Lavanderia a parte"],
           tag: "Qualità visibile in ogni dettaglio",
           intro: "Coordiniamo una preparazione costante dell’alloggio, con standard chiari e controlli prima di ogni arrivo.",
           benefits: ["Checklist per ogni soggiorno", "Coordinamento dei team", "Gestione di biancheria e amenities", "Controllo visivo della qualità", "Segnalazione di danni o mancanze"],
@@ -1686,6 +2036,7 @@
             "Bagno contemporaneo in marmo con mobile in legno"
           ],
           summary: "Una presentazione visiva che aumenta l’attrattiva dell’annuncio e comunica il valore della proprietà.",
+          price: ["295 €/sessione fotografica", "Proprietà di grandi dimensioni da 390 €"],
           tag: "Rendi visibile il valore",
           intro: "Pianifichiamo l’immagine dell’alloggio per attirare l’ospite giusto, aumentare la qualità percepita e migliorare la conversione.",
           benefits: ["Direzione visiva e styling", "Selezione delle inquadrature", "Sequenza narrativa dell’annuncio", "Ottimizzazione per le piattaforme", "Consigli per l’allestimento"],
@@ -1699,6 +2050,7 @@
           title: "Audit di redditività",
           imageAlt: "Grafici, calcolatrice e matita su un tavolo di analisi",
           summary: "Una diagnosi commerciale e operativa per individuare perdite, opportunità e priorità di miglioramento.",
+          price: ["249 €", "Gratis fino al 30 settembre"],
           tag: "Prima capire, poi migliorare",
           intro: "Analizziamo l’alloggio come prodotto, operazione e bene per individuare le azioni con il maggiore impatto potenziale.",
           benefits: ["Diagnosi dell’annuncio", "Benchmark competitivo", "Revisione di costi e processi", "Mappa delle opportunità", "Piano prioritario di 30–90 giorni"],
@@ -1722,6 +2074,12 @@
   let revealObserver = null;
   let scrollHandler = null;
   let serviceCarouselResizeHandler = null;
+  let languageMenuOutsideHandler = null;
+  let credentialsEscapeHandler = null;
+  let auditPromptScrollHandler = null;
+  let auditPromptSeenInMemory = false;
+  let earningsCalculatorState = Object.assign({}, DEFAULT_EARNINGS);
+  let selectedPropertyPhotos = [];
 
   applyTheme(activeTheme);
 
@@ -1788,6 +2146,13 @@
     return lines.map(escapeHtml).join("<br>");
   }
 
+  function renderStarredLines(lines, starsLabel) {
+    const stars = `<span class="about-stars" aria-label="${escapeHtml(starsLabel)}">★★★★★</span>`;
+    return lines.map(function (line) {
+      return String(line).split("★★★★★").map(escapeHtml).join(stars);
+    }).join("<br>");
+  }
+
   function renderOptions(options, placeholder) {
     const initialOption = placeholder === undefined
       ? ""
@@ -1803,6 +2168,20 @@
     });
   }
 
+  function renderServicePrice(service, locale, detailed) {
+    if (!Array.isArray(service.price) || service.price.length < 2) return "";
+    const isAuditPromotion = service.key === "auditoria-rentabilidad" && isAuditOfferActive();
+    const promotionClass = isAuditPromotion ? " service-price-promo" : "";
+    const detailClass = detailed ? " service-price-detail" : "";
+    const priceDetail = service.key === "auditoria-rentabilidad" && !isAuditPromotion
+      ? ""
+      : `<span>${escapeHtml(service.price[1])}</span>`;
+    const disclaimer = detailed
+      ? `<small class="service-price-disclaimer">${escapeHtml(locale.common.priceDisclaimer)}</small>`
+      : "";
+    return `<div class="service-price${promotionClass}${detailClass}"><strong>${escapeHtml(service.price[0])}</strong>${priceDetail}${disclaimer}</div>`;
+  }
+
   function renderHeroVisual(home) {
     const photos = HERO_IMAGES.map(function (photo, index) {
       const isPrimary = index === 0;
@@ -1815,11 +2194,12 @@
   }
 
   function renderServiceCard(service, locale) {
-    return `<article class="card service-card reveal" data-service-slide aria-label="${escapeHtml(service.title)}"><div class="service-card-media"><img src="${imageUrl(service.imageId, 800, 520)}" alt="${escapeHtml(service.imageAlt)}" width="800" height="520" loading="lazy" decoding="async" style="object-position:${escapeHtml(service.imagePosition)}"><div class="icon" aria-hidden="true">${escapeHtml(service.icon)}</div></div><div class="service-card-body"><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p><a class="card-link" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.exploreService)}</a></div></article>`;
+    return `<article class="card service-card reveal" data-service-slide aria-label="${escapeHtml(service.title)}"><div class="service-card-media"><img src="${imageUrl(service.imageId, 800, 520)}" alt="${escapeHtml(service.imageAlt)}" width="800" height="520" loading="lazy" decoding="async" style="object-position:${escapeHtml(service.imagePosition)}"><div class="icon" aria-hidden="true">${escapeHtml(service.icon)}</div></div><div class="service-card-body"><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p>${renderServicePrice(service, locale, false)}<a class="card-link" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.exploreService)}</a></div></article>`;
   }
 
   function renderServiceRow(service, locale) {
-    return `<article class="service-row service-row-visual reveal"><div class="service-row-media"><img src="${imageUrl(service.imageId, 520, 360)}" alt="${escapeHtml(service.imageAlt)}" width="520" height="360" loading="lazy" decoding="async" style="object-position:${escapeHtml(service.imagePosition)}"><div class="icon" aria-hidden="true">${escapeHtml(service.icon)}</div></div><div><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p></div><a class="btn ghost" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.viewDetail)}</a></article>`;
+    const photo = imageUrl(service.imageId, 900, 520);
+    return `<article class="service-row service-row-visual reveal" style="--service-photo:url('${escapeHtml(photo)}')"><div class="service-row-media"><img src="${escapeHtml(photo)}" alt="${escapeHtml(service.imageAlt)}" width="520" height="360" loading="lazy" decoding="async" style="object-position:${escapeHtml(service.imagePosition)}"><div class="icon" aria-hidden="true">${escapeHtml(service.icon)}</div></div><div class="service-row-copy"><h3>${escapeHtml(service.title)}</h3><p>${escapeHtml(service.summary)}</p>${renderServicePrice(service, locale, false)}</div><a class="btn ghost" href="${escapeHtml(service.path)}">${escapeHtml(locale.common.viewDetail)}</a></article>`;
   }
 
   function renderCounter(template, current, total) {
@@ -1857,7 +2237,16 @@
   }
 
   function renderCta(locale) {
-    return `<section class="section"><div class="wrap"><div class="cta"><div class="cta-copy"><div class="cta-offer"><span>${escapeHtml(locale.common.offerKicker)}</span><strong>${escapeHtml(locale.common.offerTitle)}</strong><small>${escapeHtml(locale.common.offerDeadline)}</small></div><div class="eyebrow">${escapeHtml(locale.common.ctaEyebrow)}</div><h2>${escapeHtml(locale.common.ctaTitle)}</h2></div><a class="btn primary" style="background:#e7c46a;color:#171717;border-color:#e7c46a" href="contacto.html">${escapeHtml(locale.common.ctaButton)}</a></div></div></section>`;
+    const offer = isAuditOfferActive()
+      ? `<div class="cta-offer"><span>${escapeHtml(locale.common.offerKicker)}</span><strong>${escapeHtml(locale.common.offerTitle)}</strong><small>${escapeHtml(locale.common.offerDeadline)}</small></div>`
+      : "";
+    return `<section class="section"><div class="wrap"><div class="cta"><div class="cta-copy">${offer}<div class="eyebrow">${escapeHtml(locale.common.ctaEyebrow)}</div><h2>${escapeHtml(locale.common.ctaTitle)}</h2></div><a class="btn primary" style="background:#e7c46a;color:#171717;border-color:#e7c46a" href="contacto.html">${escapeHtml(locale.common.ctaButton)}</a></div></div></section>`;
+  }
+
+  function renderEarningsComparison(locale) {
+    const comparison = locale.home.comparison;
+    const values = earningsCalculatorState;
+    return `<section class="section earnings-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(comparison.eyebrow)}</div><h2>${escapeHtml(comparison.title)}</h2></div><p>${escapeHtml(comparison.lead)}</p></div><div class="earnings-layout" data-earnings-calculator><aside class="earnings-inputs" aria-labelledby="earningsInputsTitle"><h3 id="earningsInputsTitle">${escapeHtml(comparison.inputsTitle)}</h3><label>${escapeHtml(comparison.traditionalRent)}<span class="earnings-control"><input data-earnings-input="traditionalRent" type="number" min="0" max="100000" step="50" value="${escapeHtml(values.traditionalRent)}"><span>€</span></span></label><label>${escapeHtml(comparison.touristRate)}<span class="earnings-control"><input data-earnings-input="touristRate" type="number" min="0" max="2000" step="5" value="${escapeHtml(values.touristRate)}"><span>€</span></span></label><label>${escapeHtml(comparison.touristOccupancy)}<span class="earnings-control"><input data-earnings-input="touristOccupancy" type="number" min="0" max="100" step="1" value="${escapeHtml(values.touristOccupancy)}"><span>%</span></span></label><label>${escapeHtml(comparison.hotHostRate)}<span class="earnings-control"><input data-earnings-input="hotHostRate" type="number" min="0" max="2000" step="5" value="${escapeHtml(values.hotHostRate)}"><span>€</span></span></label><label>${escapeHtml(comparison.hotHostOccupancy)}<span class="earnings-control"><input data-earnings-input="hotHostOccupancy" type="number" min="0" max="100" step="1" value="${escapeHtml(values.hotHostOccupancy)}"><span>%</span></span></label></aside><div class="earnings-comparison"><div class="earnings-table-scroll"><table><thead><tr><th scope="col">${escapeHtml(comparison.metric)}</th><th scope="col">${escapeHtml(comparison.traditional)}</th><th scope="col">${escapeHtml(comparison.tourist)}</th><th scope="col" class="hot-host-column">${escapeHtml(comparison.hotHost)}</th></tr></thead><tbody><tr><th scope="row">${escapeHtml(comparison.monthlyIncome)}</th><td data-earnings-output="traditionalMonthly"></td><td data-earnings-output="touristMonthly"></td><td class="hot-host-column" data-earnings-output="hotHostMonthly"></td></tr><tr><th scope="row">${escapeHtml(comparison.annualIncome)}</th><td data-earnings-output="traditionalAnnual"></td><td data-earnings-output="touristAnnual"></td><td class="hot-host-column" data-earnings-output="hotHostAnnual"></td></tr><tr><th scope="row">${escapeHtml(comparison.occupiedNights)}</th><td>${escapeHtml(comparison.traditionalNights)}</td><td data-earnings-output="touristNights"></td><td class="hot-host-column" data-earnings-output="hotHostNights"></td></tr><tr><th scope="row">${escapeHtml(comparison.averageRate)}</th><td>${escapeHtml(comparison.traditionalRate)}</td><td data-earnings-output="touristRate"></td><td class="hot-host-column" data-earnings-output="hotHostRate"></td></tr><tr><th scope="row">${escapeHtml(comparison.ownerTime)}</th><td>${escapeHtml(comparison.ownerTimeLow)}</td><td>${escapeHtml(comparison.ownerTimeHigh)}</td><td class="hot-host-column">${escapeHtml(comparison.ownerTimeLow)}</td></tr><tr><th scope="row">${escapeHtml(comparison.pricing)}</th><td>${escapeHtml(comparison.pricingFixed)}</td><td>${escapeHtml(comparison.pricingManual)}</td><td class="hot-host-column">${escapeHtml(comparison.pricingDynamic)}</td></tr><tr><th scope="row">${escapeHtml(comparison.guestCare)}</th><td>${escapeHtml(comparison.guestCareTenant)}</td><td>${escapeHtml(comparison.guestCareOwner)}</td><td class="hot-host-column">${escapeHtml(comparison.guestCareHotHost)}</td></tr></tbody></table></div><div class="earnings-result" aria-live="polite"><span>${escapeHtml(comparison.resultLabel)}</span><strong data-earnings-output="hotHostResult"></strong><div><b data-earnings-output="versusTraditional"></b> ${escapeHtml(comparison.versusTraditional)} · <b data-earnings-output="versusTourist"></b> ${escapeHtml(comparison.versusTourist)}</div></div><p class="earnings-disclaimer" id="earningsDisclaimer">${escapeHtml(comparison.disclaimer)}</p></div></div></div></section>`;
   }
 
   function renderHome(locale, services) {
@@ -1871,6 +2260,7 @@
     return `<main class="home-page">
       <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="servicios.html">${escapeHtml(home.discover)}</a><a class="btn ghost" href="contacto.html">${escapeHtml(home.analyse)}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
       <section class="section home-services-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.servicesEyebrow)}</div><h2>${escapeHtml(home.servicesTitle)}</h2></div><p>${escapeHtml(home.servicesLead)}</p></div><div class="services-carousel" data-services-carousel role="region" aria-roledescription="${escapeHtml(locale.common.carouselRole)}" aria-label="${escapeHtml(home.servicesTitle)}" tabindex="0"><div class="services-carousel-viewport" data-services-viewport><div class="services-carousel-track">${serviceCards}</div></div><div class="carousel-controls services-carousel-controls"><button class="carousel-button" type="button" data-services-previous aria-label="${escapeHtml(locale.common.previousServices)}">←</button><span class="carousel-status" data-services-status aria-live="polite">${escapeHtml(renderServiceCounter(locale.common.serviceCounter, 1, initialVisibleServices, services.length))}</span><button class="carousel-button" type="button" data-services-next aria-label="${escapeHtml(locale.common.nextServices)}">→</button></div></div><div style="text-align:center;margin-top:26px"><a class="btn ghost" href="servicios.html">${escapeHtml(home.allServices)}</a></div></div></section>
+      ${renderEarningsComparison(locale)}
       <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.methodEyebrow)}</div><h2>${renderLines(home.methodTitle)}</h2></div><p>${escapeHtml(home.methodLead)}</p></div><div class="grid grid-4">${steps}</div></div></section>
       ${renderCta(locale)}
     </main>`;
@@ -1889,9 +2279,13 @@
     const prose = about.prose.map(function (section) {
       return `<h2>${escapeHtml(section.title)}</h2>${section.paragraphs.map(function (paragraph) { return `<p>${escapeHtml(paragraph)}</p>`; }).join("")}`;
     }).join("");
-    const credentials = about.credentials.map(function (credential) {
-      return `<li>${escapeHtml(credential)}</li>`;
-    }).join("");
+    const credentials = about.credentials.map(function (credential, index) {
+      const number = String(index + 1).padStart(2, "0");
+      if (!Array.isArray(credential)) return `<li data-number="${number}"><strong>${escapeHtml(credential)}</strong></li>`;
+      return `<li data-number="${number}"><strong>${escapeHtml(credential[0])}</strong><span>${escapeHtml(credential[1])}</span></li>`;
+    });
+    const primaryCredential = credentials.slice(0, 1).join("");
+    const extraCredentials = credentials.slice(1).join("");
     const pillars = about.pillars.map(function (pillar, index) {
       return renderProcessStep(
         [pillar[1], pillar[2], pillar[3]],
@@ -1908,9 +2302,9 @@
     }).join("");
 
     return `<main>
-      <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(about.breadcrumb)}</div><div class="eyebrow">${escapeHtml(about.eyebrow)}</div><h1>${renderLines(about.title)}</h1><p class="lead">${escapeHtml(about.lead)}</p></div></section>
-      <section class="section"><div class="wrap service-detail"><div class="prose">${prose}</div><aside class="side-panel"><h3>${escapeHtml(about.credentialsTitle)}</h3><ul>${credentials}</ul></aside></div></section>
-      <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.pillarsEyebrow)}</div><h2>${escapeHtml(about.pillarsTitle)}</h2></div></div><div class="grid grid-4">${pillars}</div></div></section>
+      <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(about.breadcrumb)}</div><div class="eyebrow">${escapeHtml(about.eyebrow)}</div><h1>${renderStarredLines(about.title, locale.home.starsLabel)}</h1><p class="lead">${escapeHtml(about.lead)}</p></div></section>
+      <section class="section"><div class="wrap service-detail"><div class="prose">${prose}</div><aside class="side-panel credentials-panel" aria-labelledby="credentialsTitle"><h3 id="credentialsTitle">${escapeHtml(about.credentialsTitle)}</h3><p class="credentials-lead">${escapeHtml(about.credentialsLead)}</p><ul class="credentials-list credentials-primary-list">${primaryCredential}</ul><button class="credentials-toggle" type="button" data-credentials-toggle data-expand-label="${escapeHtml(about.credentialsExpand)}" data-collapse-label="${escapeHtml(about.credentialsCollapse)}" aria-expanded="false" aria-controls="credentialsDetails"><span data-credentials-toggle-label>${escapeHtml(about.credentialsExpand)}</span><span class="credentials-toggle-icon" aria-hidden="true">⌄</span></button><div class="credentials-hover-preview" aria-hidden="true"><ul class="credentials-list credentials-preview-list">${extraCredentials}</ul></div><div class="credentials-details" id="credentialsDetails" aria-hidden="true"><ul class="credentials-list credentials-extra-list">${extraCredentials}</ul></div><a class="credentials-cta" href="contacto.html">${escapeHtml(about.credentialsCta)}</a></aside></div></section>
+      <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.pillarsEyebrow)}</div><h2>${escapeHtml(about.pillarsTitle)}</h2></div></div><div class="grid grid-4 pillars-grid">${pillars}</div></div></section>
       <section class="section testimonials-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.voicesEyebrow)}</div><h2>${escapeHtml(about.voicesTitle)}</h2></div><p>${escapeHtml(about.voicesLead)}</p></div><div class="grid grid-3 testimonials-grid">${quotes}</div></div></section>
       ${renderCta(locale)}
     </main>`;
@@ -1919,10 +2313,16 @@
   function renderContact(locale) {
     const contact = locale.contact;
     const form = locale.form;
+    const driveUploadAvailable = Boolean(getDriveUploadEndpoint());
+    const offer = isAuditOfferActive()
+      ? `<div class="contact-offer"><span>${escapeHtml(locale.common.offerKicker)}</span><strong>${escapeHtml(locale.common.offerTitle)}</strong><small>${escapeHtml(locale.common.offerDeadline)}</small></div>`
+      : "";
+    const optionalPhotosLink = driveUploadAvailable ? ` <span>${escapeHtml(form.optional)}</span>` : "";
+    const directUploadLabel = driveUploadAvailable ? `<label for="propertyPhotos">${escapeHtml(form.photosUpload)}</label>` : "";
     return `<main>
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(contact.breadcrumb)}</div><div class="eyebrow">${escapeHtml(contact.eyebrow)}</div><h1>${escapeHtml(contact.title)}</h1></div></section>
       <section class="section"><div class="wrap contact-grid"><div><h2>${escapeHtml(contact.heading)}</h2><p class="lead">${escapeHtml(contact.lead)}</p><div class="contact-item"><small>${escapeHtml(contact.serviceAreaLabel)}</small><strong>${escapeHtml(contact.serviceArea)}</strong></div><div class="contact-item"><small>${escapeHtml(contact.emailLabel)}</small><strong>${escapeHtml(CONTACT_EMAIL)}</strong></div><div class="contact-item"><small>WhatsApp</small><strong>+34 600 907 716</strong></div><div class="contact-item"><small>${escapeHtml(contact.hoursLabel)}</small><strong>${escapeHtml(contact.hours)}</strong></div></div>
-      <form class="contact-form" id="contactForm" novalidate><div class="contact-offer"><span>${escapeHtml(locale.common.offerKicker)}</span><strong>${escapeHtml(locale.common.offerTitle)}</strong><small>${escapeHtml(locale.common.offerDeadline)}</small></div><h3>${escapeHtml(form.title)}</h3>
+      <form class="contact-form" id="contactForm" novalidate>${offer}<h3>${escapeHtml(form.title)}</h3>
         <div class="field"><label for="contactRole">${escapeHtml(form.contactRole)}</label><select id="contactRole" name="contactRole" required>${renderOptions(form.roles, form.selectOption)}</select></div>
         <div class="field"><label for="name">${escapeHtml(form.fullName)}</label><input id="name" name="name" required autocomplete="name"></div>
         <div class="field"><label for="email">${escapeHtml(form.email)}</label><input id="email" name="email" type="email" required autocomplete="email"></div>
@@ -1937,8 +2337,10 @@
         <div class="field" id="totalFloorsField" hidden><label for="totalFloors">${escapeHtml(form.totalFloors)}</label><input id="totalFloors" name="totalFloors" type="number" min="1" step="1" inputmode="numeric"></div>
         <div class="field"><label for="touristRental">${escapeHtml(form.touristRental)}</label><select id="touristRental" name="touristRental" required>${renderOptions(form.rentalOptions, form.selectOption)}</select></div>
         <div class="field" id="listingUrlField" hidden><label for="listingUrl">${escapeHtml(form.listingUrl)}</label><input id="listingUrl" name="listingUrl" type="url" placeholder="${escapeHtml(form.listingPlaceholder)}"></div>
-        <div class="field" id="photosUrlField" hidden><label for="photosUrl">${escapeHtml(form.photosUrl)}</label><input id="photosUrl" name="photosUrl" type="url" placeholder="${escapeHtml(form.photosPlaceholder)}" aria-describedby="photosHelp"><small class="field-help" id="photosHelp">${escapeHtml(form.photosHelp)}</small></div>
+        <div class="field property-photos-field" id="propertyPhotosField" hidden>${directUploadLabel}<div class="property-photo-dropzone" data-photo-dropzone${driveUploadAvailable ? "" : " hidden"}><input id="propertyPhotos" name="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-describedby="propertyPhotosHelp propertyPhotosStatus"${driveUploadAvailable ? "" : " disabled"}><span class="property-photo-icon" aria-hidden="true">＋</span><strong>${escapeHtml(form.photosUpload)}</strong><small class="field-help" id="propertyPhotosHelp">${escapeHtml(form.photosUploadHelp)}</small></div><p class="property-photos-status" id="propertyPhotosStatus" aria-live="polite"></p><div class="property-photo-previews" id="propertyPhotoPreviews"></div><label class="property-photos-link-label" for="photosUrl">${escapeHtml(form.photosUrl)}${optionalPhotosLink}</label><input id="photosUrl" name="photosUrl" type="url" placeholder="${escapeHtml(form.photosPlaceholder)}" aria-describedby="photosHelp"><small class="field-help" id="photosHelp">${escapeHtml(form.photosHelp)}</small></div>
+        <div class="form-trap" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
         <div class="field"><label for="message">${escapeHtml(form.comments)} <span style="font-weight:400">${escapeHtml(form.optional)}</span></label><textarea id="message" name="message" placeholder="${escapeHtml(form.commentsPlaceholder)}"></textarea></div>
+        <div class="field consent-field"><label class="consent-control" for="privacyConsent"><input id="privacyConsent" name="privacyConsent" type="checkbox" required><span>${escapeHtml(form.privacyConsent)}</span></label><small class="field-help">${escapeHtml(form.privacyNote)}</small></div>
         <p class="form-actions-label" id="deliveryLabel">${escapeHtml(form.actionsLabel)}</p><div class="form-actions" role="group" aria-labelledby="deliveryLabel"><button class="btn form-action email-action" type="submit" name="deliveryMethod" value="email">${escapeHtml(form.sendEmail)}</button><button class="btn form-action whatsapp-action" type="submit" name="deliveryMethod" value="whatsapp">${escapeHtml(form.sendWhatsapp)}</button></div><p id="formStatus" aria-live="polite"></p>
       </form></div></section>
     </main>`;
@@ -1960,11 +2362,13 @@
   function renderServicePage(pageKey, locale) {
     const service = locale.services[pageKey];
     const definition = SERVICE_DEFINITIONS.find(function (item) { return item.key === pageKey; });
+    const pricedService = Object.assign({ key: pageKey }, service);
     const benefits = service.benefits.map(function (benefit) {
       return `<li>✓ ${escapeHtml(benefit)}</li>`;
     }).join("");
     const gallery = renderServiceGallery(definition, service, locale);
-    return `<main><section class="page-hero service-page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="servicios.html">${escapeHtml(locale.common.services)}</a> / ${escapeHtml(service.title)}</div><div class="service-hero-grid"><div class="service-hero-copy"><div class="eyebrow">${escapeHtml(service.tag)}</div><h1>${escapeHtml(service.title)}</h1><p class="lead">${escapeHtml(service.intro)}</p></div><figure class="service-hero-media"><img src="${imageUrl(definition.imageId, 1400, 850)}" alt="${escapeHtml(service.imageAlt)}" width="1400" height="850" fetchpriority="high" decoding="async" style="object-position:${escapeHtml(definition.imagePosition)}"><span class="service-hero-icon" aria-hidden="true">${escapeHtml(definition.icon)}</span></figure></div></div></section>${gallery}<section class="section"><div class="wrap service-detail"><article class="prose">${renderServiceContent(service.content)}</article><aside class="side-panel"><div class="icon">${escapeHtml(definition.icon)}</div><h3>${escapeHtml(locale.common.includes)}</h3><ul>${benefits}</ul><a class="btn primary" style="margin-top:18px;width:100%;background:#e7c46a;color:#171717" href="contacto.html">${escapeHtml(locale.common.requestAssessment)}</a></aside></div></section>${renderCta(locale)}</main>`;
+    const heroPhoto = imageUrl(definition.imageId, 1400, 850);
+    return `<main><section class="page-hero service-page-hero" style="--service-hero-background:url('${escapeHtml(heroPhoto)}')"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="servicios.html">${escapeHtml(locale.common.services)}</a> / ${escapeHtml(service.title)}</div><div class="service-hero-grid"><div class="service-hero-copy"><div class="eyebrow">${escapeHtml(service.tag)}</div><h1>${escapeHtml(service.title)}</h1><p class="lead">${escapeHtml(service.intro)}</p>${renderServicePrice(pricedService, locale, true)}</div><figure class="service-hero-media"><img src="${escapeHtml(heroPhoto)}" alt="${escapeHtml(service.imageAlt)}" width="1400" height="850" fetchpriority="high" decoding="async" style="object-position:${escapeHtml(definition.imagePosition)}"><span class="service-hero-icon" aria-hidden="true">${escapeHtml(definition.icon)}</span></figure></div></div></section>${gallery}<section class="section"><div class="wrap service-detail"><article class="prose">${renderServiceContent(service.content)}</article><aside class="side-panel"><div class="icon">${escapeHtml(definition.icon)}</div><h3>${escapeHtml(locale.common.includes)}</h3><ul>${benefits}</ul><a class="btn primary" style="margin-top:18px;width:100%;background:#e7c46a;color:#171717" href="contacto.html">${escapeHtml(locale.common.requestAssessment)}</a></aside></div></section>${renderCta(locale)}</main>`;
   }
 
   function renderBrand() {
@@ -1981,6 +2385,9 @@
     const languageOptions = SUPPORTED_LANGUAGES.map(function (language) {
       return `<option value="${language}"${language === activeLanguage ? " selected" : ""}>${language.toUpperCase()}</option>`;
     }).join("");
+    const languageMenuOptions = SUPPORTED_LANGUAGES.map(function (language) {
+      return `<button class="language-option" type="button" role="option" data-language-option="${language}" aria-selected="${String(language === activeLanguage)}" tabindex="-1"><span class="language-option-flag" data-language="${language}" aria-hidden="true"></span><span>${escapeHtml(LANGUAGE_NAMES[language])}</span><small>${language.toUpperCase()}</small></button>`;
+    }).join("");
     const nav = navItems.map(function (item) {
       return `<a href="${item[0]}"${currentPage === item[2] ? " aria-current=\"page\"" : ""}>${escapeHtml(item[1])}</a>`;
     }).join("");
@@ -1989,9 +2396,12 @@
     const themeLabel = isDarkTheme ? locale.common.enableLightMode : locale.common.enableDarkMode;
     const navCta = currentPage === "contact"
       ? ""
-      : `<a class="nav-cta" href="contacto.html" aria-label="${escapeHtml(`${locale.shell.assess}. ${locale.common.offerTitle}. ${locale.common.offerDeadline}`)}"><span>${escapeHtml(locale.shell.assess)}</span><small>${escapeHtml(locale.common.navOffer)}</small></a>`;
+      : isAuditOfferActive()
+        ? `<a class="nav-cta" href="contacto.html" aria-label="${escapeHtml(`${locale.shell.assess}. ${locale.common.offerTitle}. ${locale.common.offerDeadline}`)}"><span>${escapeHtml(locale.shell.assess)}</span><small>${escapeHtml(locale.common.navOffer)}</small></a>`
+        : `<a class="nav-cta" href="contacto.html"><span>${escapeHtml(locale.shell.assess)}</span></a>`;
 
-    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
+    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher" data-language="${activeLanguage}"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
+    document.querySelector(".language-switcher").innerHTML = `<button class="language-select" id="languageButton" type="button" aria-label="${escapeHtml(`${locale.shell.languageLabel}: ${LANGUAGE_NAMES[activeLanguage]}`)}" aria-haspopup="listbox" aria-expanded="false" aria-controls="languageMenu"><span class="language-option-flag" data-language="${activeLanguage}" aria-hidden="true"></span><span class="language-current-code">${activeLanguage.toUpperCase()}</span><span class="language-chevron" aria-hidden="true">⌄</span></button><div class="language-menu" id="languageMenu" role="listbox" aria-label="${escapeHtml(locale.shell.languageLabel)}" hidden>${languageMenuOptions}</div>`;
   }
 
   function getLocalizedCountries(language) {
@@ -2057,8 +2467,9 @@
     const form = document.querySelector("#contactForm");
     if (!form) return null;
     const state = {};
-    new FormData(form).forEach(function (value, key) {
-      state[key] = String(value);
+    Array.from(form.elements).forEach(function (control) {
+      if (!control.name || control.type === "file" || control.type === "submit") return;
+      state[control.name] = control.type === "checkbox" ? control.checked : control.value;
     });
     return state;
   }
@@ -2067,7 +2478,9 @@
     if (!state) return;
     Object.keys(state).forEach(function (name) {
       const control = form.elements.namedItem(name);
-      if (control && typeof control.value === "string") control.value = state[name];
+      if (!control) return;
+      if (control.type === "checkbox") control.checked = Boolean(state[name]);
+      else if (typeof control.value === "string") control.value = state[name];
     });
   }
 
@@ -2085,6 +2498,149 @@
     const countries = getLocalizedCountries(activeLanguage);
     const country = countries.find(function (item) { return item.iso === iso; });
     return country ? country.name : iso;
+  }
+
+  function formatFormMessage(template, replacements) {
+    return Object.keys(replacements).reduce(function (message, key) {
+      const placeholder = `{${key}}`;
+      const value = String(replacements[key]);
+      return message.includes(placeholder) ? message.replace(placeholder, value) : message;
+    }, template);
+  }
+
+  function createSubmissionId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function getDriveUploadEndpoint() {
+    const configuredEndpoint = window.HOT_HOST_CONFIG && window.HOT_HOST_CONFIG.driveUploadEndpoint;
+    if (!configuredEndpoint) return "";
+    try {
+      const endpoint = new URL(String(configuredEndpoint).trim());
+      const validPath = /^\/macros\/s\/[^/]+\/exec$/.test(endpoint.pathname);
+      return endpoint.protocol === "https:" && endpoint.hostname === "script.google.com" && validPath
+        ? endpoint.href
+        : "";
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function optimisePropertyPhoto(file, index) {
+    return new Promise(function (resolve, reject) {
+      const sourceUrl = URL.createObjectURL(file);
+      const image = new Image();
+      let settled = false;
+      let sourceRevoked = false;
+      const timeout = window.setTimeout(function () {
+        finish(reject, new Error("Image processing timed out"));
+      }, PHOTO_PROCESS_TIMEOUT_MS);
+
+      function revokeSource() {
+        if (sourceRevoked) return;
+        sourceRevoked = true;
+        URL.revokeObjectURL(sourceUrl);
+      }
+
+      function finish(callback, value) {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeout);
+        revokeSource();
+        callback(value);
+      }
+
+      image.onload = function () {
+        revokeSource();
+        const scale = Math.min(1, MAX_PROPERTY_PHOTO_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight));
+        const width = Math.max(1, Math.round(image.naturalWidth * scale));
+        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) {
+          finish(reject, new Error("Canvas is unavailable"));
+          return;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        context.fillStyle = "#fff";
+        context.fillRect(0, 0, width, height);
+        context.drawImage(image, 0, 0, width, height);
+        canvas.toBlob(function (blob) {
+          if (settled) return;
+          if (!blob) {
+            finish(reject, new Error("Image optimisation failed"));
+            return;
+          }
+          if (blob.size > MAX_OPTIMISED_PHOTO_BYTES) {
+            finish(reject, new Error("Optimised image is too large"));
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = function () {
+            const baseName = file.name
+              .replace(/\.[^.]+$/, "")
+              .replace(/[^a-z0-9_-]+/gi, "-")
+              .replace(/^-+|-+$/g, "")
+              .slice(0, 60) || `photo-${index + 1}`;
+            finish(resolve, {
+              name: `${String(index + 1).padStart(2, "0")}-${baseName}.jpg`,
+              mimeType: "image/jpeg",
+              size: blob.size,
+              data: String(reader.result).split(",")[1]
+            });
+          };
+          reader.onerror = function () { finish(reject, new Error("Image could not be read")); };
+          reader.readAsDataURL(blob);
+        }, "image/jpeg", .82);
+      };
+      image.onerror = function () {
+        finish(reject, new Error("Image could not be decoded"));
+      };
+      image.src = sourceUrl;
+    });
+  }
+
+  async function uploadPropertyPhotos(endpoint, files, metadata) {
+    const photos = [];
+    for (let index = 0; index < files.length; index += 1) {
+      photos.push(await optimisePropertyPhoto(files[index], index));
+    }
+    const payload = Object.assign({ version: 1, photos: photos }, metadata);
+    const payloadBody = JSON.stringify(payload);
+    if (payloadBody.length > MAX_UPLOAD_REQUEST_CHARACTERS) {
+      throw new Error("Photo request is too large");
+    }
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timeout = window.setTimeout(function () {
+      if (controller) controller.abort();
+    }, PHOTO_UPLOAD_TIMEOUT_MS);
+    try {
+      const request = window.fetch(endpoint, {
+        method: "POST",
+        mode: "no-cors",
+        credentials: "omit",
+        cache: "no-store",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=UTF-8" },
+        body: payloadBody,
+        signal: controller ? controller.signal : undefined
+      });
+      if (controller) await request;
+      else {
+        await Promise.race([
+          request,
+          new Promise(function (_, reject) {
+            window.setTimeout(function () { reject(new Error("Photo upload timed out")); }, PHOTO_UPLOAD_TIMEOUT_MS);
+          })
+        ]);
+      }
+    } finally {
+      window.clearTimeout(timeout);
+    }
   }
 
   function setConditionalField(field, control, visible) {
@@ -2108,6 +2664,110 @@
     const touristRental = form.querySelector("#touristRental");
     const bedroomsField = form.querySelector("#bedroomsField");
     const bedrooms = form.querySelector("#bedrooms");
+    const propertyPhotosField = form.querySelector("#propertyPhotosField");
+    const propertyPhotos = form.querySelector("#propertyPhotos");
+    const photosUrl = form.querySelector("#photosUrl");
+    const photosStatus = form.querySelector("#propertyPhotosStatus");
+    const photoPreviews = form.querySelector("#propertyPhotoPreviews");
+    const photoDropzone = form.querySelector("[data-photo-dropzone]");
+    const driveEndpoint = getDriveUploadEndpoint();
+    const driveUploadAvailable = Boolean(driveEndpoint);
+
+    function setPhotoStatus(message, kind) {
+      photosStatus.textContent = message;
+      if (kind) photosStatus.dataset.kind = kind;
+      else delete photosStatus.dataset.kind;
+    }
+
+    function validatePhotoRequirement() {
+      const requiresPhotos = touristRental.value === "no";
+      const hasPhotos = selectedPropertyPhotos.length > 0 || String(photosUrl.value || "").trim();
+      const validationMessage = requiresPhotos && !hasPhotos ? locale.form.photosRequired : "";
+      propertyPhotos.setCustomValidity(driveUploadAvailable ? validationMessage : "");
+      photosUrl.setCustomValidity(driveUploadAvailable ? "" : validationMessage);
+      if (driveUploadAvailable && propertyPhotos.validationMessage) {
+        propertyPhotos.setAttribute("aria-invalid", "true");
+        photoDropzone.classList.add("invalid");
+      } else {
+        propertyPhotos.removeAttribute("aria-invalid");
+        photoDropzone.classList.remove("invalid");
+      }
+      if (!driveUploadAvailable && photosUrl.validationMessage) photosUrl.setAttribute("aria-invalid", "true");
+      else if (!photosUrl.validity.typeMismatch) photosUrl.removeAttribute("aria-invalid");
+      return driveUploadAvailable ? !propertyPhotos.validationMessage : !photosUrl.validationMessage;
+    }
+
+    function renderPhotoPreviews() {
+      photoPreviews.replaceChildren();
+      selectedPropertyPhotos.forEach(function (file, index) {
+        const preview = document.createElement("figure");
+        preview.className = "property-photo-preview";
+        const image = document.createElement("img");
+        const imageUrl = URL.createObjectURL(file);
+        image.src = imageUrl;
+        image.alt = "";
+        image.onload = function () { URL.revokeObjectURL(imageUrl); };
+        image.onerror = function () { URL.revokeObjectURL(imageUrl); };
+        const caption = document.createElement("figcaption");
+        caption.textContent = file.name;
+        const removeButton = document.createElement("button");
+        const removeLabel = formatFormMessage(locale.form.removePhoto, { name: file.name });
+        removeButton.type = "button";
+        removeButton.textContent = "×";
+        removeButton.title = locale.form.removePhoto.includes("{name}") ? removeLabel : `${removeLabel}: ${file.name}`;
+        removeButton.setAttribute("aria-label", removeButton.title);
+        removeButton.addEventListener("click", function () {
+          selectedPropertyPhotos.splice(index, 1);
+          renderPhotoPreviews();
+          validatePhotoRequirement();
+        });
+        preview.append(image, caption, removeButton);
+        photoPreviews.appendChild(preview);
+      });
+
+      if (selectedPropertyPhotos.length) {
+        const countMessage = formatFormMessage(locale.form.photosSelected, { count: selectedPropertyPhotos.length });
+        setPhotoStatus(
+          locale.form.photosSelected.includes("{count}")
+            ? countMessage
+            : `${countMessage}: ${selectedPropertyPhotos.length}`,
+          "selected"
+        );
+      } else {
+        setPhotoStatus(driveUploadAvailable ? "" : locale.form.driveNotConfigured, driveUploadAvailable ? "" : "warning");
+      }
+    }
+
+    function addPropertyPhotos(fileList) {
+      const files = Array.from(fileList || []);
+      if (!files.length) return;
+      if (files.some(function (file) { return !["image/jpeg", "image/png", "image/webp"].includes(file.type); })) {
+        setPhotoStatus(locale.form.photosInvalidType, "error");
+        return;
+      }
+      if (files.some(function (file) { return file.size > MAX_PROPERTY_PHOTO_BYTES; })) {
+        setPhotoStatus(locale.form.photosTooLarge, "error");
+        return;
+      }
+
+      const nextPhotos = selectedPropertyPhotos.slice();
+      files.forEach(function (file) {
+        const isDuplicate = nextPhotos.some(function (selectedFile) {
+          return selectedFile.name === file.name
+            && selectedFile.size === file.size
+            && selectedFile.lastModified === file.lastModified;
+        });
+        if (!isDuplicate) nextPhotos.push(file);
+      });
+      if (nextPhotos.length > MAX_PROPERTY_PHOTOS) {
+        setPhotoStatus(locale.form.photosTooMany, "error");
+        return;
+      }
+      selectedPropertyPhotos = nextPhotos;
+      propertyPhotos.value = "";
+      renderPhotoPreviews();
+      validatePhotoRequirement();
+    }
 
     function updatePropertyFields() {
       const type = propertyType.value;
@@ -2124,16 +2784,28 @@
 
     function updateRentalFields() {
       setConditionalField(form.querySelector("#listingUrlField"), form.querySelector("#listingUrl"), touristRental.value === "yes");
-      setConditionalField(form.querySelector("#photosUrlField"), form.querySelector("#photosUrl"), touristRental.value === "no");
+      const showPhotos = touristRental.value === "no";
+      propertyPhotosField.hidden = !showPhotos;
+      photosUrl.required = showPhotos && !driveUploadAvailable;
+      if (!showPhotos) {
+        photosUrl.value = "";
+        propertyPhotos.value = "";
+        selectedPropertyPhotos = [];
+        renderPhotoPreviews();
+      }
+      validatePhotoRequirement();
     }
 
     function validateControl(control) {
       if (!control || !control.willValidate) return true;
+      if (control === propertyPhotos) return validatePhotoRequirement();
       const messages = locale.form.validation;
       control.setCustomValidity("");
       const value = String(control.value || "").trim();
 
-      if (control.required && !value) {
+      if (control.type === "checkbox" && control.required && !control.checked) {
+        control.setCustomValidity(messages.required);
+      } else if (control.required && !value) {
         control.setCustomValidity(messages.required);
       } else if (control.id === "phone" && value.includes("+")) {
         control.setCustomValidity(messages.phoneNoPrefix);
@@ -2163,8 +2835,24 @@
 
     propertyType.addEventListener("change", updatePropertyFields);
     touristRental.addEventListener("change", updateRentalFields);
+    propertyPhotos.addEventListener("change", function () { addPropertyPhotos(propertyPhotos.files); });
+    photosUrl.addEventListener("input", validatePhotoRequirement);
+    ["dragenter", "dragover"].forEach(function (eventName) {
+      photoDropzone.addEventListener(eventName, function (event) {
+        event.preventDefault();
+        photoDropzone.classList.add("dragging");
+      });
+    });
+    ["dragleave", "drop"].forEach(function (eventName) {
+      photoDropzone.addEventListener(eventName, function (event) {
+        event.preventDefault();
+        photoDropzone.classList.remove("dragging");
+        if (eventName === "drop") addPropertyPhotos(event.dataTransfer.files);
+      });
+    });
     form.addEventListener("input", function (event) {
       validateControl(event.target);
+      if (event.target === photosUrl) validatePhotoRequirement();
       const status = form.querySelector("#formStatus");
       if (status.dataset.kind === "validation") {
         status.textContent = "";
@@ -2177,8 +2865,9 @@
 
     updatePropertyFields();
     updateRentalFields();
+    renderPhotoPreviews();
 
-    form.addEventListener("submit", function (event) {
+    form.addEventListener("submit", async function (event) {
       event.preventDefault();
       const controls = Array.from(form.elements).filter(function (control) { return control.willValidate; });
       const isValid = controls.map(validateControl).every(Boolean);
@@ -2203,6 +2892,80 @@
       const phoneCountry = getCountry(String(data.get("phoneCountry")));
       const internationalPhone = `+${phoneCountry[1]} ${String(data.get("phone")).trim()}`;
       const labels = locale.form.emailBody;
+      const selectedPhotos = touristRental.value === "no" ? selectedPropertyPhotos.slice() : [];
+      const photosLink = String(data.get("photosUrl") || "").trim();
+      const shouldUploadPhotos = selectedPhotos.length > 0 && Boolean(driveEndpoint) && !photosLink;
+      const submissionId = createSubmissionId();
+      let photoSubmissionReference = "";
+      let messageWindow = null;
+
+      if (selectedPhotos.length && !driveEndpoint) {
+        setPhotoStatus(locale.form.driveNotConfigured, photosLink ? "warning" : "error");
+        if (!photosLink) {
+          status.textContent = locale.form.driveNotConfigured;
+          status.dataset.kind = "validation";
+          propertyPhotos.focus();
+          return;
+        }
+      }
+
+      if (shouldUploadPhotos) {
+        messageWindow = window.open("about:blank", "_blank");
+        if (messageWindow) messageWindow.opener = null;
+        const submitButtons = Array.from(form.querySelectorAll("button[type='submit']"));
+        submitButtons.forEach(function (button) { button.disabled = true; });
+        status.textContent = locale.form.driveUploading;
+        status.dataset.kind = "uploading";
+        setPhotoStatus(locale.form.driveUploading, "uploading");
+        try {
+          await uploadPropertyPhotos(driveEndpoint, selectedPhotos, {
+            submissionId: submissionId,
+            submittedAt: new Date().toISOString(),
+            language: activeLanguage,
+            sourceUrl: window.location.href.split(/[?#]/, 1)[0],
+            website: String(data.get("website") || ""),
+            consent: {
+              accepted: Boolean(data.get("privacyConsent")),
+              text: locale.form.privacyConsent
+            },
+            contact: {
+              relationship: role,
+              name: String(data.get("name")).trim(),
+              email: String(data.get("email")).trim(),
+              phone: internationalPhone
+            },
+            property: {
+              street: String(data.get("streetAddress")).trim(),
+              postalCode: String(data.get("postalCode")).trim(),
+              city: String(data.get("city")).trim(),
+              country: getCountryName(String(data.get("propertyCountry"))),
+              type: propertyTypeLabel,
+              bedrooms: String(data.get("bedrooms")).trim(),
+              bathrooms: String(data.get("bathrooms")).trim(),
+              floor: String(data.get("floor") || "").trim(),
+              totalFloors: String(data.get("totalFloors") || "").trim(),
+              touristRental: rental,
+              listingUrl: String(data.get("listingUrl") || "").trim(),
+              photosUrl: photosLink,
+              comments: String(data.get("message") || "").trim()
+            }
+          });
+          photoSubmissionReference = `${selectedPhotos.length} · ${submissionId}`;
+          setPhotoStatus(
+            formatFormMessage(locale.form.driveUploaded, { count: selectedPhotos.length }),
+            "submitted"
+          );
+        } catch (error) {
+          if (messageWindow) messageWindow.close();
+          status.textContent = locale.form.driveUploadError;
+          status.dataset.kind = "validation";
+          setPhotoStatus(locale.form.driveUploadError, "error");
+          submitButtons.forEach(function (button) { button.disabled = false; });
+          return;
+        }
+        submitButtons.forEach(function (button) { button.disabled = false; });
+      }
+
       const lines = [
         `${labels.relationship}: ${role}`,
         `${labels.name}: ${String(data.get("name")).trim()}`,
@@ -2222,7 +2985,9 @@
         data.get("totalFloors") ? `${labels.totalFloors}: ${String(data.get("totalFloors")).trim()}` : "",
         `${labels.rental}: ${rental}`,
         data.get("listingUrl") ? `${labels.listingUrl}: ${String(data.get("listingUrl")).trim()}` : "",
-        data.get("photosUrl") ? `${labels.photosUrl}: ${String(data.get("photosUrl")).trim()}` : "",
+        photosLink ? `${labels.photosUrl}: ${photosLink}` : "",
+        photoSubmissionReference ? `${labels.photosUploaded}: ${photoSubmissionReference}` : "",
+        `${labels.consent}: ${locale.form.privacyConsent}`,
         data.get("message") ? `${labels.comments}: ${String(data.get("message")).trim()}` : ""
       ].filter(function (line, index, allLines) {
         return line !== "" || (index > 0 && allLines[index - 1] !== "");
@@ -2238,14 +3003,20 @@
       const targetUrl = deliveryMethod === "whatsapp" ? whatsappUrl : gmailUrl;
       const openedMessage = deliveryMethod === "whatsapp" ? locale.form.status.whatsappOpened : locale.form.status.emailOpened;
       const blockedLinkText = deliveryMethod === "whatsapp" ? locale.form.status.blockedWhatsappLink : locale.form.status.blockedEmailLink;
-      const messageWindow = window.open("about:blank", "_blank");
+      if (!messageWindow || messageWindow.closed) messageWindow = window.open("about:blank", "_blank");
       delete status.dataset.kind;
 
-      if (messageWindow) {
-        messageWindow.opener = null;
-        messageWindow.location.replace(targetUrl);
-        status.textContent = openedMessage;
-      } else {
+      if (messageWindow && !messageWindow.closed) {
+        try {
+          messageWindow.opener = null;
+          messageWindow.location.replace(targetUrl);
+          status.textContent = openedMessage;
+          return;
+        } catch (error) {
+          messageWindow = null;
+        }
+      }
+      if (!messageWindow) {
         const link = document.createElement("a");
         link.href = targetUrl;
         link.target = "_blank";
@@ -2264,6 +3035,10 @@
     const menuButton = document.querySelector(".menu-btn");
     const navLinks = document.querySelector(".nav-links");
     const themeButton = document.querySelector("#themeToggle");
+    const languageSwitcher = document.querySelector(".language-switcher");
+    const languageButton = document.querySelector("#languageButton");
+    const languageMenu = document.querySelector("#languageMenu");
+    const languageOptions = Array.from(document.querySelectorAll("[data-language-option]"));
     menuButton.addEventListener("click", function () {
       const isOpen = navLinks.classList.toggle("open");
       menuButton.setAttribute("aria-expanded", String(isOpen));
@@ -2281,15 +3056,121 @@
       themeButton.querySelector("span").textContent = nextTheme === "dark" ? "☀" : "☾";
     });
 
-    document.querySelector("#languageSelect").addEventListener("change", function (event) {
-      const nextLanguage = normalizeLanguage(event.target.value);
-      if (!nextLanguage || nextLanguage === activeLanguage) return;
+    function closeLanguageMenu(restoreFocus) {
+      languageMenu.hidden = true;
+      languageButton.setAttribute("aria-expanded", "false");
+      if (restoreFocus) languageButton.focus();
+    }
+
+    function openLanguageMenu(focusLast) {
+      languageMenu.hidden = false;
+      languageButton.setAttribute("aria-expanded", "true");
+      const selectedIndex = languageOptions.findIndex(function (option) {
+        return option.getAttribute("aria-selected") === "true";
+      });
+      const optionIndex = focusLast ? languageOptions.length - 1 : Math.max(0, selectedIndex);
+      languageOptions[optionIndex].focus();
+    }
+
+    function selectLanguage(language) {
+      const nextLanguage = normalizeLanguage(language);
+      if (!nextLanguage || nextLanguage === activeLanguage) {
+        closeLanguageMenu(true);
+        return;
+      }
       const formState = captureFormState();
       activeLanguage = nextLanguage;
       saveLanguage(activeLanguage);
       renderApp(formState);
-    });
+    }
 
+    languageButton.addEventListener("click", function () {
+      if (languageMenu.hidden) openLanguageMenu(false);
+      else closeLanguageMenu(false);
+    });
+    languageButton.addEventListener("keydown", function (event) {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        openLanguageMenu(event.key === "ArrowUp");
+      }
+    });
+    languageOptions.forEach(function (option) {
+      option.addEventListener("click", function () {
+        selectLanguage(option.dataset.languageOption);
+      });
+    });
+    languageMenu.addEventListener("keydown", function (event) {
+      const currentIndex = languageOptions.indexOf(document.activeElement);
+      let nextIndex = currentIndex;
+      if (event.key === "ArrowDown") nextIndex = (currentIndex + 1) % languageOptions.length;
+      else if (event.key === "ArrowUp") nextIndex = (currentIndex - 1 + languageOptions.length) % languageOptions.length;
+      else if (event.key === "Home") nextIndex = 0;
+      else if (event.key === "End") nextIndex = languageOptions.length - 1;
+      else if (event.key === "Escape") {
+        event.preventDefault();
+        closeLanguageMenu(true);
+        return;
+      } else return;
+      event.preventDefault();
+      languageOptions[nextIndex].focus();
+    });
+    languageSwitcher.addEventListener("focusout", function (event) {
+      if (!languageSwitcher.contains(event.relatedTarget)) closeLanguageMenu(false);
+    });
+    if (languageMenuOutsideHandler) {
+      document.removeEventListener("pointerdown", languageMenuOutsideHandler);
+    }
+    languageMenuOutsideHandler = function (event) {
+      if (!languageSwitcher.contains(event.target)) closeLanguageMenu(false);
+    };
+    document.addEventListener("pointerdown", languageMenuOutsideHandler);
+
+  }
+
+  function setupCredentialsDisclosure() {
+    const panel = document.querySelector(".credentials-panel");
+    const button = panel && panel.querySelector("[data-credentials-toggle]");
+    const details = panel && panel.querySelector("#credentialsDetails");
+    const preview = panel && panel.querySelector(".credentials-hover-preview");
+    if (!panel || !button || !details || !preview) return;
+    const label = button.querySelector("[data-credentials-toggle-label]");
+    const hoverMedia = window.matchMedia("(hover: hover) and (min-width: 961px)");
+
+    function closePreview() {
+      panel.classList.remove("is-previewing");
+    }
+
+    function setExpanded(isExpanded) {
+      closePreview();
+      panel.classList.toggle("is-expanded", isExpanded);
+      button.setAttribute("aria-expanded", String(isExpanded));
+      details.setAttribute("aria-hidden", String(!isExpanded));
+      label.textContent = isExpanded ? button.dataset.collapseLabel : button.dataset.expandLabel;
+    }
+
+    button.addEventListener("click", function () {
+      setExpanded(!panel.classList.contains("is-expanded"));
+    });
+    button.addEventListener("pointerenter", function (event) {
+      if (event.pointerType !== "mouse" || !hoverMedia.matches || panel.classList.contains("is-expanded")) return;
+      const panelRect = panel.getBoundingClientRect();
+      panel.style.setProperty("--credentials-preview-top", `${92 - panelRect.top}px`);
+      panel.style.setProperty("--credentials-preview-height", `${Math.max(180, window.innerHeight - 112)}px`);
+      panel.classList.add("is-previewing");
+    });
+    panel.addEventListener("pointerleave", closePreview);
+    if (credentialsEscapeHandler) document.removeEventListener("keydown", credentialsEscapeHandler);
+    credentialsEscapeHandler = function (event) {
+      if (event.key !== "Escape" || document.querySelector("dialog[open]")) return;
+      const isExpanded = panel.classList.contains("is-expanded") && panel.contains(document.activeElement);
+      const isPreviewing = panel.classList.contains("is-previewing");
+      if (!isExpanded && !isPreviewing) return;
+      event.preventDefault();
+      if (isExpanded) setExpanded(false);
+      else closePreview();
+      if (panel.contains(document.activeElement)) button.focus();
+    };
+    document.addEventListener("keydown", credentialsEscapeHandler);
   }
 
   function setupProcessDialog() {
@@ -2352,6 +3233,162 @@
       activeTrigger = null;
       if (triggerToFocus) {
         window.setTimeout(function () { triggerToFocus.focus(); }, 0);
+      }
+    });
+  }
+
+  function setupEarningsCalculator(locale) {
+    const calculator = document.querySelector("[data-earnings-calculator]");
+    if (!calculator) return;
+    const comparison = locale.home.comparison;
+    const inputsPanel = calculator.querySelector(".earnings-inputs");
+    const selectedModel = earningsCalculatorState.rentalModel === "tourist" ? "tourist" : "traditional";
+    earningsCalculatorState.rentalModel = selectedModel;
+    earningsCalculatorState.currency = SUPPORTED_CURRENCIES.includes(earningsCalculatorState.currency)
+      ? earningsCalculatorState.currency
+      : "EUR";
+    const currencyOptions = SUPPORTED_CURRENCIES.map(function (currency) {
+      const symbol = CURRENCY_SYMBOLS[currency];
+      const label = symbol === currency ? currency : `${symbol} ${currency}`;
+      return `<option value="${currency}">${escapeHtml(label)}</option>`;
+    }).join("");
+    inputsPanel.innerHTML = `<h3 id="earningsInputsTitle">${escapeHtml(comparison.inputsTitle)}</h3><label class="earnings-model-field" for="earningsRentalModel">${escapeHtml(comparison.modelLabel)}<select id="earningsRentalModel" data-earnings-model><option value="traditional">${escapeHtml(comparison.traditional)}</option><option value="tourist">${escapeHtml(comparison.tourist)}</option></select></label><div class="earnings-value-field"><label for="earningsPropertyValue" data-earnings-value-label></label><span class="earnings-control"><input id="earningsPropertyValue" data-earnings-value type="number" min="0" step="any" inputmode="decimal"><select class="earnings-currency" data-earnings-currency aria-label="${escapeHtml(comparison.currencyLabel)}">${currencyOptions}</select></span></div>`;
+
+    const modelSelect = inputsPanel.querySelector("[data-earnings-model]");
+    const valueLabel = inputsPanel.querySelector("[data-earnings-value-label]");
+    const valueInput = inputsPanel.querySelector("[data-earnings-value]");
+    const currencySelect = inputsPanel.querySelector("[data-earnings-currency]");
+    const integer = new Intl.NumberFormat(activeLanguage, { maximumFractionDigits: 0 });
+    let inputEdited = false;
+
+    function setOutput(name, value) {
+      const output = calculator.querySelector(`[data-earnings-output="${name}"]`);
+      if (output) output.textContent = value;
+    }
+
+    function getCurrencyRate() {
+      const rate = Number(exchangeRatesPerEur[earningsCalculatorState.currency]);
+      return Number.isFinite(rate) && rate > 0 ? rate : 1;
+    }
+
+    function toDisplayCurrency(eurValue) {
+      return eurValue * getCurrencyRate();
+    }
+
+    function formatInputValue(eurValue) {
+      return String(Number(toDisplayCurrency(eurValue).toFixed(2)));
+    }
+
+    function formatDifference(value, formatter) {
+      const sign = value >= 0 ? "+" : "−";
+      return `${sign}${formatter.format(toDisplayCurrency(Math.abs(value)))}`;
+    }
+
+    function syncValueConstraints() {
+      const isTourist = earningsCalculatorState.rentalModel === "tourist";
+      const key = isTourist ? "touristRate" : "traditionalRent";
+      const maximum = DEFAULT_EARNINGS[key] * MAX_EARNINGS_SCALE;
+      valueLabel.textContent = isTourist ? comparison.touristRate : comparison.traditionalRent;
+      valueInput.max = formatInputValue(maximum);
+    }
+
+    function syncValueInput() {
+      const key = earningsCalculatorState.rentalModel === "tourist" ? "touristRate" : "traditionalRent";
+      syncValueConstraints();
+      valueInput.value = formatInputValue(earningsCalculatorState[key]);
+    }
+
+    function updateHighlightedModel() {
+      calculator.dataset.rentalModel = earningsCalculatorState.rentalModel;
+      calculator.querySelectorAll("table tr").forEach(function (row) {
+        if (row.cells[1]) row.cells[1].classList.toggle("current-model-column", earningsCalculatorState.rentalModel === "traditional");
+        if (row.cells[2]) row.cells[2].classList.toggle("current-model-column", earningsCalculatorState.rentalModel === "tourist");
+      });
+    }
+
+    function updateSelectedModel() {
+      earningsCalculatorState.rentalModel = modelSelect.value === "tourist" ? "tourist" : "traditional";
+      updateHighlightedModel();
+      syncValueInput();
+    }
+
+    function updateComparison() {
+      earningsCalculatorState.touristOccupancy = MARKET_OCCUPANCY;
+      earningsCalculatorState.hotHostOccupancy = HOT_HOST_OCCUPANCY;
+      earningsCalculatorState.hotHostRate = earningsCalculatorState.touristRate * HOT_HOST_RATE_MULTIPLIER;
+      const traditionalAnnual = earningsCalculatorState.traditionalRent * 12;
+      const touristNights = 365 * MARKET_OCCUPANCY / 100;
+      const hotHostNights = 365 * HOT_HOST_OCCUPANCY / 100;
+      const touristAnnual = earningsCalculatorState.touristRate * touristNights;
+      const hotHostAnnual = earningsCalculatorState.hotHostRate * hotHostNights;
+      const currency = new Intl.NumberFormat(activeLanguage, {
+        style: "currency",
+        currency: earningsCalculatorState.currency,
+        maximumFractionDigits: 0
+      });
+
+      setOutput("traditionalMonthly", currency.format(toDisplayCurrency(traditionalAnnual / 12)));
+      setOutput("touristMonthly", currency.format(toDisplayCurrency(touristAnnual / 12)));
+      setOutput("hotHostMonthly", currency.format(toDisplayCurrency(hotHostAnnual / 12)));
+      setOutput("traditionalAnnual", currency.format(toDisplayCurrency(traditionalAnnual)));
+      setOutput("touristAnnual", currency.format(toDisplayCurrency(touristAnnual)));
+      setOutput("hotHostAnnual", currency.format(toDisplayCurrency(hotHostAnnual)));
+      setOutput("touristNights", integer.format(touristNights));
+      setOutput("hotHostNights", integer.format(hotHostNights));
+      setOutput("touristRate", currency.format(toDisplayCurrency(earningsCalculatorState.touristRate)));
+      setOutput("hotHostRate", currency.format(toDisplayCurrency(earningsCalculatorState.hotHostRate)));
+      setOutput("hotHostResult", currency.format(toDisplayCurrency(hotHostAnnual)));
+      setOutput("versusTraditional", formatDifference(hotHostAnnual - traditionalAnnual, currency));
+      setOutput("versusTourist", formatDifference(hotHostAnnual - touristAnnual, currency));
+    }
+
+    function updatePropertyScale() {
+      const isTourist = earningsCalculatorState.rentalModel === "tourist";
+      const key = isTourist ? "touristRate" : "traditionalRent";
+      const displayValue = Number(valueInput.value);
+      const maximumDisplay = DEFAULT_EARNINGS[key] * MAX_EARNINGS_SCALE * getCurrencyRate();
+      const clampedDisplay = Number.isFinite(displayValue)
+        ? Math.min(maximumDisplay, Math.max(0, displayValue))
+        : 0;
+      const activeValueEur = clampedDisplay / getCurrencyRate();
+      const propertyScale = activeValueEur / DEFAULT_EARNINGS[key];
+      earningsCalculatorState.traditionalRent = DEFAULT_EARNINGS.traditionalRent * propertyScale;
+      earningsCalculatorState.touristRate = DEFAULT_EARNINGS.touristRate * propertyScale;
+      if (clampedDisplay !== displayValue) valueInput.value = formatInputValue(activeValueEur);
+      updateComparison();
+    }
+
+    modelSelect.value = selectedModel;
+    currencySelect.value = earningsCalculatorState.currency;
+    modelSelect.addEventListener("change", function () {
+      inputEdited = false;
+      updateSelectedModel();
+      updateComparison();
+    });
+    valueInput.addEventListener("input", function () {
+      inputEdited = true;
+      updatePropertyScale();
+    });
+    currencySelect.addEventListener("change", function () {
+      inputEdited = false;
+      earningsCalculatorState.currency = SUPPORTED_CURRENCIES.includes(currencySelect.value)
+        ? currencySelect.value
+        : "EUR";
+      currencySelect.value = earningsCalculatorState.currency;
+      syncValueInput();
+      updateComparison();
+    });
+    updateSelectedModel();
+    updateComparison();
+    loadExchangeRates().then(function () {
+      if (!calculator.isConnected) return;
+      if (inputEdited) {
+        syncValueConstraints();
+        updatePropertyScale();
+      }
+      else {
+        syncValueInput();
+        updateComparison();
       }
     });
   }
@@ -2515,6 +3552,48 @@
     revealElements.forEach(function (element) { revealObserver.observe(element); });
   }
 
+  function detachAuditPromptScrollHandler() {
+    if (auditPromptScrollHandler) {
+      window.removeEventListener("scroll", auditPromptScrollHandler);
+      auditPromptScrollHandler = null;
+    }
+  }
+
+  function resetAuditPromptVisit() {
+    detachAuditPromptScrollHandler();
+    const prompt = document.querySelector("[data-audit-prompt]");
+    if (prompt) prompt.remove();
+    auditPromptSeenInMemory = false;
+  }
+
+  function setupAuditScrollPrompt(locale, pageKey) {
+    detachAuditPromptScrollHandler();
+    if (pageKey !== "home" || auditPromptSeenInMemory || !isAuditOfferActive()) return;
+
+    auditPromptScrollHandler = function () {
+      if (window.scrollY < 56 || document.querySelector("[data-audit-prompt]")) return;
+      detachAuditPromptScrollHandler();
+      auditPromptSeenInMemory = true;
+
+      const prompt = document.createElement("aside");
+      prompt.className = "audit-scroll-prompt";
+      prompt.dataset.auditPrompt = "";
+      prompt.setAttribute("role", "region");
+      prompt.setAttribute("aria-labelledby", "auditPromptTitle");
+      prompt.setAttribute("aria-describedby", "auditPromptDescription");
+      prompt.innerHTML = `<button class="audit-prompt-close" type="button" aria-label="${escapeHtml(locale.home.auditPromptClose)}">×</button><div class="audit-prompt-brand"><img src="assets/logo-mark.svg" alt="" width="42" height="42"><span>${escapeHtml(locale.common.offerDeadline)}</span></div><div class="audit-prompt-kicker">${escapeHtml(locale.common.offerKicker)}</div><h2 id="auditPromptTitle">${escapeHtml(locale.common.offerTitle)}</h2><p id="auditPromptDescription">${escapeHtml(locale.home.auditPromptLead)}</p><a class="audit-prompt-action" href="contacto.html">${escapeHtml(locale.home.auditPromptButton)}</a>`;
+      document.body.appendChild(prompt);
+      window.requestAnimationFrame(function () { prompt.classList.add("visible"); });
+
+      prompt.querySelector(".audit-prompt-close").addEventListener("click", function () {
+        prompt.classList.remove("visible");
+        prompt.classList.add("closing");
+        window.setTimeout(function () { prompt.remove(); }, 240);
+      });
+    };
+    window.addEventListener("scroll", auditPromptScrollHandler, { passive: true });
+  }
+
   function setupScrollHeader() {
     if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
     scrollHandler = function () {
@@ -2565,13 +3644,26 @@
     updateMetadata(locale, pageKey);
     renderShell(content, currentPage, locale);
     setupShellInteractions(locale);
+    setupCredentialsDisclosure();
     setupContactForm(locale, formState);
     setupProcessDialog();
+    setupEarningsCalculator(locale);
     setupServiceCarousels(locale);
     setupCarousels(locale);
     setupRevealAnimations();
     setupScrollHeader();
+    setupAuditScrollPrompt(locale, pageKey);
   }
+
+  window.addEventListener("pagehide", function () {
+    if (document.body.dataset.page === "home") resetAuditPromptVisit();
+  });
+
+  window.addEventListener("pageshow", function (event) {
+    if (!event.persisted || document.body.dataset.page !== "home") return;
+    resetAuditPromptVisit();
+    setupAuditScrollPrompt(locales[activeLanguage] || locales.es, "home");
+  });
 
   renderApp(null);
 })();
