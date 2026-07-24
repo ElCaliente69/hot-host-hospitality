@@ -35,14 +35,16 @@ function doGet() {
 function doPost(event) {
   let requestFolder = null;
   try {
-    if (!event || !event.postData || !event.postData.contents) {
-      throw new Error("Empty request");
-    }
-    if (event.postData.contents.length > UPLOAD_CONFIG.maxRequestCharacters) {
+    if (!event) throw new Error("Empty request");
+
+    const formPayload = event.parameter && event.parameter.payload;
+    const rawPayload = formPayload || (event.postData && event.postData.contents);
+    if (!rawPayload) throw new Error("Empty request");
+    if (rawPayload.length > UPLOAD_CONFIG.maxRequestCharacters) {
       throw new Error("Request is too large");
     }
 
-    const payload = JSON.parse(event.postData.contents);
+    const payload = JSON.parse(rawPayload);
     if (payload.website) return jsonResponse_({ ok: true });
     validatePayload_(payload);
     enforceRateLimit_(payload.contact.email);
