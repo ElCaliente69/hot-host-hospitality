@@ -22,7 +22,8 @@
       const form = document.createElement("form");
       const payloadField = document.createElement("input");
       let settled = false;
-      let submitted = false;
+      let phase = "boot";
+      let fallbackSubmitTimer = null;
 
       function cleanup() {
         window.setTimeout(function () {
@@ -35,11 +36,23 @@
         if (settled) return;
         settled = true;
         window.clearTimeout(timeout);
+        if (fallbackSubmitTimer) window.clearTimeout(fallbackSubmitTimer);
         cleanup();
         callback(value);
       }
 
+      function submitForm() {
+        if (settled || phase === "submitted") return;
+        phase = "submitted";
+        try {
+          form.submit();
+        } catch (error) {
+          finish(reject, error);
+        }
+      }
+
       iframe.name = token;
+      iframe.src = "about:blank";
       iframe.hidden = true;
       iframe.setAttribute("aria-hidden", "true");
 
@@ -56,8 +69,14 @@
       form.appendChild(payloadField);
 
       iframe.addEventListener("load", function () {
-        if (!submitted) return;
-        finish(resolve, { ok: true, type: "opaque-form-response" });
+        if (phase === "boot") {
+          phase = "ready";
+          submitForm();
+          return;
+        }
+        if (phase === "submitted") {
+          finish(resolve, { ok: true, type: "opaque-form-response" });
+        }
       });
 
       iframe.addEventListener("error", function () {
@@ -71,14 +90,9 @@
       document.body.appendChild(iframe);
       document.body.appendChild(form);
 
-      window.setTimeout(function () {
-        try {
-          submitted = true;
-          form.submit();
-        } catch (error) {
-          finish(reject, error);
-        }
-      }, 0);
+      fallbackSubmitTimer = window.setTimeout(function () {
+        submitForm();
+      }, 1000);
     });
   }
 
