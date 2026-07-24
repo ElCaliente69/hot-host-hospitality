@@ -1,0 +1,21 @@
+{
+  "name": "hot-host-hospitality",
+  "version": "1.0.0",
+  "description": "Gestión premium de alojamientos turísticos",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'Static site - no build needed'",
+    "lint": "echo 'No linter configured'"
+  },
+  "keywords": [
+    "hospitality",
+    "tourism",
+    "property-management"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/speed-insights": "^1.0.12"
+  }
+}
