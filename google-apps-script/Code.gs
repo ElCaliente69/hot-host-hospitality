@@ -1,5 +1,6 @@
 const UPLOAD_CONFIG = Object.freeze({
-  rootFolderName: "Hot Host - Solicitudes web",
+  rootFolderId: "1sxrelfXdz9Sm3e-JF9gHmPocHS2Fnw42",
+  rootFolderName: "Solicitudes_Web_Hot_Host",
   maxRequestCharacters: 30 * 1024 * 1024,
   maxMetadataCharacters: 64 * 1024,
   maxFiles: 10,
@@ -12,7 +13,23 @@ const UPLOAD_CONFIG = Object.freeze({
 });
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: "Hot Host property photo upload" });
+  try {
+    const folder = getRootFolder_();
+    return jsonResponse_({
+      ok: true,
+      configured: true,
+      service: "Hot Host property photo upload",
+      destination: folder.getName()
+    });
+  } catch (error) {
+    console.error(error);
+    return jsonResponse_({
+      ok: false,
+      configured: false,
+      service: "Hot Host property photo upload",
+      error: String(error.message || error)
+    });
+  }
 }
 
 function doPost(event) {
@@ -151,22 +168,32 @@ function enforceRateLimit_(email) {
 }
 
 function getRootFolder_() {
-  const properties = PropertiesService.getScriptProperties();
-  const storedId = properties.getProperty("ROOT_FOLDER_ID");
-  if (storedId) {
-    try {
-      return DriveApp.getFolderById(storedId);
-    } catch (error) {
-      properties.deleteProperty("ROOT_FOLDER_ID");
-    }
+  if (!UPLOAD_CONFIG.rootFolderId) {
+    throw new Error("Drive destination folder is not configured");
   }
+  try {
+    const folder = DriveApp.getFolderById(UPLOAD_CONFIG.rootFolderId);
+    folder.getName();
+    return folder;
+  } catch (error) {
+    throw new Error(
+      `The configured Drive folder (${UPLOAD_CONFIG.rootFolderName}) is unavailable. ` +
+      "Verify that the Apps Script project is owned by the same Google account that can access the folder."
+    );
+  }
+}
 
-  const existingFolders = DriveApp.getFoldersByName(UPLOAD_CONFIG.rootFolderName);
-  const rootFolder = existingFolders.hasNext()
-    ? existingFolders.next()
-    : DriveApp.createFolder(UPLOAD_CONFIG.rootFolderName);
-  properties.setProperty("ROOT_FOLDER_ID", rootFolder.getId());
-  return rootFolder;
+function testConfiguration() {
+  const folder = getRootFolder_();
+  const result = {
+    ok: true,
+    folderName: folder.getName(),
+    folderId: folder.getId(),
+    folderUrl: folder.getUrl(),
+    timeZone: Session.getScriptTimeZone()
+  };
+  console.log(JSON.stringify(result));
+  return result;
 }
 
 function buildFolderName_(payload) {
@@ -216,8 +243,4 @@ function jsonResponse_(value) {
   return ContentService
     .createTextOutput(JSON.stringify(value))
     .setMimeType(ContentService.MimeType.JSON);
-}
-
-function resetRootFolderReference() {
-  PropertiesService.getScriptProperties().deleteProperty("ROOT_FOLDER_ID");
 }
