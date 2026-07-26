@@ -213,3 +213,88 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     }
   }
 });
+
+/* Content introduced with the profitability, founder and legal-information routes. */
+(function () {
+  const spanishJourney = [
+    ["Diagnosticar", "Antes de mover una coma, entendemos la vivienda, el objetivo y el punto de partida.", "Revisamos el alojamiento, su mercado y los datos que ya existen. Sin promesas de humo: primero vemos qué hay que proteger y qué se puede mejorar."],
+    ["Preparar", "Ponemos la casa a punto para que la primera impresión haga su trabajo.", "Orden, propuesta, fotos, textos y detalles operativos. La idea es que el anuncio y la estancia cuenten la misma buena historia."],
+    ["Posicionar", "Decidimos dónde y cómo debe aparecer para atraer al huésped adecuado.", "Afinamos canales, anuncios y mensajes para ganar visibilidad sin convertir la vivienda en una oferta genérica más."],
+    ["Tarifar", "El precio se mueve con criterio, no con el dedo al aire.", "Miramos demanda, calendario, eventos y comportamiento de reserva para decidir cuándo subir, mantener o dar un paso atrás."],
+    ["Recibir", "La llegada empieza mucho antes de entregar las llaves.", "Dejamos claro qué esperar, cómo llegar y a quién escribir. Menos preguntas repetidas, más tranquilidad para todos."],
+    ["Coordinar", "Cada estancia necesita una operación que no dependa de la suerte.", "Sincronizamos limpieza, lavandería, entradas, salidas y comunicación para que las piezas lleguen a tiempo."],
+    ["Resolver", "Cuando algo se tuerce, respondemos rápido y con cabeza fría.", "Las incidencias existen. Lo importante es contenerlas, informar bien y convertir una mala sorpresa en una buena atención."],
+    ["Fidelizar", "Cerramos cada estancia con una experiencia que merece ser recomendada.", "Escuchamos, pedimos reseñas y usamos lo aprendido para que la siguiente reserva llegue con una base aún mejor."]
+  ];
+  const englishJourney = [
+    ["Diagnose", "Before changing a thing, we understand the home, the goal and the starting point.", "We review the property, its market and the data already available. No smoke and mirrors: first we protect what works and see what can improve."],
+    ["Prepare", "We get the home ready so the first impression can do its job.", "Presentation, photos, copy and operational details all need to agree. The listing and the stay should tell the same good story."],
+    ["Position", "We decide where and how it should appear to attract the right guest.", "We refine channels, listings and messaging to gain visibility without turning the home into just another generic offer."],
+    ["Price", "Rates move with judgment, not with a finger in the air.", "Demand, calendar, events and booking behaviour tell us when to raise, hold or step back."],
+    ["Welcome", "Arrival starts well before the keys change hands.", "Guests know what to expect, how to arrive and who to contact. Fewer repeated questions, more peace of mind."],
+    ["Coordinate", "Every stay needs an operation that does not rely on luck.", "Cleaning, linen, arrivals, departures and communication are coordinated so every part lands on time."],
+    ["Resolve", "When something goes wrong, we respond quickly and calmly.", "Issues happen. What matters is containing them, communicating clearly and turning a surprise into good service."],
+    ["Retain", "We close every stay with an experience worth recommending.", "We listen, ask for reviews and use what we learn to make the next booking stronger."]
+  ];
+  const spanish = {
+    nav: { profitability: "Rentabilidad", founder: "Fundador", legalHub: "Información legal y privacidad", overview: "Ver página principal", legalOverview: "Ver información legal" },
+    journeyTitle: "Un recorrido que no deja cabos sueltos.",
+    journeyLead: "Ocho etapas conectadas para cuidar la rentabilidad, la operación y la experiencia sin improvisar por el camino.",
+    journey: spanishJourney,
+    prices: {
+      "gestion-integral": ["Desde el 20%", "de los ingresos"],
+      "guest-experience": ["190 € inicial", "+ 5–15 € por reserva"],
+      "revenue-management": ["129 € inicial", "incluye 3 meses de servicio + 33 €/mes, o 1% por reserva"],
+      "check-in-operaciones": ["Desde el 3%", "por estancia"],
+      "limpieza-lavanderia": ["A medida", "desde 20 € por estancia"],
+      "fotografia-profesional": ["A medida", "desde 245 €"],
+      "auditoria-rentabilidad": ["149 €", "Gratis hasta el 30 de septiembre"]
+    },
+    profitability: {
+      breadcrumb: "Rentabilidad", eyebrow: "Decide con números claros", title: "Tu alojamiento, visto desde el neto.", lead: "Compara modelos sin impuestos ni costes variables: solo ingresos, gestión y lo que queda para ti.", situation: "¿Cuál es tu punto de partida?", traditional: "Alquilo de forma tradicional", selfManaged: "Ya me gestiono por mi cuenta", external: "Trabajo con una gestora externa", newProperty: "Aún no he alquilado", monthlyRent: "Renta mensual actual", nightlyRate: "Tarifa media por noche", occupancy: "Ocupación estimada", externalFee: "Comisión de la gestora externa", inputsTitle: "Tus datos", gross: "Ingresos brutos anuales", management: "Coste de gestión", net: "Neto anual para ti", monthlyNet: "Neto mensual para ti", traditionalColumn: "Alquiler tradicional", selfColumn: "Gestión propia", externalColumn: "Gestora externa", hotHostColumn: "Hot Host", traditionalDetail: "Sin gestión turística", selfDetail: "Tu tiempo, tus operaciones", externalDetail: "Comisión editable", hotHostDetail: "20% de ingresos", note: "Estimación orientativa antes de impuestos y de costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.", missingValue: "Introduce los datos para ver esta estimación.", requestAudit: "Solicitar auditoría"
+    },
+    founderPage: { breadcrumb: "Fundador", title: "La hospitalidad se aprende en primera línea.", intro: "Conoce el recorrido de Yunior Bacallao Alonso y el criterio operativo detrás de Hot Host.", ctaEyebrow: "Hablemos de tu alojamiento", ctaTitle: "Una buena gestión empieza por entender bien el lugar." },
+    legalHub: { breadcrumb: "Información legal y privacidad", eyebrow: "Transparencia", title: "Información legal y privacidad", lead: "Accede a las condiciones legales, al tratamiento de datos y a las preferencias de esta web.", open: "Ver información" }
+  };
+  const english = {
+    nav: { profitability: "Profitability", founder: "Founder", legalHub: "Legal information and privacy", overview: "View main page", legalOverview: "View legal information" },
+    journeyTitle: "A journey with no loose ends.",
+    journeyLead: "Eight connected stages that protect profitability, operations and the guest experience without improvising along the way.",
+    journey: englishJourney,
+    prices: {
+      "gestion-integral": ["From 20%", "of revenue"],
+      "guest-experience": ["€190 setup", "+ €5–15 per booking"],
+      "revenue-management": ["€129 setup", "includes 3 months of service + €33/month, or 1% per booking"],
+      "check-in-operaciones": ["From 3%", "per stay"],
+      "limpieza-lavanderia": ["Tailored", "from €20 per stay"],
+      "fotografia-profesional": ["Tailored", "from €245"],
+      "auditoria-rentabilidad": ["€149", "Free until 30 September"]
+    },
+    profitability: {
+      breadcrumb: "Profitability", eyebrow: "Decide with clear numbers", title: "Your property, viewed from net income.", lead: "Compare models before tax and variable costs: just income, management and what remains for you.", situation: "What is your starting point?", traditional: "I rent traditionally", selfManaged: "I manage it myself", external: "I work with an external manager", newProperty: "I have not rented it yet", monthlyRent: "Current monthly rent", nightlyRate: "Average nightly rate", occupancy: "Expected occupancy", externalFee: "External manager commission", inputsTitle: "Your figures", gross: "Annual gross income", management: "Management cost", net: "Your annual net income", monthlyNet: "Your monthly net income", traditionalColumn: "Traditional rental", selfColumn: "Self-management", externalColumn: "External manager", hotHostColumn: "Hot Host", traditionalDetail: "No holiday management", selfDetail: "Your time, your operations", externalDetail: "Editable commission", hotHostDetail: "20% of revenue", note: "Indicative estimate before taxes and variable costs such as cleaning, linen, utilities, maintenance or platforms.", missingValue: "Enter your figures to see this estimate.", requestAudit: "Request an audit"
+    },
+    founderPage: { breadcrumb: "Founder", title: "Hospitality is learned on the front line.", intro: "Meet Yunior Bacallao Alonso and the operational judgement behind Hot Host.", ctaEyebrow: "Let's discuss your property", ctaTitle: "Good management starts by understanding the place." },
+    legalHub: { breadcrumb: "Legal information and privacy", eyebrow: "Transparency", title: "Legal information and privacy", lead: "Access the legal terms, data processing information and website preferences.", open: "View information" }
+  };
+  const localNavigation = {
+    fr: { profitability: "Rentabilité", founder: "Fondateur", legalHub: "Informations légales et confidentialité", overview: "Voir la page principale", legalOverview: "Voir les informations légales" },
+    it: { profitability: "Redditività", founder: "Fondatore", legalHub: "Informazioni legali e privacy", overview: "Vedi la pagina principale", legalOverview: "Vedi le informazioni legali" },
+    de: { profitability: "Rentabilität", founder: "Gründer", legalHub: "Rechtliches und Datenschutz", overview: "Hauptseite ansehen", legalOverview: "Rechtliche Informationen ansehen" },
+    pl: { profitability: "Rentowność", founder: "Założyciel", legalHub: "Informacje prawne i prywatność", overview: "Zobacz stronę główną", legalOverview: "Zobacz informacje prawne" },
+    nl: { profitability: "Rendement", founder: "Oprichter", legalHub: "Juridische informatie en privacy", overview: "Hoofdpagina bekijken", legalOverview: "Juridische informatie bekijken" },
+    pt: { profitability: "Rentabilidade", founder: "Fundador", legalHub: "Informação legal e privacidade", overview: "Ver página principal", legalOverview: "Ver informação legal" },
+    el: { profitability: "Κερδοφορία", founder: "Ιδρυτής", legalHub: "Νομικές πληροφορίες και απόρρητο", overview: "Δείτε την κύρια σελίδα", legalOverview: "Δείτε νομικές πληροφορίες" }
+  };
+  const translatedPricing = {
+    fr: ["À partir de 20%", "sur les revenus"], it: ["Dal 20%", "dei ricavi"], de: ["Ab 20 %", "der Einnahmen"], pl: ["Od 20%", "przychodów"], nl: ["Vanaf 20%", "van de inkomsten"], pt: ["Desde 20%", "das receitas"], el: ["Από 20%", "των εσόδων"]
+  };
+  const locales = { es: spanish, en: english };
+  Object.keys(localNavigation).forEach(function (language) {
+    const localizedPrice = translatedPricing[language];
+    locales[language] = Object.assign({}, english, {
+      nav: localNavigation[language],
+      prices: Object.assign({}, english.prices, { "gestion-integral": localizedPrice })
+    });
+  });
+  window.HOT_HOST_EXPERIENCE = Object.freeze({ locales: locales });
+})();

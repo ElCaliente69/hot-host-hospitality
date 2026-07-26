@@ -2,6 +2,7 @@
   "use strict";
 
   const SITE_CONTENT = window.HOT_HOST_SITE_CONTENT || {};
+  const EXPERIENCE_CONTENT = window.HOT_HOST_EXPERIENCE || {};
   const BUSINESS = SITE_CONTENT.business || {};
   const SITE_URL = BUSINESS.website || "https://elcaliente69.github.io/hot-host-hospitality/";
   const LANGUAGE_STORAGE_KEY = "hotHostLanguage";
@@ -28,6 +29,7 @@
   const MARKET_OCCUPANCY = 63;
   const HOT_HOST_OCCUPANCY = 72;
   const HOT_HOST_RATE_MULTIPLIER = 1.17;
+  const HOT_HOST_MANAGEMENT_FEE = 0.20;
   const DEFAULT_EARNINGS = {
     rentalModel: "traditional",
     currency: "EUR",
@@ -37,8 +39,17 @@
     hotHostRate: 110 * HOT_HOST_RATE_MULTIPLIER,
     hotHostOccupancy: HOT_HOST_OCCUPANCY
   };
+  const DEFAULT_PROFITABILITY = {
+    situation: "traditional",
+    currency: "EUR",
+    traditionalRent: 1200,
+    nightlyRate: "",
+    occupancy: "",
+    externalFee: 20
+  };
   let exchangeRatesPerEur = Object.assign({}, FALLBACK_RATES_PER_EUR);
   let exchangeRatesRequest = null;
+  let profitabilityState = Object.assign({}, DEFAULT_PROFITABILITY);
 
   const favicon = document.createElement("link");
   favicon.rel = "icon";
@@ -57,7 +68,11 @@
       { id: "photo-1600596542815-ffad4c1539a9", position: "center" },
       { id: "photo-1460925895917-afdab827c52f", position: "center" },
       { id: "photo-1618773928121-c32242e63f39", position: "center" },
-      { id: "photo-1600210492486-724fe5c67fb0", position: "center" }
+      { id: "photo-1600210492486-724fe5c67fb0", position: "center" },
+      { id: "photo-1600566753051-f0b89df2dd90", position: "center" },
+      { id: "photo-1741156386380-0236c72eb6f9", position: "center" },
+      { id: "photo-1556155092-490a1ba16284", position: "center" },
+      { id: "photo-1554224155-8d04cb21cd6c", position: "center" }
     ],
     method: [
       { id: "photo-1762427354397-854a52e0ded7", position: "center" },
@@ -2079,6 +2094,7 @@
   let scrollHandler = null;
   let serviceCarouselResizeHandler = null;
   let languageMenuOutsideHandler = null;
+  let navigationMenuOutsideHandler = null;
   let credentialsEscapeHandler = null;
   let auditPromptScrollHandler = null;
   let auditPromptSeenInMemory = false;
@@ -2103,6 +2119,11 @@
     return allContent[language] || allContent.es || {};
   }
 
+  function getExperienceContent(language) {
+    const allContent = EXPERIENCE_CONTENT.locales || {};
+    return allContent[language] || allContent.es || {};
+  }
+
   function getCurrentPageFile() {
     const path = window.location.pathname.split("/").pop();
     return path && path.endsWith(".html") ? path : "index.html";
@@ -2121,7 +2142,7 @@
   }
 
   function localizeInternalLinks() {
-    document.querySelectorAll('a[href$=".html"], a[href*=".html?"]').forEach(function (link) {
+    document.querySelectorAll('a[href$=".html"], a[href*=".html?"], a[href*=".html#"]').forEach(function (link) {
       try {
         const url = new URL(link.getAttribute("href"), window.location.href);
         if (url.origin !== window.location.origin || !url.pathname.endsWith(".html")) return;
@@ -2216,17 +2237,19 @@
   }
 
   function renderServicePrice(service, locale, detailed) {
-    if (!Array.isArray(service.price) || service.price.length < 2) return "";
+    const updatedPrices = getExperienceContent(activeLanguage).prices || {};
+    const price = updatedPrices[service.key] || service.price;
+    if (!Array.isArray(price) || price.length < 2) return "";
     const isAuditPromotion = service.key === "auditoria-rentabilidad" && isAuditOfferActive();
     const promotionClass = isAuditPromotion ? " service-price-promo" : "";
     const detailClass = detailed ? " service-price-detail" : "";
     const priceDetail = service.key === "auditoria-rentabilidad" && !isAuditPromotion
       ? ""
-      : `<span>${escapeHtml(service.price[1])}</span>`;
+      : `<span>${escapeHtml(price[1])}</span>`;
     const disclaimer = detailed
       ? `<small class="service-price-disclaimer">${escapeHtml(locale.common.priceDisclaimer)}</small>`
       : "";
-    return `<div class="service-price${promotionClass}${detailClass}"><strong>${escapeHtml(service.price[0])}</strong>${priceDetail}${disclaimer}</div>`;
+    return `<div class="service-price${promotionClass}${detailClass}"><strong>${escapeHtml(price[0])}</strong>${priceDetail}${disclaimer}</div>`;
   }
 
   function renderHeroVisual(home) {
@@ -2261,7 +2284,7 @@
   }
 
   function renderProcessStep(step, photo, index, variant, eyebrow, locale) {
-    const number = String(index + 1).padStart(2, "0");
+    const number = String(index + 1);
     const imageAlt = locale.common.processImageAlt.replace("{step}", step[0]);
     const actionLabel = variant === "pillar"
       ? locale.common.viewDetail.replace(/\s*→\s*$/, "")
@@ -2296,30 +2319,153 @@
     return `<section class="section earnings-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(comparison.eyebrow)}</div><h2>${escapeHtml(comparison.title)}</h2></div><p>${escapeHtml(comparison.lead)}</p></div><div class="earnings-layout" data-earnings-calculator><aside class="earnings-inputs" aria-labelledby="earningsInputsTitle"><h3 id="earningsInputsTitle">${escapeHtml(comparison.inputsTitle)}</h3><label>${escapeHtml(comparison.traditionalRent)}<span class="earnings-control"><input data-earnings-input="traditionalRent" type="number" min="0" max="100000" step="50" value="${escapeHtml(values.traditionalRent)}"><span>€</span></span></label><label>${escapeHtml(comparison.touristRate)}<span class="earnings-control"><input data-earnings-input="touristRate" type="number" min="0" max="2000" step="5" value="${escapeHtml(values.touristRate)}"><span>€</span></span></label><label>${escapeHtml(comparison.touristOccupancy)}<span class="earnings-control"><input data-earnings-input="touristOccupancy" type="number" min="0" max="100" step="1" value="${escapeHtml(values.touristOccupancy)}"><span>%</span></span></label><label>${escapeHtml(comparison.hotHostRate)}<span class="earnings-control"><input data-earnings-input="hotHostRate" type="number" min="0" max="2000" step="5" value="${escapeHtml(values.hotHostRate)}"><span>€</span></span></label><label>${escapeHtml(comparison.hotHostOccupancy)}<span class="earnings-control"><input data-earnings-input="hotHostOccupancy" type="number" min="0" max="100" step="1" value="${escapeHtml(values.hotHostOccupancy)}"><span>%</span></span></label></aside><div class="earnings-comparison"><div class="earnings-table-scroll"><table><thead><tr><th scope="col">${escapeHtml(comparison.metric)}</th><th scope="col">${escapeHtml(comparison.traditional)}</th><th scope="col">${escapeHtml(comparison.tourist)}</th><th scope="col" class="hot-host-column">${escapeHtml(comparison.hotHost)}</th></tr></thead><tbody><tr><th scope="row">${escapeHtml(comparison.monthlyIncome)}</th><td data-earnings-output="traditionalMonthly"></td><td data-earnings-output="touristMonthly"></td><td class="hot-host-column" data-earnings-output="hotHostMonthly"></td></tr><tr><th scope="row">${escapeHtml(comparison.annualIncome)}</th><td data-earnings-output="traditionalAnnual"></td><td data-earnings-output="touristAnnual"></td><td class="hot-host-column" data-earnings-output="hotHostAnnual"></td></tr><tr><th scope="row">${escapeHtml(comparison.occupiedNights)}</th><td>${escapeHtml(comparison.traditionalNights)}</td><td data-earnings-output="touristNights"></td><td class="hot-host-column" data-earnings-output="hotHostNights"></td></tr><tr><th scope="row">${escapeHtml(comparison.averageRate)}</th><td>${escapeHtml(comparison.traditionalRate)}</td><td data-earnings-output="touristRate"></td><td class="hot-host-column" data-earnings-output="hotHostRate"></td></tr><tr><th scope="row">${escapeHtml(comparison.ownerTime)}</th><td>${escapeHtml(comparison.ownerTimeLow)}</td><td>${escapeHtml(comparison.ownerTimeHigh)}</td><td class="hot-host-column">${escapeHtml(comparison.ownerTimeLow)}</td></tr><tr><th scope="row">${escapeHtml(comparison.pricing)}</th><td>${escapeHtml(comparison.pricingFixed)}</td><td>${escapeHtml(comparison.pricingManual)}</td><td class="hot-host-column">${escapeHtml(comparison.pricingDynamic)}</td></tr><tr><th scope="row">${escapeHtml(comparison.guestCare)}</th><td>${escapeHtml(comparison.guestCareTenant)}</td><td>${escapeHtml(comparison.guestCareOwner)}</td><td class="hot-host-column">${escapeHtml(comparison.guestCareHotHost)}</td></tr></tbody></table></div><div class="earnings-result" aria-live="polite"><span>${escapeHtml(comparison.resultLabel)}</span><strong data-earnings-output="hotHostResult"></strong><div><b data-earnings-output="versusTraditional"></b> ${escapeHtml(comparison.versusTraditional)} · <b data-earnings-output="versusTourist"></b> ${escapeHtml(comparison.versusTourist)}</div></div><p class="earnings-disclaimer" id="earningsDisclaimer">${escapeHtml(comparison.disclaimer)}</p></div></div></div></section>`;
   }
 
+  function renderProfitabilityPage(locale) {
+    const page = getExperienceContent(activeLanguage).profitability || {};
+    const values = profitabilityState;
+    const labels = Object.assign({
+      breadcrumb: "Rentabilidad",
+      eyebrow: "Decide con números claros",
+      title: "Tu alojamiento, visto desde el neto.",
+      lead: "Compara modelos sin impuestos ni costes variables: solo ingresos, gestión y lo que queda para ti.",
+      situation: "¿Cuál es tu punto de partida?",
+      traditional: "Alquilo de forma tradicional",
+      selfManaged: "Ya me gestiono por mi cuenta",
+      external: "Trabajo con una gestora externa",
+      newProperty: "Aún no he alquilado",
+      monthlyRent: "Renta mensual actual",
+      nightlyRate: "Tarifa media por noche",
+      occupancy: "Ocupación estimada",
+      externalFee: "Comisión de la gestora externa",
+      inputsTitle: "Tus datos",
+      gross: "Ingresos brutos anuales",
+      management: "Coste de gestión",
+      net: "Neto anual para ti",
+      monthlyNet: "Neto mensual para ti",
+      traditionalColumn: "Alquiler tradicional",
+      selfColumn: "Gestión propia",
+      externalColumn: "Gestora externa",
+      hotHostColumn: "Hot Host",
+      traditionalDetail: "Sin gestión turística",
+      selfDetail: "Tu tiempo, tus operaciones",
+      externalDetail: "Comisión editable",
+      hotHostDetail: "20% de ingresos",
+      note: "Estimación orientativa antes de impuestos y de costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.",
+      missingValue: "Introduce los datos para ver esta estimación.",
+      current: "Tu situación actual",
+      perMonth: "/ mes",
+      requestAudit: "Solicitar auditoría"
+    }, page);
+    const value = function (key) { return values[key] === "" ? "" : escapeHtml(values[key]); };
+    return `<main class="profitability-page"><section class="page-hero profitability-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(labels.breadcrumb)}</div><div class="eyebrow">${escapeHtml(labels.eyebrow)}</div><h1>${escapeHtml(labels.title)}</h1><p class="lead">${escapeHtml(labels.lead)}</p></div></section><section class="section profitability-section" id="comparador"><div class="wrap"><div class="profitability-layout" data-profitability-calculator><aside class="profitability-inputs" aria-labelledby="profitabilityInputsTitle"><h2 id="profitabilityInputsTitle">${escapeHtml(labels.inputsTitle)}</h2><label for="profitabilitySituation">${escapeHtml(labels.situation)}<select id="profitabilitySituation" data-profitability-input="situation"><option value="traditional">${escapeHtml(labels.traditional)}</option><option value="self-managed">${escapeHtml(labels.selfManaged)}</option><option value="external">${escapeHtml(labels.external)}</option><option value="new-property">${escapeHtml(labels.newProperty)}</option></select></label><label data-profitability-field="traditionalRent">${escapeHtml(labels.monthlyRent)}<span class="profitability-control"><input data-profitability-input="traditionalRent" type="number" min="0" max="100000" step="50" inputmode="decimal" value="${value("traditionalRent")}"><span>€</span></span></label><label data-profitability-field="nightlyRate">${escapeHtml(labels.nightlyRate)}<span class="profitability-control"><input data-profitability-input="nightlyRate" type="number" min="0" max="5000" step="5" inputmode="decimal" value="${value("nightlyRate")}"><span>€</span></span></label><label data-profitability-field="occupancy">${escapeHtml(labels.occupancy)}<span class="profitability-control"><input data-profitability-input="occupancy" type="number" min="0" max="100" step="1" inputmode="decimal" value="${value("occupancy")}"><span>%</span></span></label><label data-profitability-field="externalFee">${escapeHtml(labels.externalFee)}<span class="profitability-control"><input data-profitability-input="externalFee" type="number" min="0" max="100" step="1" inputmode="decimal" value="${value("externalFee")}"><span>%</span></span></label><p class="profitability-note">${escapeHtml(labels.note)}</p></aside><div class="profitability-results"><div class="profitability-table-scroll"><table><thead><tr><th scope="col"></th><th scope="col" data-profitability-column="traditional"><span>${escapeHtml(labels.traditionalColumn)}</span><small>${escapeHtml(labels.traditionalDetail)}</small></th><th scope="col" data-profitability-column="self-managed"><span>${escapeHtml(labels.selfColumn)}</span><small>${escapeHtml(labels.selfDetail)}</small></th><th scope="col" data-profitability-column="external"><span>${escapeHtml(labels.externalColumn)}</span><small>${escapeHtml(labels.externalDetail)}</small></th><th scope="col" data-profitability-column="hot-host"><span>${escapeHtml(labels.hotHostColumn)}</span><small>${escapeHtml(labels.hotHostDetail)}</small></th></tr></thead><tbody><tr><th scope="row">${escapeHtml(labels.gross)}</th><td data-profitability-output="traditionalGross">—</td><td data-profitability-output="selfGross">—</td><td data-profitability-output="externalGross">—</td><td data-profitability-output="hotHostGross">—</td></tr><tr><th scope="row">${escapeHtml(labels.management)}</th><td data-profitability-output="traditionalFee">—</td><td data-profitability-output="selfFee">—</td><td data-profitability-output="externalFee">—</td><td data-profitability-output="hotHostFee">—</td></tr><tr class="profitability-net-row"><th scope="row">${escapeHtml(labels.net)}</th><td data-profitability-output="traditionalNet">—</td><td data-profitability-output="selfNet">—</td><td data-profitability-output="externalNet">—</td><td data-profitability-output="hotHostNet">—</td></tr><tr><th scope="row">${escapeHtml(labels.monthlyNet)}</th><td data-profitability-output="traditionalMonthly">—</td><td data-profitability-output="selfMonthly">—</td><td data-profitability-output="externalMonthly">—</td><td data-profitability-output="hotHostMonthly">—</td></tr></tbody></table></div><p class="profitability-missing" data-profitability-missing hidden>${escapeHtml(labels.missingValue)}</p><div class="profitability-cta"><span>${escapeHtml(labels.note)}</span><a class="btn primary" href="contacto.html">${escapeHtml(labels.requestAudit)}</a></div></div></div></div></section>${renderCta(locale)}</main>`;
+  }
+
+  function renderProfitabilityComparison(locale) {
+    const page = getExperienceContent(activeLanguage).profitability || {};
+    const labels = Object.assign({
+      breadcrumb: "Rentabilidad",
+      tableEyebrow: "Comparativa práctica",
+      tableTitle: "Compara lo que entra y lo que queda.",
+      tableLead: "Partimos de tu situación actual y mostramos el neto antes de impuestos y costes variables.",
+      inputsTitle: "Tu punto de partida",
+      situation: "¿Cómo alquilas ahora?",
+      traditional: "Alquilo de forma tradicional",
+      selfManaged: "Me gestiono por mi cuenta",
+      external: "Trabajo con otra gestora",
+      newProperty: "Aún no he alquilado",
+      selfColumn: "Gestión propia",
+      externalColumn: "Tu gestora actual",
+      newColumn: "Escenario propio",
+      monthlyRent: "Renta mensual actual",
+      nightlyRate: "Tarifa media por noche",
+      occupancy: "Ocupación actual",
+      externalFee: "Comisión de tu gestora",
+      traditionalColumn: "Alquiler tradicional",
+      currentColumn: "Gestión propia",
+      hotHostColumn: "Hot Host",
+      metric: "Concepto",
+      gross: "Ingresos brutos anuales",
+      management: "Coste de gestión",
+      net: "Neto anual para ti",
+      monthlyNet: "Neto mensual para ti",
+      nights: "Noches ocupadas",
+      averageRate: "Tarifa media",
+      occupancyMetric: "Ocupación",
+      ownerTime: "Dedicación del propietario",
+      pricing: "Estrategia de precios",
+      guestCare: "Atención al huésped",
+      traditionalNights: "No aplica",
+      traditionalRate: "No aplica",
+      traditionalOccupancy: "No aplica",
+      traditionalOwnerTime: "Muy baja",
+      traditionalPricing: "Fijo",
+      traditionalGuestCare: "Inquilino",
+      selfOwnerTime: "Alta",
+      externalOwnerTime: "Baja",
+      hotHostOwnerTime: "Muy baja",
+      selfPricing: "Manual",
+      externalPricing: "Según tu gestora",
+      hotHostPricing: "Dinámica",
+      selfGuestCare: "Tú",
+      externalGuestCare: "Tu gestora",
+      hotHostGuestCare: "Hot Host",
+      currentDetail: "Tus datos",
+      estimatedDetail: "Estimación automática",
+      externalDetail: "Comisión editable",
+      estimatedNote: "A partir de tu renta actual estimamos la tarifa y la ocupación de los escenarios turísticos. Puedes solicitar una auditoría para afinarlo con los datos reales de tu vivienda.",
+      directNote: "Usamos la tarifa y ocupación que indiques. La comparación no incluye impuestos ni costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.",
+      resultLabel: "Neto anual estimado con Hot Host",
+      noData: "Introduce los datos para ver la estimación.",
+      requestAudit: "Solicitar auditoría"
+    }, page);
+    const values = profitabilityState;
+    const inputValue = function (key) {
+      return values[key] === "" ? "" : escapeHtml(values[key]);
+    };
+    return `<main class="profitability-page"><section class="page-hero profitability-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(labels.breadcrumb)}</div><div class="eyebrow">${escapeHtml(page.eyebrow || "Decide con números claros")}</div><h1>${escapeHtml(page.title || "Tu alojamiento, visto desde el neto.")}</h1><p class="lead">${escapeHtml(page.lead || "Compara modelos sin impuestos ni costes variables: solo ingresos, gestión y lo que queda para ti.")}</p></div></section><section class="section earnings-section profitability-section" id="comparador"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(labels.tableEyebrow)}</div><h2>${escapeHtml(labels.tableTitle)}</h2></div><p>${escapeHtml(labels.tableLead)}</p></div><div class="earnings-layout" data-profitability-comparison><aside class="earnings-inputs" aria-labelledby="profitabilityInputsTitle"><h3 id="profitabilityInputsTitle">${escapeHtml(labels.inputsTitle)}</h3><label class="earnings-model-field" for="profitabilitySituation">${escapeHtml(labels.situation)}<select id="profitabilitySituation" data-profitability-input="situation"><option value="traditional">${escapeHtml(labels.traditional)}</option><option value="self-managed">${escapeHtml(labels.selfManaged)}</option><option value="external">${escapeHtml(labels.external)}</option><option value="new-property">${escapeHtml(labels.newProperty)}</option></select></label><label class="earnings-value-field" data-profitability-field="traditionalRent">${escapeHtml(labels.monthlyRent)}<span class="earnings-control"><input data-profitability-input="traditionalRent" type="number" min="0" max="100000" step="50" inputmode="decimal" value="${inputValue("traditionalRent")}"><span>€</span></span></label><label class="earnings-value-field" data-profitability-field="nightlyRate">${escapeHtml(labels.nightlyRate)}<span class="earnings-control"><input data-profitability-input="nightlyRate" type="number" min="0" max="5000" step="5" inputmode="decimal" value="${inputValue("nightlyRate")}"><span>€</span></span></label><label class="earnings-value-field" data-profitability-field="occupancy">${escapeHtml(labels.occupancy)}<span class="earnings-control"><input data-profitability-input="occupancy" type="number" min="0" max="100" step="1" inputmode="decimal" value="${inputValue("occupancy")}"><span>%</span></span></label><label class="earnings-value-field" data-profitability-field="externalFee">${escapeHtml(labels.externalFee)}<span class="earnings-control"><input data-profitability-input="externalFee" type="number" min="0" max="100" step="1" inputmode="decimal" value="${inputValue("externalFee")}"><span>%</span></span></label><p class="earnings-disclaimer" data-profitability-note></p></aside><div class="earnings-comparison"><div class="earnings-table-scroll"><table><thead><tr><th scope="col">${escapeHtml(labels.metric)}</th><th scope="col" data-profitability-column="traditional">${escapeHtml(labels.traditionalColumn)}</th><th scope="col" data-profitability-column="current"><span data-profitability-current-heading>${escapeHtml(labels.currentColumn)}</span><small data-profitability-current-detail>${escapeHtml(labels.currentDetail)}</small></th><th scope="col" class="hot-host-column">${escapeHtml(labels.hotHostColumn)}</th></tr></thead><tbody><tr><th scope="row">${escapeHtml(labels.gross)}</th><td data-profitability-output="traditionalGross">—</td><td data-profitability-output="currentGross">—</td><td class="hot-host-column" data-profitability-output="hotHostGross">—</td></tr><tr><th scope="row">${escapeHtml(labels.management)}</th><td data-profitability-output="traditionalFee">—</td><td data-profitability-output="currentFee">—</td><td class="hot-host-column" data-profitability-output="hotHostFee">—</td></tr><tr><th scope="row">${escapeHtml(labels.net)}</th><td data-profitability-output="traditionalNet">—</td><td data-profitability-output="currentNet">—</td><td class="hot-host-column" data-profitability-output="hotHostNet">—</td></tr><tr><th scope="row">${escapeHtml(labels.monthlyNet)}</th><td data-profitability-output="traditionalMonthly">—</td><td data-profitability-output="currentMonthly">—</td><td class="hot-host-column" data-profitability-output="hotHostMonthly">—</td></tr><tr><th scope="row">${escapeHtml(labels.nights)}</th><td data-profitability-output="traditionalNights">${escapeHtml(labels.traditionalNights)}</td><td data-profitability-output="currentNights">—</td><td class="hot-host-column" data-profitability-output="hotHostNights">—</td></tr><tr><th scope="row">${escapeHtml(labels.averageRate)}</th><td data-profitability-output="traditionalRate">${escapeHtml(labels.traditionalRate)}</td><td data-profitability-output="currentRate">—</td><td class="hot-host-column" data-profitability-output="hotHostRate">—</td></tr><tr><th scope="row">${escapeHtml(labels.occupancyMetric)}</th><td data-profitability-output="traditionalOccupancy">${escapeHtml(labels.traditionalOccupancy)}</td><td data-profitability-output="currentOccupancy">—</td><td class="hot-host-column" data-profitability-output="hotHostOccupancy">—</td></tr><tr><th scope="row">${escapeHtml(labels.ownerTime)}</th><td data-profitability-output="traditionalOwnerTime">${escapeHtml(labels.traditionalOwnerTime)}</td><td data-profitability-output="currentOwnerTime">—</td><td class="hot-host-column" data-profitability-output="hotHostOwnerTime">${escapeHtml(labels.hotHostOwnerTime)}</td></tr><tr><th scope="row">${escapeHtml(labels.pricing)}</th><td data-profitability-output="traditionalPricing">${escapeHtml(labels.traditionalPricing)}</td><td data-profitability-output="currentPricing">—</td><td class="hot-host-column" data-profitability-output="hotHostPricing">${escapeHtml(labels.hotHostPricing)}</td></tr><tr><th scope="row">${escapeHtml(labels.guestCare)}</th><td data-profitability-output="traditionalGuestCare">${escapeHtml(labels.traditionalGuestCare)}</td><td data-profitability-output="currentGuestCare">—</td><td class="hot-host-column" data-profitability-output="hotHostGuestCare">${escapeHtml(labels.hotHostGuestCare)}</td></tr></tbody></table></div><div class="earnings-result" aria-live="polite"><span data-profitability-result-label>${escapeHtml(labels.resultLabel)}</span><strong data-profitability-output="hotHostResult">—</strong><div><b data-profitability-output="difference">—</b> <span data-profitability-output="differenceLabel">${escapeHtml(labels.noData)}</span></div></div><p class="earnings-disclaimer">${escapeHtml(labels.directNote)}</p></div></div></div></section>${renderCta(locale)}</main>`;
+  }
+
+  function renderFounderPage(locale) {
+    const founder = getSupplementalContent(activeLanguage).founder;
+    if (!founder) return renderAbout(locale);
+    const page = getExperienceContent(activeLanguage).founderPage || {};
+    const breadcrumb = page.breadcrumb || founder.signature;
+    const intro = page.intro || founder.lead;
+    return `<main class="founder-page"><section class="page-hero founder-page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a> / ${escapeHtml(breadcrumb)}</div><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h1>${escapeHtml(page.title || founder.title)}</h1><p class="lead">${escapeHtml(intro)}</p></div></section>${renderFounderStory()}<section class="section soft"><div class="wrap founder-page-cta"><div><div class="eyebrow">${escapeHtml(page.ctaEyebrow || "Hablemos de tu alojamiento")}</div><h2>${escapeHtml(page.ctaTitle || "Una buena gestión empieza por entender bien el lugar.")}</h2></div><a class="btn primary" href="contacto.html">${escapeHtml(locale.common.requestAssessment)}</a></div></section></main>`;
+  }
+
+  function renderLegalHub(locale) {
+    const legal = getSupplementalContent(activeLanguage).legal || {};
+    const page = getExperienceContent(activeLanguage).legalHub || {};
+    const nav = legal.nav || {};
+    const cards = [
+      ["aviso-legal.html", nav.legal, legal.legal && legal.legal.lead],
+      ["privacidad.html", nav.privacy, legal.privacy && legal.privacy.lead],
+      ["cookies.html", nav.cookies, legal.cookies && legal.cookies.lead]
+    ];
+    return `<main class="legal-hub"><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(page.breadcrumb || "Información legal y privacidad")}</div><div class="eyebrow">${escapeHtml(page.eyebrow || "Transparencia")}</div><h1>${escapeHtml(page.title || "Información legal y privacidad")}</h1><p class="lead">${escapeHtml(page.lead || "Accede a las condiciones legales, al tratamiento de datos y a las preferencias de esta web.")}</p></div></section><section class="section"><div class="wrap legal-hub-grid">${cards.map(function (card) { return `<a class="legal-hub-card" href="${escapeHtml(card[0])}"><span class="legal-hub-card-index" aria-hidden="true">↗</span><h2>${escapeHtml(card[1] || "")}</h2><p>${escapeHtml(card[2] || "")}</p><span>${escapeHtml(page.open || "Ver información")}</span></a>`; }).join("")}</div></section></main>`;
+  }
+
   function renderHome(locale, services) {
     const marketing = getSupplementalContent(activeLanguage).marketing || {};
     const home = Object.assign({}, locale.home, marketing.home || {});
-    const steps = home.steps.map(function (step, index) {
-      return renderProcessStep(step, PROCESS_IMAGES.method[index], index, "method", home.methodEyebrow, locale);
-    }).join("");
     const serviceCards = services.map(function (service) { return renderServiceCard(service, locale); }).join("");
     const initialVisibleServices = Math.min(3, services.length);
 
     return `<main class="home-page">
-      <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="servicios.html">${escapeHtml(home.discover)}</a><a class="btn ghost" href="contacto.html">${escapeHtml(home.analyse)}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
+      <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="servicios.html#recorrido">${escapeHtml(home.discover)}</a><a class="btn ghost" href="rentabilidad.html#comparador">${escapeHtml(home.analyse)}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
       <section class="section home-services-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.servicesEyebrow)}</div><h2>${escapeHtml(home.servicesTitle)}</h2></div><p>${escapeHtml(home.servicesLead)}</p></div><div class="services-carousel" data-services-carousel role="region" aria-roledescription="${escapeHtml(locale.common.carouselRole)}" aria-label="${escapeHtml(home.servicesTitle)}" tabindex="0"><div class="services-carousel-viewport" data-services-viewport><div class="services-carousel-track">${serviceCards}</div></div><div class="carousel-controls services-carousel-controls"><button class="carousel-button" type="button" data-services-previous aria-label="${escapeHtml(locale.common.previousServices)}">←</button><span class="carousel-status" data-services-status aria-live="polite">${escapeHtml(renderServiceCounter(locale.common.serviceCounter, 1, initialVisibleServices, services.length))}</span><button class="carousel-button" type="button" data-services-next aria-label="${escapeHtml(locale.common.nextServices)}">→</button></div></div><div style="text-align:center;margin-top:26px"><a class="btn ghost" href="servicios.html">${escapeHtml(home.allServices)}</a></div></div></section>
-      ${renderEarningsComparison(locale)}
-      <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.methodEyebrow)}</div><h2>${renderLines(home.methodTitle)}</h2></div><p>${escapeHtml(home.methodLead)}</p></div><div class="grid grid-4">${steps}</div></div></section>
       ${renderCta(locale)}
     </main>`;
   }
 
   function renderServices(locale, services) {
     const page = locale.servicesPage;
-    const stages = page.stages.map(function (stage, index) {
+    const experience = getExperienceContent(activeLanguage);
+    const stagesContent = experience.journey || page.stages;
+    const stages = stagesContent.map(function (stage, index) {
       return renderProcessStep(stage, PROCESS_IMAGES.journey[index], index, "journey", page.processLabel, locale);
     }).join("");
-    return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p><div class="infographic">${stages}</div></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderCta(locale)}</main>`;
+    return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section process-section" id="recorrido"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(page.processLabel)}</div><h2>${escapeHtml(experience.journeyTitle || page.title.join(" "))}</h2></div><p>${escapeHtml(experience.journeyLead || page.lead)}</p></div><div class="infographic infographic-journey">${stages}</div></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderCta(locale)}</main>`;
   }
 
   function renderFounderStory() {
@@ -2328,11 +2474,13 @@
     const paragraphs = (founder.paragraphs || []).map(function (paragraph) {
       return `<p>${escapeHtml(paragraph)}</p>`;
     }).join("");
-    return `<section class="section founder-section"><div class="wrap founder-grid"><figure class="founder-portrait"><img src="assets/yunior-bacallao-alonso.jpg" alt="${escapeHtml(founder.photoAlt)}" width="720" height="960" loading="lazy" decoding="async"><figcaption><span>${escapeHtml(founder.signature)}</span><small>${escapeHtml(founder.role)}</small></figcaption></figure><article class="founder-copy"><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h2>${escapeHtml(founder.title)}</h2><p class="founder-identity"><strong>${escapeHtml(founder.signature)}</strong><span>${escapeHtml(founder.role)}</span></p><p class="lead">${escapeHtml(founder.lead)}</p><div class="founder-prose">${paragraphs}</div><blockquote>${escapeHtml(founder.quote)}</blockquote><a class="btn primary" href="contacto.html">${escapeHtml((locales[activeLanguage] || locales.es).common.requestAssessment)}</a></article></div></section>`;
+    return `<section class="section founder-section"><div class="wrap founder-grid"><figure class="founder-portrait founder-portrait-cutout"><img src="assets/yunior-bacallao-alonso-cutout.png" alt="${escapeHtml(founder.photoAlt)}" width="450" height="792" loading="lazy" decoding="async"><figcaption><span>${escapeHtml(founder.signature)}</span><small>${escapeHtml(founder.role)}</small></figcaption></figure><article class="founder-copy"><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h2>${escapeHtml(founder.title)}</h2><p class="founder-identity"><strong>${escapeHtml(founder.signature)}</strong><span>${escapeHtml(founder.role)}</span></p><p class="lead">${escapeHtml(founder.lead)}</p><div class="founder-prose">${paragraphs}</div><blockquote>${escapeHtml(founder.quote)}</blockquote><a class="btn primary" href="contacto.html">${escapeHtml((locales[activeLanguage] || locales.es).common.requestAssessment)}</a></article></div></section>`;
   }
 
   function renderAbout(locale) {
     const about = locale.about;
+    const founder = getSupplementalContent(activeLanguage).founder;
+    const founderPage = getExperienceContent(activeLanguage).founderPage || {};
     const prose = about.prose.map(function (section) {
       return `<h2>${escapeHtml(section.title)}</h2>${section.paragraphs.map(function (paragraph) { return `<p>${escapeHtml(paragraph)}</p>`; }).join("")}`;
     }).join("");
@@ -2358,9 +2506,11 @@
       return `<article class="quote client-quote"><span class="client-quote-mark" aria-hidden="true">“</span><blockquote>${escapeHtml(quote[0])}</blockquote><footer class="client-quote-author"><span class="client-initials" aria-hidden="true">${escapeHtml(initials)}</span><span><strong>${escapeHtml(quote[1])}</strong><small>${escapeHtml(quote[2])}</small></span></footer></article>`;
     }).join("");
 
+    const founderTeaser = founder ? `<section class="section about-founder-teaser"><div class="wrap"><a class="about-founder-link" href="fundador.html"><span class="about-founder-link-copy"><span class="eyebrow">${escapeHtml(founder.eyebrow)}</span><strong>${escapeHtml(founderPage.title || founder.title)}</strong><small>${escapeHtml(founderPage.intro || founder.lead)}</small></span><span class="about-founder-link-action">${escapeHtml(founderPage.breadcrumb || "Fundador")} <span aria-hidden="true">↗</span></span></a></div></section>` : "";
+
     return `<main>
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(about.breadcrumb)}</div><div class="eyebrow">${escapeHtml(about.eyebrow)}</div><h1>${renderStarredLines(about.title, locale.home.starsLabel)}</h1><p class="lead">${escapeHtml(about.lead)}</p></div></section>
-      ${renderFounderStory()}
+      ${founderTeaser}
       <section class="section"><div class="wrap service-detail"><div class="prose">${prose}</div><aside class="side-panel credentials-panel" aria-labelledby="credentialsTitle"><h3 id="credentialsTitle">${escapeHtml(about.credentialsTitle)}</h3><p class="credentials-lead">${escapeHtml(about.credentialsLead)}</p><ul class="credentials-list credentials-primary-list">${primaryCredential}</ul><button class="credentials-toggle" type="button" data-credentials-toggle data-expand-label="${escapeHtml(about.credentialsExpand)}" data-collapse-label="${escapeHtml(about.credentialsCollapse)}" aria-expanded="false" aria-controls="credentialsDetails"><span data-credentials-toggle-label>${escapeHtml(about.credentialsExpand)}</span><span class="credentials-toggle-icon" aria-hidden="true">⌄</span></button><div class="credentials-hover-preview" aria-hidden="true"><ul class="credentials-list credentials-preview-list">${extraCredentials}</ul></div><div class="credentials-details" id="credentialsDetails" aria-hidden="true"><ul class="credentials-list credentials-extra-list">${extraCredentials}</ul></div><a class="credentials-cta" href="contacto.html">${escapeHtml(about.credentialsCta)}</a></aside></div></section>
       <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.pillarsEyebrow)}</div><h2>${escapeHtml(about.pillarsTitle)}</h2></div></div><div class="grid grid-4 pillars-grid">${pillars}</div></div></section>
       <section class="section testimonials-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.voicesEyebrow)}</div><h2>${escapeHtml(about.voicesTitle)}</h2></div><p>${escapeHtml(about.voicesLead)}</p></div><div class="grid grid-3 testimonials-grid">${quotes}</div></div></section>
@@ -2465,7 +2615,8 @@
       content = `<section class="legal-section"><h2>${escapeHtml(page.storageTitle)}</h2><ul>${storage}</ul><p>${escapeHtml(page.storageText)}</p></section>${renderLegalTextSection(page.thirdPartyTitle, page.thirdPartyText)}${renderLegalTextSection(page.noTrackingTitle, page.noTrackingText)}<section class="legal-section"><h2>${escapeHtml(page.controlTitle)}</h2><p>${escapeHtml(page.controlText)}</p><button class="btn ghost legal-reset-button" type="button" data-reset-site-preferences>${escapeHtml(page.resetButton)}</button><p class="legal-reset-status" aria-live="polite" data-reset-site-preferences-status></p></section>`;
     }
 
-    return `<main class="legal-page"><section class="page-hero legal-page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(page.title)}</div><div class="eyebrow">${escapeHtml(BUSINESS.brand)}</div><h1>${escapeHtml(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section"><div class="wrap legal-layout"><article class="legal-prose">${content}</article><aside class="legal-aside"><strong>${escapeHtml(legal.updated)}</strong><p>${escapeHtml(BUSINESS.owner)}<br>${escapeHtml(BUSINESS.brand)}</p><a class="btn ghost" href="index.html">${escapeHtml(legal.backHome)}</a></aside></div></section></main>`;
+    const legalHubLabel = (getExperienceContent(activeLanguage).nav || {}).legalHub || "Información legal y privacidad";
+    return `<main class="legal-page"><section class="page-hero legal-page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="informacion-legal.html">${escapeHtml(legalHubLabel)}</a> / ${escapeHtml(page.title)}</div><div class="eyebrow">${escapeHtml(BUSINESS.brand)}</div><h1>${escapeHtml(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section"><div class="wrap legal-layout"><article class="legal-prose">${content}</article><aside class="legal-aside"><strong>${escapeHtml(legal.updated)}</strong><p>${escapeHtml(BUSINESS.owner)}<br>${escapeHtml(BUSINESS.brand)}</p><a class="btn ghost" href="index.html">${escapeHtml(legal.backHome)}</a></aside></div></section></main>`;
   }
 
   function renderServiceContent(blocks) {
@@ -2498,21 +2649,23 @@
   }
 
   function renderShell(content, currentPage, locale) {
-    const navItems = [
-      ["index.html", locale.shell.nav.home, "home"],
-      ["servicios.html", locale.shell.nav.services, "services"],
-      ["sobre-hot-host.html", locale.shell.nav.about, "about"],
-      ["contacto.html", locale.shell.nav.contact, "contact"]
-    ];
+    const experience = getExperienceContent(activeLanguage);
+    const navLabels = Object.assign({
+      profitability: "Rentabilidad",
+      founder: "Fundador",
+      legalHub: "Información legal y privacidad",
+      overview: "Ver página principal",
+      legalOverview: "Ver información legal"
+    }, experience.nav || {});
     const languageOptions = SUPPORTED_LANGUAGES.map(function (language) {
       return `<option value="${language}"${language === activeLanguage ? " selected" : ""}>${language.toUpperCase()}</option>`;
     }).join("");
     const languageMenuOptions = SUPPORTED_LANGUAGES.map(function (language) {
       return `<button class="language-option" type="button" role="option" data-language-option="${language}" aria-selected="${String(language === activeLanguage)}" tabindex="-1"><span class="language-option-flag" data-language="${language}" aria-hidden="true"></span><span>${escapeHtml(LANGUAGE_NAMES[language])}</span><small>${language.toUpperCase()}</small></button>`;
     }).join("");
-    const nav = navItems.map(function (item) {
-      return `<a href="${item[0]}"${currentPage === item[2] ? " aria-current=\"page\"" : ""}>${escapeHtml(item[1])}</a>`;
-    }).join("");
+    const aboutActive = currentPage === "about" || currentPage === "founder";
+    const legalActive = currentPage === "legal-hub" || ["legal", "privacy", "cookies"].includes(currentPage);
+    const nav = `<a href="index.html"${currentPage === "home" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.home)}</a><a href="servicios.html"${currentPage === "services" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.services)}</a><a href="rentabilidad.html"${currentPage === "profitability" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.profitability)}</a><div class="nav-dropdown${aboutActive ? " is-active" : ""}"><button class="nav-dropdown-trigger" type="button" data-nav-dropdown aria-expanded="false" aria-controls="aboutMenu">${escapeHtml(locale.shell.nav.about)}<span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu" id="aboutMenu"><a href="sobre-hot-host.html"${currentPage === "about" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.overview)}</a><a href="fundador.html"${currentPage === "founder" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.founder)}</a></div></div><a href="contacto.html"${currentPage === "contact" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.contact)}</a><div class="nav-dropdown nav-dropdown-legal${legalActive ? " is-active" : ""}"><button class="nav-dropdown-trigger" type="button" data-nav-dropdown aria-expanded="false" aria-controls="legalMenu">${escapeHtml(navLabels.legalHub)}<span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu" id="legalMenu"><a href="informacion-legal.html"${currentPage === "legal-hub" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.legalOverview)}</a><a href="aviso-legal.html"${currentPage === "legal" ? " aria-current=\"page\"" : ""}>${escapeHtml((getSupplementalContent(activeLanguage).legal || {}).nav?.legal || "Aviso legal")}</a><a href="privacidad.html"${currentPage === "privacy" ? " aria-current=\"page\"" : ""}>${escapeHtml((getSupplementalContent(activeLanguage).legal || {}).nav?.privacy || "Privacidad")}</a><a href="cookies.html"${currentPage === "cookies" ? " aria-current=\"page\"" : ""}>${escapeHtml((getSupplementalContent(activeLanguage).legal || {}).nav?.cookies || "Cookies")}</a></div></div>`;
     const services = getServices(locale);
     const isDarkTheme = activeTheme === "dark";
     const themeLabel = isDarkTheme ? locale.common.enableLightMode : locale.common.enableDarkMode;
@@ -2522,7 +2675,7 @@
         ? `<a class="nav-cta" href="contacto.html" aria-label="${escapeHtml(`${locale.shell.assess}. ${locale.common.offerTitle}. ${locale.common.offerDeadline}`)}"><span>${escapeHtml(locale.shell.assess)}</span><small>${escapeHtml(locale.common.navOffer)}</small></a>`
         : `<a class="nav-cta" href="contacto.html"><span>${escapeHtml(locale.shell.assess)}</span></a>`;
 
-    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher" data-language="${activeLanguage}"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
+    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher" data-language="${activeLanguage}"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="rentabilidad.html">${escapeHtml(navLabels.profitability)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="fundador.html">${escapeHtml(navLabels.founder)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
     document.querySelector(".language-switcher").innerHTML = `<button class="language-select" id="languageButton" type="button" aria-label="${escapeHtml(`${locale.shell.languageLabel}: ${LANGUAGE_NAMES[activeLanguage]}`)}" aria-haspopup="listbox" aria-expanded="false" aria-controls="languageMenu"><span class="language-option-flag" data-language="${activeLanguage}" aria-hidden="true"></span><span class="language-current-code">${activeLanguage.toUpperCase()}</span><span class="language-chevron" aria-hidden="true">⌄</span></button><div class="language-menu" id="languageMenu" role="listbox" aria-label="${escapeHtml(locale.shell.languageLabel)}" hidden>${languageMenuOptions}</div>`;
     const legal = getSupplementalContent(activeLanguage).legal;
     const copyright = document.querySelector(".copyright");
@@ -2530,7 +2683,7 @@
       const legalLinks = document.createElement("nav");
       legalLinks.className = "footer-legal-links";
       legalLinks.setAttribute("aria-label", legal.nav.legal);
-      legalLinks.innerHTML = `<a href="aviso-legal.html">${escapeHtml(legal.nav.legal)}</a><a href="privacidad.html">${escapeHtml(legal.nav.privacy)}</a><a href="cookies.html">${escapeHtml(legal.nav.cookies)}</a>`;
+      legalLinks.innerHTML = `<a href="informacion-legal.html">${escapeHtml(navLabels.legalHub)}</a><a href="aviso-legal.html">${escapeHtml(legal.nav.legal)}</a><a href="privacidad.html">${escapeHtml(legal.nav.privacy)}</a><a href="cookies.html">${escapeHtml(legal.nav.cookies)}</a>`;
       copyright.before(legalLinks);
     }
   }
@@ -3170,6 +3323,44 @@
     const languageButton = document.querySelector("#languageButton");
     const languageMenu = document.querySelector("#languageMenu");
     const languageOptions = Array.from(document.querySelectorAll("[data-language-option]"));
+    const navigationDropdowns = Array.from(document.querySelectorAll(".nav-dropdown"));
+    const navigationDropdownButtons = Array.from(document.querySelectorAll("[data-nav-dropdown]"));
+
+    function closeNavigationDropdowns(except) {
+      navigationDropdowns.forEach(function (dropdown) {
+        if (dropdown === except) return;
+        dropdown.classList.remove("is-open");
+        const button = dropdown.querySelector("[data-nav-dropdown]");
+        if (button) button.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    navigationDropdownButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        const dropdown = button.closest(".nav-dropdown");
+        const isOpen = dropdown.classList.toggle("is-open");
+        closeNavigationDropdowns(isOpen ? dropdown : null);
+        button.setAttribute("aria-expanded", String(isOpen));
+      });
+      button.addEventListener("keydown", function (event) {
+        if (event.key !== "Escape") return;
+        closeNavigationDropdowns();
+        button.focus();
+      });
+    });
+    navLinks.addEventListener("click", function (event) {
+      if (event.target.closest("a")) {
+        closeNavigationDropdowns();
+        navLinks.classList.remove("open");
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.setAttribute("aria-label", locale.shell.openMenu);
+      }
+    });
+    if (navigationMenuOutsideHandler) document.removeEventListener("pointerdown", navigationMenuOutsideHandler);
+    navigationMenuOutsideHandler = function (event) {
+      if (!navLinks.contains(event.target)) closeNavigationDropdowns();
+    };
+    document.addEventListener("pointerdown", navigationMenuOutsideHandler);
     menuButton.addEventListener("click", function () {
       const isOpen = navLinks.classList.toggle("open");
       menuButton.setAttribute("aria-expanded", String(isOpen));
@@ -3216,6 +3407,7 @@
     }
 
     languageButton.addEventListener("click", function () {
+      closeNavigationDropdowns();
       if (languageMenu.hidden) openLanguageMenu(false);
       else closeLanguageMenu(false);
     });
@@ -3534,6 +3726,326 @@
         updateComparison();
       }
     });
+  }
+
+  function setupProfitabilityCalculator() {
+    const calculator = document.querySelector("[data-profitability-calculator]");
+    if (!calculator) return;
+    const inputs = calculator.querySelectorAll("[data-profitability-input]");
+    const situationInput = calculator.querySelector('[data-profitability-input="situation"]');
+    const externalFeeField = calculator.querySelector('[data-profitability-field="externalFee"]');
+    const traditionalRentField = calculator.querySelector('[data-profitability-field="traditionalRent"]');
+    const missing = calculator.querySelector("[data-profitability-missing]");
+    const currency = new Intl.NumberFormat(activeLanguage, {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0
+    });
+
+    function amount(value, available) {
+      return available ? currency.format(value) : "—";
+    }
+
+    function output(name, value) {
+      const node = calculator.querySelector(`[data-profitability-output="${name}"]`);
+      if (node) node.textContent = value;
+    }
+
+    function updateCurrentColumn() {
+      const currentColumns = {
+        traditional: 1,
+        "self-managed": 2,
+        external: 3
+      };
+      const activeColumn = currentColumns[profitabilityState.situation];
+      calculator.dataset.situation = profitabilityState.situation;
+      calculator.querySelectorAll("table tr").forEach(function (row) {
+        Array.from(row.children).forEach(function (cell, index) {
+          cell.classList.toggle("profitability-current-column", index === activeColumn);
+        });
+      });
+    }
+
+    function updateFieldVisibility() {
+      const isExternal = profitabilityState.situation === "external";
+      const isNewProperty = profitabilityState.situation === "new-property";
+      if (externalFeeField) externalFeeField.hidden = !isExternal;
+      if (traditionalRentField) traditionalRentField.hidden = isNewProperty;
+    }
+
+    function updateResults() {
+      const nightlyRate = Number(profitabilityState.nightlyRate);
+      const occupancy = Number(profitabilityState.occupancy);
+      const traditionalRent = Number(profitabilityState.traditionalRent);
+      const externalFeeRate = Math.min(100, Math.max(0, Number(profitabilityState.externalFee) || 0));
+      const hasShortTermData = nightlyRate > 0 && occupancy > 0;
+      const hasTraditionalData = profitabilityState.situation !== "new-property" && traditionalRent > 0;
+      const grossShortTerm = hasShortTermData ? nightlyRate * 365 * Math.min(100, occupancy) / 100 : 0;
+      const externalFee = grossShortTerm * externalFeeRate / 100;
+      const hotHostFee = grossShortTerm * HOT_HOST_MANAGEMENT_FEE;
+      const traditionalAnnual = traditionalRent * 12;
+
+      output("traditionalGross", amount(traditionalAnnual, hasTraditionalData));
+      output("traditionalFee", amount(0, hasTraditionalData));
+      output("traditionalNet", amount(traditionalAnnual, hasTraditionalData));
+      output("traditionalMonthly", amount(traditionalAnnual / 12, hasTraditionalData));
+      output("selfGross", amount(grossShortTerm, hasShortTermData));
+      output("selfFee", amount(0, hasShortTermData));
+      output("selfNet", amount(grossShortTerm, hasShortTermData));
+      output("selfMonthly", amount(grossShortTerm / 12, hasShortTermData));
+      output("externalGross", amount(grossShortTerm, hasShortTermData));
+      output("externalFee", amount(-externalFee, hasShortTermData));
+      output("externalNet", amount(grossShortTerm - externalFee, hasShortTermData));
+      output("externalMonthly", amount((grossShortTerm - externalFee) / 12, hasShortTermData));
+      output("hotHostGross", amount(grossShortTerm, hasShortTermData));
+      output("hotHostFee", amount(-hotHostFee, hasShortTermData));
+      output("hotHostNet", amount(grossShortTerm - hotHostFee, hasShortTermData));
+      output("hotHostMonthly", amount((grossShortTerm - hotHostFee) / 12, hasShortTermData));
+      if (missing) missing.hidden = hasShortTermData || hasTraditionalData;
+      updateCurrentColumn();
+    }
+
+    function syncInputValues() {
+      inputs.forEach(function (input) {
+        if (input.dataset.profitabilityInput === "situation") input.value = profitabilityState.situation;
+        else input.value = profitabilityState[input.dataset.profitabilityInput];
+      });
+    }
+
+    inputs.forEach(function (input) {
+      input.addEventListener("input", function () {
+        const key = input.dataset.profitabilityInput;
+        if (key === "situation") return;
+        profitabilityState[key] = input.value === "" ? "" : Number(input.value);
+        updateResults();
+      });
+      input.addEventListener("change", function () {
+        if (input.dataset.profitabilityInput !== "situation") return;
+        profitabilityState.situation = input.value;
+        updateFieldVisibility();
+        updateResults();
+      });
+    });
+
+    if (situationInput) situationInput.value = profitabilityState.situation;
+    syncInputValues();
+    updateFieldVisibility();
+    updateResults();
+  }
+
+  function setupProfitabilityComparison() {
+    const calculator = document.querySelector("[data-profitability-comparison]");
+    if (!calculator) return;
+    const page = getExperienceContent(activeLanguage).profitability || {};
+    const labels = Object.assign({
+      traditional: "Alquiler tradicional",
+      selfManaged: "Gestión propia",
+      external: "Tu gestora actual",
+      newProperty: "Escenario propio",
+      estimatedDetail: "Estimación automática",
+      currentDetail: "Tus datos",
+      externalDetail: "Comisión editable",
+      traditionalOwnerTime: "Muy baja",
+      selfOwnerTime: "Alta",
+      externalOwnerTime: "Baja",
+      hotHostOwnerTime: "Muy baja",
+      traditionalPricing: "Fijo",
+      selfPricing: "Manual",
+      externalPricing: "Según tu gestora",
+      hotHostPricing: "Dinámica",
+      traditionalGuestCare: "Inquilino",
+      selfGuestCare: "Tú",
+      externalGuestCare: "Tu gestora",
+      hotHostGuestCare: "Hot Host",
+      traditionalNights: "No aplica",
+      traditionalRate: "No aplica",
+      traditionalOccupancy: "No aplica",
+      estimatedNote: "A partir de tu renta actual estimamos la tarifa y la ocupación de los escenarios turísticos. Una auditoría permite afinarlo con los datos reales de tu vivienda.",
+      directNote: "Usamos la tarifa y ocupación que indiques para tu modelo actual. La proyección Hot Host es orientativa y no incluye impuestos ni costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.",
+      noData: "Introduce los datos para ver la estimación.",
+      resultLabel: "Neto anual estimado con Hot Host",
+      versusTraditional: "frente al alquiler tradicional",
+      versusCurrent: "frente a tu gestión actual"
+    }, page);
+    const inputs = Array.from(calculator.querySelectorAll("[data-profitability-input]"));
+    const situationInput = calculator.querySelector('[data-profitability-input="situation"]');
+    const fields = {
+      traditionalRent: calculator.querySelector('[data-profitability-field="traditionalRent"]'),
+      nightlyRate: calculator.querySelector('[data-profitability-field="nightlyRate"]'),
+      occupancy: calculator.querySelector('[data-profitability-field="occupancy"]'),
+      externalFee: calculator.querySelector('[data-profitability-field="externalFee"]')
+    };
+    const note = calculator.querySelector("[data-profitability-note]");
+    const currentHeading = calculator.querySelector("[data-profitability-current-heading]");
+    const currentDetail = calculator.querySelector("[data-profitability-current-detail]");
+    const resultLabel = calculator.querySelector("[data-profitability-result-label]");
+    const currency = new Intl.NumberFormat(activeLanguage, {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0
+    });
+    const integer = new Intl.NumberFormat(activeLanguage, { maximumFractionDigits: 0 });
+    const validSituations = ["traditional", "self-managed", "external", "new-property"];
+
+    if (!validSituations.includes(profitabilityState.situation)) profitabilityState.situation = "traditional";
+
+    function amount(value, available) {
+      return available ? currency.format(value) : "—";
+    }
+
+    function setOutput(name, value) {
+      const output = calculator.querySelector(`[data-profitability-output="${name}"]`);
+      if (output) output.textContent = value;
+    }
+
+    function setFieldVisibility(field, isVisible) {
+      if (field) field.hidden = !isVisible;
+    }
+
+    function updateFieldVisibility() {
+      const situation = profitabilityState.situation;
+      const isTraditional = situation === "traditional";
+      const isExternal = situation === "external";
+      setFieldVisibility(fields.traditionalRent, isTraditional);
+      setFieldVisibility(fields.nightlyRate, !isTraditional);
+      setFieldVisibility(fields.occupancy, !isTraditional);
+      setFieldVisibility(fields.externalFee, isExternal);
+      if (note) note.textContent = isTraditional ? labels.estimatedNote : labels.directNote;
+    }
+
+    function updateCurrentColumn() {
+      const activeColumn = profitabilityState.situation === "traditional" ? 1 : 2;
+      calculator.dataset.situation = profitabilityState.situation;
+      calculator.querySelectorAll("table tr").forEach(function (row) {
+        Array.from(row.children).forEach(function (cell, index) {
+          cell.classList.toggle("current-model-column", index === activeColumn);
+        });
+      });
+    }
+
+    function updateResults() {
+      const situation = profitabilityState.situation;
+      const traditionalRent = Math.max(0, Number(profitabilityState.traditionalRent) || 0);
+      const enteredRate = Math.max(0, Number(profitabilityState.nightlyRate) || 0);
+      const enteredOccupancy = Math.min(100, Math.max(0, Number(profitabilityState.occupancy) || 0));
+      const externalFeeRate = Math.min(100, Math.max(0, Number(profitabilityState.externalFee) || 0));
+      const hasTraditional = situation === "traditional" && traditionalRent > 0;
+      const hasEnteredTouristData = situation !== "traditional" && enteredRate > 0 && enteredOccupancy > 0;
+      const currentAvailable = hasTraditional || hasEnteredTouristData;
+      const traditionalAnnual = traditionalRent * 12;
+      let currentRate = enteredRate;
+      let currentOccupancy = enteredOccupancy;
+      let currentHeadingLabel = labels.selfColumn;
+      let currentDetailLabel = labels.currentDetail;
+      let currentFee = 0;
+      let currentOwnerTime = labels.selfOwnerTime;
+      let currentPricing = labels.selfPricing;
+      let currentGuestCare = labels.selfGuestCare;
+
+      if (situation === "traditional") {
+        const scale = traditionalRent / DEFAULT_EARNINGS.traditionalRent;
+        currentRate = DEFAULT_EARNINGS.touristRate * scale;
+        currentOccupancy = MARKET_OCCUPANCY;
+        currentHeadingLabel = labels.selfColumn;
+        currentDetailLabel = labels.estimatedDetail;
+      } else if (situation === "external") {
+        currentHeadingLabel = labels.externalColumn;
+        currentDetailLabel = `${integer.format(externalFeeRate)}% · ${labels.externalDetail}`;
+        currentOwnerTime = labels.externalOwnerTime;
+        currentPricing = labels.externalPricing;
+        currentGuestCare = labels.externalGuestCare;
+      } else if (situation === "new-property") {
+        currentHeadingLabel = labels.newColumn;
+      }
+
+      const currentNights = 365 * currentOccupancy / 100;
+      const currentGross = currentRate * currentNights;
+      if (situation === "external") currentFee = currentGross * externalFeeRate / 100;
+      const currentNet = currentGross - currentFee;
+      const hotHostRate = currentRate * HOT_HOST_RATE_MULTIPLIER;
+      const hotHostOccupancy = Math.max(currentOccupancy, HOT_HOST_OCCUPANCY);
+      const hotHostNights = 365 * hotHostOccupancy / 100;
+      const hotHostGross = hotHostRate * hotHostNights;
+      const hotHostFee = hotHostGross * HOT_HOST_MANAGEMENT_FEE;
+      const hotHostNet = hotHostGross - hotHostFee;
+      const traditionalAvailable = hasTraditional;
+      const hotHostAvailable = currentAvailable;
+
+      if (currentHeading) currentHeading.textContent = currentHeadingLabel;
+      if (currentDetail) currentDetail.textContent = currentDetailLabel;
+      setOutput("traditionalGross", amount(traditionalAnnual, traditionalAvailable));
+      setOutput("traditionalFee", amount(0, traditionalAvailable));
+      setOutput("traditionalNet", amount(traditionalAnnual, traditionalAvailable));
+      setOutput("traditionalMonthly", amount(traditionalAnnual / 12, traditionalAvailable));
+      setOutput("traditionalNights", labels.traditionalNights);
+      setOutput("traditionalRate", labels.traditionalRate);
+      setOutput("traditionalOccupancy", labels.traditionalOccupancy);
+      setOutput("traditionalOwnerTime", labels.traditionalOwnerTime);
+      setOutput("traditionalPricing", labels.traditionalPricing);
+      setOutput("traditionalGuestCare", labels.traditionalGuestCare);
+      setOutput("currentGross", amount(currentGross, currentAvailable));
+      setOutput("currentFee", amount(currentFee > 0 ? -currentFee : 0, currentAvailable));
+      setOutput("currentNet", amount(currentNet, currentAvailable));
+      setOutput("currentMonthly", amount(currentNet / 12, currentAvailable));
+      setOutput("currentNights", currentAvailable ? integer.format(currentNights) : "—");
+      setOutput("currentRate", amount(currentRate, currentAvailable));
+      setOutput("currentOccupancy", currentAvailable ? `${integer.format(currentOccupancy)}%` : "—");
+      setOutput("currentOwnerTime", currentAvailable ? currentOwnerTime : "—");
+      setOutput("currentPricing", currentAvailable ? currentPricing : "—");
+      setOutput("currentGuestCare", currentAvailable ? currentGuestCare : "—");
+      setOutput("hotHostGross", amount(hotHostGross, hotHostAvailable));
+      setOutput("hotHostFee", amount(-hotHostFee, hotHostAvailable));
+      setOutput("hotHostNet", amount(hotHostNet, hotHostAvailable));
+      setOutput("hotHostMonthly", amount(hotHostNet / 12, hotHostAvailable));
+      setOutput("hotHostNights", hotHostAvailable ? integer.format(hotHostNights) : "—");
+      setOutput("hotHostRate", amount(hotHostRate, hotHostAvailable));
+      setOutput("hotHostOccupancy", hotHostAvailable ? `${integer.format(hotHostOccupancy)}%` : "—");
+      setOutput("hotHostOwnerTime", labels.hotHostOwnerTime);
+      setOutput("hotHostPricing", labels.hotHostPricing);
+      setOutput("hotHostGuestCare", labels.hotHostGuestCare);
+
+      const referenceAvailable = situation === "traditional" ? traditionalAvailable : currentAvailable;
+      const referenceNet = situation === "traditional" ? traditionalAnnual : currentNet;
+      if (resultLabel) resultLabel.textContent = labels.resultLabel;
+      setOutput("hotHostResult", amount(hotHostNet, hotHostAvailable));
+      if (hotHostAvailable && referenceAvailable) {
+        const difference = hotHostNet - referenceNet;
+        const sign = difference >= 0 ? "+" : "−";
+        setOutput("difference", `${sign}${currency.format(Math.abs(difference))}`);
+        setOutput("differenceLabel", situation === "traditional" ? labels.versusTraditional : labels.versusCurrent);
+      } else {
+        setOutput("difference", "—");
+        setOutput("differenceLabel", labels.noData);
+      }
+      updateCurrentColumn();
+    }
+
+    function syncInputValues() {
+      inputs.forEach(function (input) {
+        const key = input.dataset.profitabilityInput;
+        input.value = profitabilityState[key];
+      });
+    }
+
+    inputs.forEach(function (input) {
+      input.addEventListener("input", function () {
+        const key = input.dataset.profitabilityInput;
+        if (key === "situation") return;
+        profitabilityState[key] = input.value === "" ? "" : Number(input.value);
+        updateResults();
+      });
+      input.addEventListener("change", function () {
+        if (input.dataset.profitabilityInput !== "situation") return;
+        profitabilityState.situation = validSituations.includes(input.value) ? input.value : "traditional";
+        updateFieldVisibility();
+        updateResults();
+      });
+    });
+
+    if (situationInput) situationInput.value = profitabilityState.situation;
+    syncInputValues();
+    updateFieldVisibility();
+    updateResults();
   }
 
   function setupServiceCarousels(locale) {
@@ -3895,10 +4407,20 @@
     const marketing = getSupplementalContent(activeLanguage).marketing || {};
     const homeMarketing = marketing.home || {};
     const founder = getSupplementalContent(activeLanguage).founder || {};
+    const experience = getExperienceContent(activeLanguage);
+    const experiencePage = pageKey === "profitability"
+      ? experience.profitability
+      : pageKey === "founder"
+        ? experience.founderPage
+        : pageKey === "legal-hub"
+          ? experience.legalHub
+          : null;
     const title = service
       ? `${service.title} · ${BUSINESS.brand}`
       : legalPage
         ? `${legalPage.title} · ${BUSINESS.brand}`
+        : experiencePage && experiencePage.title
+          ? `${experiencePage.title} · ${BUSINESS.brand}`
         : pageKey === "home" && homeMarketing.title
           ? `${homeMarketing.title.replace(/[.]+$/, "")} · ${BUSINESS.brand}`
         : (locale.meta.titles[pageKey] || locale.meta.titles.home);
@@ -3906,6 +4428,8 @@
       ? service.intro
       : legalPage
         ? legalPage.lead
+        : experiencePage
+          ? (experiencePage.lead || experiencePage.intro || founder.lead)
         : pageKey === "home" && homeMarketing.lead
           ? homeMarketing.lead
           : pageKey === "about" && founder.lead
@@ -3913,7 +4437,7 @@
           : (locale.meta.descriptions[pageKey] || locale.meta.descriptions.home);
     const pageFile = getCurrentPageFile();
     const canonicalUrl = localizedPageUrl(pageFile, activeLanguage);
-    const imageUrlForPage = pageKey === "about"
+    const imageUrlForPage = pageKey === "about" || pageKey === "founder"
       ? new URL("assets/yunior-bacallao-alonso.jpg", SITE_URL).href
       : new URL("assets/logo-3h.png", SITE_URL).href;
 
@@ -3951,7 +4475,10 @@
     if (pageKey === "home") content = renderHome(locale, services);
     else if (pageKey === "services") content = renderServices(locale, services);
     else if (pageKey === "about") content = renderAbout(locale);
+    else if (pageKey === "founder") content = renderFounderPage(locale);
+    else if (pageKey === "profitability") content = renderProfitabilityComparison(locale);
     else if (pageKey === "contact") content = renderContact(locale);
+    else if (pageKey === "legal-hub") content = renderLegalHub(locale);
     else if (["legal", "privacy", "cookies"].includes(pageKey)) content = renderLegalPage(pageKey, locale);
     else if (locale.services[pageKey]) {
       content = renderServicePage(pageKey, locale);
@@ -3968,6 +4495,7 @@
     setupContactForm(locale, formState);
     setupProcessDialog();
     setupEarningsCalculator(locale);
+    setupProfitabilityComparison();
     setupServiceCarousels(locale);
     setupCarousels(locale);
     setupRevealAnimations();
