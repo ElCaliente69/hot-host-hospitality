@@ -1,8 +1,12 @@
 (function () {
   "use strict";
 
+  const SITE_CONTENT = window.HOT_HOST_SITE_CONTENT || {};
+  const BUSINESS = SITE_CONTENT.business || {};
+  const SITE_URL = BUSINESS.website || "https://elcaliente69.github.io/hot-host-hospitality/";
   const LANGUAGE_STORAGE_KEY = "hotHostLanguage";
   const THEME_STORAGE_KEY = "hotHostTheme";
+  const COOKIE_NOTICE_STORAGE_KEY = "hotHostCookieNoticeSeen";
   const SUPPORTED_LANGUAGES = ["es", "en", "fr", "it", "de", "pl", "nl", "pt", "el"];
   const LANGUAGE_NAMES = { es: "Español", en: "English", fr: "Français", it: "Italiano", de: "Deutsch", pl: "Polski", nl: "Nederlands", pt: "Português", el: "Ελληνικά" };
   const SUPPORTED_CURRENCIES = ["EUR", "USD", "GBP", "CHF", "PLN"];
@@ -2094,7 +2098,49 @@
     return SUPPORTED_LANGUAGES.includes(language) ? language : "";
   }
 
+  function getSupplementalContent(language) {
+    const allContent = SITE_CONTENT.locales || {};
+    return allContent[language] || allContent.es || {};
+  }
+
+  function getCurrentPageFile() {
+    const path = window.location.pathname.split("/").pop();
+    return path && path.endsWith(".html") ? path : "index.html";
+  }
+
+  function updateLanguageUrl(language) {
+    if (!window.history || typeof window.history.replaceState !== "function") return;
+    try {
+      const url = new URL(window.location.href);
+      if (language === "es") url.searchParams.delete("lang");
+      else url.searchParams.set("lang", language);
+      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    } catch (error) {
+      // Language selection still works when the current URL cannot be rewritten.
+    }
+  }
+
+  function localizeInternalLinks() {
+    document.querySelectorAll('a[href$=".html"], a[href*=".html?"]').forEach(function (link) {
+      try {
+        const url = new URL(link.getAttribute("href"), window.location.href);
+        if (url.origin !== window.location.origin || !url.pathname.endsWith(".html")) return;
+        if (activeLanguage === "es") url.searchParams.delete("lang");
+        else url.searchParams.set("lang", activeLanguage);
+        link.setAttribute("href", `${url.pathname.split("/").pop()}${url.search}${url.hash}`);
+      } catch (error) {
+        // Ignore malformed or non-navigation href values.
+      }
+    });
+  }
+
   function getInitialLanguage() {
+    try {
+      const sharedLanguage = normalizeLanguage(new URL(window.location.href).searchParams.get("lang"));
+      if (sharedLanguage) return sharedLanguage;
+    } catch (error) {
+      // Fall through to saved and browser language preferences.
+    }
     try {
       const savedLanguage = normalizeLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
       if (savedLanguage) return savedLanguage;
@@ -2109,6 +2155,7 @@
   }
 
   function saveLanguage(language) {
+    updateLanguageUrl(language);
     try {
       window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
     } catch (error) {
@@ -2250,7 +2297,8 @@
   }
 
   function renderHome(locale, services) {
-    const home = locale.home;
+    const marketing = getSupplementalContent(activeLanguage).marketing || {};
+    const home = Object.assign({}, locale.home, marketing.home || {});
     const steps = home.steps.map(function (step, index) {
       return renderProcessStep(step, PROCESS_IMAGES.method[index], index, "method", home.methodEyebrow, locale);
     }).join("");
@@ -2272,6 +2320,15 @@
       return renderProcessStep(stage, PROCESS_IMAGES.journey[index], index, "journey", page.processLabel, locale);
     }).join("");
     return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p><div class="infographic">${stages}</div></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderCta(locale)}</main>`;
+  }
+
+  function renderFounderStory() {
+    const founder = getSupplementalContent(activeLanguage).founder;
+    if (!founder) return "";
+    const paragraphs = (founder.paragraphs || []).map(function (paragraph) {
+      return `<p>${escapeHtml(paragraph)}</p>`;
+    }).join("");
+    return `<section class="section founder-section"><div class="wrap founder-grid"><figure class="founder-portrait"><img src="assets/yunior-bacallao-alonso.jpg" alt="${escapeHtml(founder.photoAlt)}" width="720" height="960" loading="lazy" decoding="async"><figcaption><span>${escapeHtml(founder.signature)}</span><small>${escapeHtml(founder.role)}</small></figcaption></figure><article class="founder-copy"><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h2>${escapeHtml(founder.title)}</h2><p class="founder-identity"><strong>${escapeHtml(founder.signature)}</strong><span>${escapeHtml(founder.role)}</span></p><p class="lead">${escapeHtml(founder.lead)}</p><div class="founder-prose">${paragraphs}</div><blockquote>${escapeHtml(founder.quote)}</blockquote><a class="btn primary" href="contacto.html">${escapeHtml((locales[activeLanguage] || locales.es).common.requestAssessment)}</a></article></div></section>`;
   }
 
   function renderAbout(locale) {
@@ -2303,6 +2360,7 @@
 
     return `<main>
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(about.breadcrumb)}</div><div class="eyebrow">${escapeHtml(about.eyebrow)}</div><h1>${renderStarredLines(about.title, locale.home.starsLabel)}</h1><p class="lead">${escapeHtml(about.lead)}</p></div></section>
+      ${renderFounderStory()}
       <section class="section"><div class="wrap service-detail"><div class="prose">${prose}</div><aside class="side-panel credentials-panel" aria-labelledby="credentialsTitle"><h3 id="credentialsTitle">${escapeHtml(about.credentialsTitle)}</h3><p class="credentials-lead">${escapeHtml(about.credentialsLead)}</p><ul class="credentials-list credentials-primary-list">${primaryCredential}</ul><button class="credentials-toggle" type="button" data-credentials-toggle data-expand-label="${escapeHtml(about.credentialsExpand)}" data-collapse-label="${escapeHtml(about.credentialsCollapse)}" aria-expanded="false" aria-controls="credentialsDetails"><span data-credentials-toggle-label>${escapeHtml(about.credentialsExpand)}</span><span class="credentials-toggle-icon" aria-hidden="true">⌄</span></button><div class="credentials-hover-preview" aria-hidden="true"><ul class="credentials-list credentials-preview-list">${extraCredentials}</ul></div><div class="credentials-details" id="credentialsDetails" aria-hidden="true"><ul class="credentials-list credentials-extra-list">${extraCredentials}</ul></div><a class="credentials-cta" href="contacto.html">${escapeHtml(about.credentialsCta)}</a></aside></div></section>
       <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.pillarsEyebrow)}</div><h2>${escapeHtml(about.pillarsTitle)}</h2></div></div><div class="grid grid-4 pillars-grid">${pillars}</div></div></section>
       <section class="section testimonials-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.voicesEyebrow)}</div><h2>${escapeHtml(about.voicesTitle)}</h2></div><p>${escapeHtml(about.voicesLead)}</p></div><div class="grid grid-3 testimonials-grid">${quotes}</div></div></section>
@@ -2319,6 +2377,8 @@
       : "";
     const optionalPhotosLink = driveUploadAvailable ? ` <span>${escapeHtml(form.optional)}</span>` : "";
     const directUploadLabel = driveUploadAvailable ? `<label for="propertyPhotos">${escapeHtml(form.photosUpload)}</label>` : "";
+    const legal = getSupplementalContent(activeLanguage).legal;
+    const privacyLink = legal ? ` <a href="privacidad.html">${escapeHtml(legal.nav.privacy)}</a>` : "";
     return `<main>
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(contact.breadcrumb)}</div><div class="eyebrow">${escapeHtml(contact.eyebrow)}</div><h1>${escapeHtml(contact.title)}</h1></div></section>
       <section class="section"><div class="wrap contact-grid"><div><h2>${escapeHtml(contact.heading)}</h2><p class="lead">${escapeHtml(contact.lead)}</p><div class="contact-item"><small>${escapeHtml(contact.serviceAreaLabel)}</small><strong>${escapeHtml(contact.serviceArea)}</strong></div><div class="contact-item"><small>${escapeHtml(contact.emailLabel)}</small><strong>${escapeHtml(CONTACT_EMAIL)}</strong></div><div class="contact-item"><small>WhatsApp</small><strong>+34 600 907 716</strong></div><div class="contact-item"><small>${escapeHtml(contact.hoursLabel)}</small><strong>${escapeHtml(contact.hours)}</strong></div></div>
@@ -2340,10 +2400,72 @@
         <div class="field property-photos-field" id="propertyPhotosField" hidden>${directUploadLabel}<div class="property-photo-dropzone" data-photo-dropzone${driveUploadAvailable ? "" : " hidden"}><input id="propertyPhotos" name="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-describedby="propertyPhotosHelp propertyPhotosStatus"${driveUploadAvailable ? "" : " disabled"}><span class="property-photo-icon" aria-hidden="true">＋</span><strong>${escapeHtml(form.photosUpload)}</strong><small class="field-help" id="propertyPhotosHelp">${escapeHtml(form.photosUploadHelp)}</small></div><p class="property-photos-status" id="propertyPhotosStatus" aria-live="polite"></p><div class="property-photo-previews" id="propertyPhotoPreviews"></div><label class="property-photos-link-label" for="photosUrl">${escapeHtml(form.photosUrl)}${optionalPhotosLink}</label><input id="photosUrl" name="photosUrl" type="url" placeholder="${escapeHtml(form.photosPlaceholder)}" aria-describedby="photosHelp"><small class="field-help" id="photosHelp">${escapeHtml(form.photosHelp)}</small></div>
         <div class="form-trap" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
         <div class="field"><label for="message">${escapeHtml(form.comments)} <span style="font-weight:400">${escapeHtml(form.optional)}</span></label><textarea id="message" name="message" placeholder="${escapeHtml(form.commentsPlaceholder)}"></textarea></div>
-        <div class="field consent-field"><label class="consent-control" for="privacyConsent"><input id="privacyConsent" name="privacyConsent" type="checkbox" required><span>${escapeHtml(form.privacyConsent)}</span></label><small class="field-help">${escapeHtml(form.privacyNote)}</small></div>
+        <div class="field consent-field"><label class="consent-control" for="privacyConsent"><input id="privacyConsent" name="privacyConsent" type="checkbox" required><span>${escapeHtml(form.privacyConsent)}</span></label><small class="field-help">${escapeHtml(form.privacyNote)}${privacyLink}</small></div>
         <p class="form-actions-label" id="deliveryLabel">${escapeHtml(form.actionsLabel)}</p><div class="form-actions" role="group" aria-labelledby="deliveryLabel"><button class="btn form-action email-action" type="submit" name="deliveryMethod" value="email">${escapeHtml(form.sendEmail)}</button><button class="btn form-action whatsapp-action" type="submit" name="deliveryMethod" value="whatsapp">${escapeHtml(form.sendWhatsapp)}</button></div><p id="formStatus" aria-live="polite"></p>
       </form></div></section>
     </main>`;
+  }
+
+  function getLegalLabels() {
+    const labels = {
+      es: ["Titular", "Nombre comercial", "NIF", "Domicilio", "Correo electrónico", "Teléfono", "Registro mercantil"],
+      en: ["Owner", "Trading name", "Tax ID", "Legal address", "Email", "Telephone", "Commercial register"],
+      fr: ["Titulaire", "Nom commercial", "Identifiant fiscal", "Adresse légale", "E-mail", "Téléphone", "Registre du commerce"],
+      it: ["Titolare", "Nome commerciale", "Codice fiscale", "Sede legale", "E-mail", "Telefono", "Registro delle imprese"],
+      de: ["Betreiber", "Handelsname", "Steuer-ID", "Geschäftsanschrift", "E-Mail", "Telefon", "Handelsregister"],
+      pl: ["Właściciel", "Nazwa handlowa", "Identyfikator podatkowy", "Adres prawny", "E-mail", "Telefon", "Rejestr handlowy"],
+      nl: ["Eigenaar", "Handelsnaam", "Fiscaal nummer", "Wettelijk adres", "E-mail", "Telefoon", "Handelsregister"],
+      pt: ["Titular", "Nome comercial", "Identificação fiscal", "Morada legal", "E-mail", "Telefone", "Registo comercial"],
+      el: ["Υπεύθυνος", "Εμπορική επωνυμία", "Φορολογικός αριθμός", "Νόμιμη διεύθυνση", "Email", "Τηλέφωνο", "Εμπορικό μητρώο"]
+    };
+    return labels[activeLanguage] || labels.es;
+  }
+
+  function getNotApplicableLabel() {
+    const labels = { es: "No aplica", en: "Not applicable", fr: "Non applicable", it: "Non applicabile", de: "Nicht zutreffend", pl: "Nie dotyczy", nl: "Niet van toepassing", pt: "Não aplicável", el: "Δεν εφαρμόζεται" };
+    return labels[activeLanguage] || labels.es;
+  }
+
+  function renderLegalTextSection(title, text) {
+    return `<section class="legal-section"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(text)}</p></section>`;
+  }
+
+  function renderLegalPage(pageKey, locale) {
+    const legal = getSupplementalContent(activeLanguage).legal;
+    const page = legal && legal[pageKey];
+    if (!legal || !page) return renderHome(locale, getServices(locale));
+    const labels = getLegalLabels();
+    const address = `${BUSINESS.address}, ${BUSINESS.postalCode} ${BUSINESS.city}, ${BUSINESS.country}`;
+    const identity = [
+      [labels[0], BUSINESS.owner],
+      [labels[1], BUSINESS.brand],
+      [labels[2], BUSINESS.taxId],
+      [labels[3], address],
+      [labels[4], BUSINESS.email],
+      [labels[5], BUSINESS.phone],
+      [labels[6], getNotApplicableLabel()]
+    ].map(function (item, index) {
+      const value = index === 4
+        ? `<a href="mailto:${escapeHtml(item[1])}">${escapeHtml(item[1])}</a>`
+        : index === 5
+          ? `<a href="tel:+34600907716">${escapeHtml(item[1])}</a>`
+          : escapeHtml(item[1]);
+      return `<div><dt>${escapeHtml(item[0])}</dt><dd>${value}</dd></div>`;
+    }).join("");
+    let content = "";
+
+    if (pageKey === "legal") {
+      content = `<section class="legal-section legal-identity"><h2>${escapeHtml(page.identityTitle)}</h2><dl>${identity}</dl></section>${renderLegalTextSection(page.activityTitle, page.activityText)}${renderLegalTextSection(page.useTitle, page.useText)}${renderLegalTextSection(page.intellectualTitle, page.intellectualText)}${renderLegalTextSection(page.liabilityTitle, page.liabilityText)}${renderLegalTextSection(page.lawTitle, page.lawText)}`;
+    } else if (pageKey === "privacy") {
+      const data = page.data.map(function (item) { return `<li>${escapeHtml(item)}</li>`; }).join("");
+      const purposes = page.purposes.map(function (item) { return `<li>${escapeHtml(item)}</li>`; }).join("");
+      content = `${renderLegalTextSection(page.controllerTitle, page.controllerText)}<section class="legal-section legal-identity"><dl>${identity}</dl></section><section class="legal-section"><h2>${escapeHtml(page.dataTitle)}</h2><ul>${data}</ul></section><section class="legal-section"><h2>${escapeHtml(page.purposeTitle)}</h2><ul>${purposes}</ul><p>${escapeHtml(page.basisText)}</p></section>${renderLegalTextSection(page.recipientsTitle, page.recipientsText)}${renderLegalTextSection(page.transfersTitle, page.transfersText)}${renderLegalTextSection(page.retentionTitle, page.retentionText)}${renderLegalTextSection(page.rightsTitle, page.rightsText)}${renderLegalTextSection(page.securityTitle, page.securityText)}${renderLegalTextSection(page.changesTitle, page.changesText)}`;
+    } else {
+      const storage = page.storage.map(function (item) { return `<li><code>${escapeHtml(item.split(":")[0])}</code>${escapeHtml(item.slice(item.indexOf(":") + 1))}</li>`; }).join("");
+      content = `<section class="legal-section"><h2>${escapeHtml(page.storageTitle)}</h2><ul>${storage}</ul><p>${escapeHtml(page.storageText)}</p></section>${renderLegalTextSection(page.thirdPartyTitle, page.thirdPartyText)}${renderLegalTextSection(page.noTrackingTitle, page.noTrackingText)}<section class="legal-section"><h2>${escapeHtml(page.controlTitle)}</h2><p>${escapeHtml(page.controlText)}</p><button class="btn ghost legal-reset-button" type="button" data-reset-site-preferences>${escapeHtml(page.resetButton)}</button><p class="legal-reset-status" aria-live="polite" data-reset-site-preferences-status></p></section>`;
+    }
+
+    return `<main class="legal-page"><section class="page-hero legal-page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(page.title)}</div><div class="eyebrow">${escapeHtml(BUSINESS.brand)}</div><h1>${escapeHtml(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section"><div class="wrap legal-layout"><article class="legal-prose">${content}</article><aside class="legal-aside"><strong>${escapeHtml(legal.updated)}</strong><p>${escapeHtml(BUSINESS.owner)}<br>${escapeHtml(BUSINESS.brand)}</p><a class="btn ghost" href="index.html">${escapeHtml(legal.backHome)}</a></aside></div></section></main>`;
   }
 
   function renderServiceContent(blocks) {
@@ -2402,6 +2524,15 @@
 
     document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher" data-language="${activeLanguage}"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
     document.querySelector(".language-switcher").innerHTML = `<button class="language-select" id="languageButton" type="button" aria-label="${escapeHtml(`${locale.shell.languageLabel}: ${LANGUAGE_NAMES[activeLanguage]}`)}" aria-haspopup="listbox" aria-expanded="false" aria-controls="languageMenu"><span class="language-option-flag" data-language="${activeLanguage}" aria-hidden="true"></span><span class="language-current-code">${activeLanguage.toUpperCase()}</span><span class="language-chevron" aria-hidden="true">⌄</span></button><div class="language-menu" id="languageMenu" role="listbox" aria-label="${escapeHtml(locale.shell.languageLabel)}" hidden>${languageMenuOptions}</div>`;
+    const legal = getSupplementalContent(activeLanguage).legal;
+    const copyright = document.querySelector(".copyright");
+    if (legal && copyright) {
+      const legalLinks = document.createElement("nav");
+      legalLinks.className = "footer-legal-links";
+      legalLinks.setAttribute("aria-label", legal.nav.legal);
+      legalLinks.innerHTML = `<a href="aviso-legal.html">${escapeHtml(legal.nav.legal)}</a><a href="privacidad.html">${escapeHtml(legal.nav.privacy)}</a><a href="cookies.html">${escapeHtml(legal.nav.cookies)}</a>`;
+      copyright.before(legalLinks);
+    }
   }
 
   function getLocalizedCountries(language) {
@@ -3241,6 +3372,18 @@
     const calculator = document.querySelector("[data-earnings-calculator]");
     if (!calculator) return;
     const comparison = locale.home.comparison;
+    const guideContent = getSupplementalContent(activeLanguage).comparison;
+    if (guideContent && !calculator.previousElementSibling?.matches("[data-earnings-guide]")) {
+      const guide = document.createElement("aside");
+      const steps = (guideContent.steps || []).map(function (step) {
+        return `<li><span aria-hidden="true">${escapeHtml(step[0])}</span><div><strong>${escapeHtml(step[1])}</strong><p>${escapeHtml(step[2])}</p></div></li>`;
+      }).join("");
+      guide.className = "earnings-guide";
+      guide.dataset.earningsGuide = "";
+      guide.setAttribute("aria-labelledby", "earningsGuideTitle");
+      guide.innerHTML = `<div><h3 id="earningsGuideTitle">${escapeHtml(guideContent.guideTitle)}</h3><p>${escapeHtml(guideContent.guideLead)}</p></div><ol>${steps}</ol><p class="earnings-guide-note">${escapeHtml(guideContent.calculatedLabel)}</p>`;
+      calculator.before(guide);
+    }
     const inputsPanel = calculator.querySelector(".earnings-inputs");
     const selectedModel = earningsCalculatorState.rentalModel === "tourist" ? "tourist" : "traditional";
     earningsCalculatorState.rentalModel = selectedModel;
@@ -3594,6 +3737,54 @@
     window.addEventListener("scroll", auditPromptScrollHandler, { passive: true });
   }
 
+  function setupCookieNotice() {
+    if (document.body.dataset.page === "cookies" || document.querySelector("[data-cookie-notice]")) return;
+    const legal = getSupplementalContent(activeLanguage).legal;
+    if (!legal || !legal.banner) return;
+    try {
+      if (window.localStorage.getItem(COOKIE_NOTICE_STORAGE_KEY) === "1") return;
+    } catch (error) {
+      // The notice remains visible when browser storage is unavailable.
+    }
+    const notice = document.createElement("aside");
+    notice.className = "cookie-notice";
+    notice.dataset.cookieNotice = "";
+    notice.setAttribute("role", "region");
+    notice.setAttribute("aria-label", legal.nav.cookies);
+    notice.innerHTML = `<p>${escapeHtml(legal.banner.text)} <a href="cookies.html">${escapeHtml(legal.banner.policy)}</a></p><button type="button" class="btn ghost" data-cookie-notice-accept>${escapeHtml(legal.banner.accept)}</button><button type="button" class="cookie-notice-close" aria-label="${escapeHtml(legal.banner.close)}">×</button>`;
+    document.body.appendChild(notice);
+
+    function dismissNotice() {
+      try {
+        window.localStorage.setItem(COOKIE_NOTICE_STORAGE_KEY, "1");
+      } catch (error) {
+        // Dismiss for the current page even when storage is blocked.
+      }
+      notice.classList.add("closing");
+      window.setTimeout(function () { notice.remove(); }, 180);
+    }
+
+    notice.querySelector("[data-cookie-notice-accept]").addEventListener("click", dismissNotice);
+    notice.querySelector(".cookie-notice-close").addEventListener("click", dismissNotice);
+  }
+
+  function setupLegalPreferenceControls() {
+    const resetButton = document.querySelector("[data-reset-site-preferences]");
+    if (!resetButton) return;
+    const status = document.querySelector("[data-reset-site-preferences-status]");
+    const legal = getSupplementalContent(activeLanguage).legal;
+    resetButton.addEventListener("click", function () {
+      try {
+        window.localStorage.removeItem(LANGUAGE_STORAGE_KEY);
+        window.localStorage.removeItem(THEME_STORAGE_KEY);
+        window.localStorage.removeItem(COOKIE_NOTICE_STORAGE_KEY);
+        if (status) status.textContent = legal.cookies.resetStatus;
+      } catch (error) {
+        if (status) status.textContent = legal.cookies.resetStatus;
+      }
+    });
+  }
+
   function setupScrollHeader() {
     if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
     scrollHandler = function () {
@@ -3604,22 +3795,150 @@
     window.addEventListener("scroll", scrollHandler, { passive: true });
   }
 
+  function upsertMeta(selector, attributes, content) {
+    let element = document.head.querySelector(selector);
+    if (!element) {
+      element = document.createElement("meta");
+      Object.keys(attributes).forEach(function (name) { element.setAttribute(name, attributes[name]); });
+      document.head.appendChild(element);
+    }
+    element.content = content;
+  }
+
+  function upsertLink(selector, attributes, href) {
+    let element = document.head.querySelector(selector);
+    if (!element) {
+      element = document.createElement("link");
+      Object.keys(attributes).forEach(function (name) { element.setAttribute(name, attributes[name]); });
+      document.head.appendChild(element);
+    }
+    element.href = href;
+  }
+
+  function localizedPageUrl(pageFile, language) {
+    const url = pageFile === "index.html" ? new URL(SITE_URL) : new URL(pageFile, SITE_URL);
+    if (language !== "es") url.searchParams.set("lang", language);
+    return url.href;
+  }
+
+  function updateStructuredData(pageKey, service, title, description, canonicalUrl) {
+    let node = document.querySelector('script[data-site-structured-data]');
+    if (!node) {
+      node = document.createElement("script");
+      node.type = "application/ld+json";
+      node.dataset.siteStructuredData = "";
+      document.head.appendChild(node);
+    }
+    const organizationId = `${SITE_URL}#organization`;
+    const graph = [
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: BUSINESS.brand,
+        legalName: BUSINESS.owner,
+        taxID: BUSINESS.taxId,
+        url: SITE_URL,
+        logo: new URL("assets/logo-3h.png", SITE_URL).href,
+        email: BUSINESS.email,
+        telephone: BUSINESS.phone,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: BUSINESS.address,
+          postalCode: BUSINESS.postalCode,
+          addressLocality: BUSINESS.city,
+          addressCountry: "ES"
+        },
+        founder: {
+          "@type": "Person",
+          name: BUSINESS.owner,
+          jobTitle: BUSINESS.role,
+          image: new URL("assets/yunior-bacallao-alonso.jpg", SITE_URL).href
+        },
+        areaServed: ["Europe", "North America", "South America"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}#website`,
+        url: SITE_URL,
+        name: BUSINESS.brand,
+        inLanguage: activeLanguage,
+        publisher: { "@id": organizationId }
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${canonicalUrl}#webpage`,
+        url: canonicalUrl,
+        name: title,
+        description: description,
+        inLanguage: activeLanguage,
+        isPartOf: { "@id": `${SITE_URL}#website` }
+      }
+    ];
+    if (service) {
+      graph.push({
+        "@type": "Service",
+        name: service.title,
+        description: service.intro,
+        provider: { "@id": organizationId },
+        areaServed: ["Europe", "North America", "South America"],
+        url: canonicalUrl
+      });
+    }
+    node.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
+  }
+
   function updateMetadata(locale, pageKey) {
     document.documentElement.lang = activeLanguage;
     const service = locale.services[pageKey];
-    document.title = service
-      ? `${service.title} · Hot Host Hospitality`
-      : (locale.meta.titles[pageKey] || locale.meta.titles.home);
+    const legal = getSupplementalContent(activeLanguage).legal;
+    const legalPage = legal && legal[pageKey];
+    const marketing = getSupplementalContent(activeLanguage).marketing || {};
+    const homeMarketing = marketing.home || {};
+    const founder = getSupplementalContent(activeLanguage).founder || {};
+    const title = service
+      ? `${service.title} · ${BUSINESS.brand}`
+      : legalPage
+        ? `${legalPage.title} · ${BUSINESS.brand}`
+        : pageKey === "home" && homeMarketing.title
+          ? `${homeMarketing.title.replace(/[.]+$/, "")} · ${BUSINESS.brand}`
+        : (locale.meta.titles[pageKey] || locale.meta.titles.home);
     const description = service
       ? service.intro
-      : (locale.meta.descriptions[pageKey] || locale.meta.descriptions.home);
-    let metaDescription = document.querySelector('meta[name="description"]');
-    if (!metaDescription) {
-      metaDescription = document.createElement("meta");
-      metaDescription.name = "description";
-      document.head.appendChild(metaDescription);
-    }
-    metaDescription.content = description;
+      : legalPage
+        ? legalPage.lead
+        : pageKey === "home" && homeMarketing.lead
+          ? homeMarketing.lead
+          : pageKey === "about" && founder.lead
+            ? founder.lead
+          : (locale.meta.descriptions[pageKey] || locale.meta.descriptions.home);
+    const pageFile = getCurrentPageFile();
+    const canonicalUrl = localizedPageUrl(pageFile, activeLanguage);
+    const imageUrlForPage = pageKey === "about"
+      ? new URL("assets/yunior-bacallao-alonso.jpg", SITE_URL).href
+      : new URL("assets/logo-3h.png", SITE_URL).href;
+
+    document.title = title;
+    upsertMeta('meta[name="description"]', { name: "description" }, description);
+    upsertMeta('meta[name="robots"]', { name: "robots" }, "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1");
+    upsertMeta('meta[property="og:type"]', { property: "og:type" }, "website");
+    upsertMeta('meta[property="og:title"]', { property: "og:title" }, title);
+    upsertMeta('meta[property="og:description"]', { property: "og:description" }, description);
+    upsertMeta('meta[property="og:url"]', { property: "og:url" }, canonicalUrl);
+    upsertMeta('meta[property="og:site_name"]', { property: "og:site_name" }, BUSINESS.brand);
+    const openGraphLocales = { es: "es_ES", en: "en_US", fr: "fr_FR", it: "it_IT", de: "de_DE", pl: "pl_PL", nl: "nl_NL", pt: "pt_PT", el: "el_GR" };
+    upsertMeta('meta[property="og:locale"]', { property: "og:locale" }, openGraphLocales[activeLanguage] || "es_ES");
+    upsertMeta('meta[property="og:image"]', { property: "og:image" }, imageUrlForPage);
+    upsertMeta('meta[name="twitter:card"]', { name: "twitter:card" }, "summary_large_image");
+    upsertMeta('meta[name="twitter:title"]', { name: "twitter:title" }, title);
+    upsertMeta('meta[name="twitter:description"]', { name: "twitter:description" }, description);
+    upsertMeta('meta[name="twitter:image"]', { name: "twitter:image" }, imageUrlForPage);
+    upsertLink('link[rel="canonical"]', { rel: "canonical" }, canonicalUrl);
+    upsertLink('link[rel="manifest"]', { rel: "manifest" }, new URL("manifest.webmanifest", SITE_URL).href);
+    SUPPORTED_LANGUAGES.forEach(function (language) {
+      upsertLink(`link[rel="alternate"][hreflang="${language}"]`, { rel: "alternate", hreflang: language }, localizedPageUrl(pageFile, language));
+    });
+    upsertLink('link[rel="alternate"][hreflang="x-default"]', { rel: "alternate", hreflang: "x-default" }, localizedPageUrl(pageFile, "es"));
+    updateStructuredData(pageKey, service, title, description, canonicalUrl);
   }
 
   function renderApp(formState) {
@@ -3633,6 +3952,7 @@
     else if (pageKey === "services") content = renderServices(locale, services);
     else if (pageKey === "about") content = renderAbout(locale);
     else if (pageKey === "contact") content = renderContact(locale);
+    else if (["legal", "privacy", "cookies"].includes(pageKey)) content = renderLegalPage(pageKey, locale);
     else if (locale.services[pageKey]) {
       content = renderServicePage(pageKey, locale);
       currentPage = "services";
@@ -3653,6 +3973,9 @@
     setupRevealAnimations();
     setupScrollHeader();
     setupAuditScrollPrompt(locale, pageKey);
+    setupCookieNotice();
+    setupLegalPreferenceControls();
+    localizeInternalLinks();
   }
 
   window.addEventListener("pagehide", function () {

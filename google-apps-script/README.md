@@ -14,6 +14,7 @@ El sitio comprime las fotografias en el navegador y las envia a una Web App de G
 8. En **Quien tiene acceso**, selecciona **Cualquier usuario**. No elijas una opcion que obligue al visitante a iniciar sesion.
 9. Autoriza el acceso a Google Drive cuando Google lo solicite.
 10. Copia la URL de la aplicacion web. Debe empezar por `https://script.google.com/macros/s/` y terminar en `/exec`.
+11. Ejecuta una vez la funcion `installRetentionCleanupTrigger` desde el editor. Crea una tarea diaria que mueve a la papelera las carpetas de solicitudes con mas de un ano.
 
 ## Conectar el sitio
 
@@ -45,6 +46,7 @@ La respuesta de Apps Script se solicita en modo `no-cors`, una limitacion de los
 - Para publicar cambios posteriores en `Code.gs`, edita la implementacion existente y crea una version nueva. No hace falta cambiar la URL si conservas la misma implementacion.
 - La carpeta raiz se crea automaticamente y su ID queda guardado en las propiedades del script.
 - Si eliminas la carpeta raiz, ejecuta una vez `resetRootFolderReference` desde el editor y vuelve a probar.
+- Ejecuta `purgeExpiredRequestFolders` manualmente si necesitas aplicar antes la retencion de un ano.
 - Las carpetas y fotografias permanecen privadas salvo que cambies manualmente sus permisos en Drive.
 
 ## Limites y seguridad
@@ -54,6 +56,7 @@ La respuesta de Apps Script se solicita en modo `no-cors`, una limitacion de los
 - Maximo aproximado de 30 MB para la solicitud completa despues de codificar las imagenes.
 - Maximo de 5 solicitudes por correo cada 6 horas.
 - Maximo global de 30 solicitudes por hora como proteccion adicional de cuota.
+- Las solicitudes y fotografias se programan para su eliminacion de Drive tras un ano; revisa tambien los mensajes recibidos por Gmail o WhatsApp y eliminalos conforme al mismo plazo.
 - El endpoint es publico por necesidad tecnica. Incluye validacion de contenido, controles basicos contra abuso y consentimiento obligatorio, pero conviene revisar periodicamente las ejecuciones y cuotas de Apps Script.
 - Antes de exponer el endpoint a trafico publico, integra un desafio anti-bot verificado en el servidor y guarda su secreto en las propiedades de Apps Script, nunca en `assets/config.js`.
 - El formulario limita el uso declarado de los datos a la evaluacion de la solicitud y ofrece una via para pedir su eliminacion. Antes de activar el endpoint, incorpora tambien la politica de privacidad y el plazo de conservacion que correspondan legalmente.

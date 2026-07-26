@@ -1,0 +1,16 @@
+{
+  "name": "Hot Host Hospitality",
+  "short_name": "Hot Host",
+  "description": "Gestión profesional de alojamientos turísticos con criterio hotelero.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#fffdf9",
+  "theme_color": "#991d0a",
+  "icons": [
+    {
+      "src": "assets/logo-3h.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

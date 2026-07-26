@@ -8,6 +8,7 @@ const UPLOAD_CONFIG = Object.freeze({
   rateLimitSeconds: 6 * 60 * 60,
   maxUploadsGlobally: 30,
   globalRateLimitSeconds: 60 * 60,
+  retentionDays: 365,
   allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"]
 });
 
@@ -220,4 +221,37 @@ function jsonResponse_(value) {
 
 function resetRootFolderReference() {
   PropertiesService.getScriptProperties().deleteProperty("ROOT_FOLDER_ID");
+}
+
+function purgeExpiredRequestFolders() {
+  const properties = PropertiesService.getScriptProperties();
+  const rootFolderId = properties.getProperty("ROOT_FOLDER_ID");
+  if (!rootFolderId) return 0;
+
+  const rootFolder = DriveApp.getFolderById(rootFolderId);
+  const cutoff = new Date(Date.now() - UPLOAD_CONFIG.retentionDays * 24 * 60 * 60 * 1000);
+  const folders = rootFolder.getFolders();
+  let purged = 0;
+
+  while (folders.hasNext()) {
+    const folder = folders.next();
+    if (folder.getDateCreated() < cutoff) {
+      folder.setTrashed(true);
+      purged += 1;
+    }
+  }
+  return purged;
+}
+
+function installRetentionCleanupTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (trigger) {
+    if (trigger.getHandlerFunction() === "purgeExpiredRequestFolders") {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+  ScriptApp.newTrigger("purgeExpiredRequestFolders")
+    .timeBased()
+    .everyDays(1)
+    .atHour(3)
+    .create();
 }

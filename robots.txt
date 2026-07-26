@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://elcaliente69.github.io/hot-host-hospitality/sitemap.xml
