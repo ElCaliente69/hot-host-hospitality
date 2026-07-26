@@ -244,7 +244,7 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     prices: {
       "gestion-integral": ["Desde el 20%", "de los ingresos"],
       "guest-experience": ["190 € inicial", "+ 5–15 € por reserva"],
-      "revenue-management": ["129 € inicial", "incluye 3 meses de servicio + 33 €/mes, o 1% por reserva"],
+      "revenue-management": ["129 € inicial", "(incluye 3 meses de servicio) + 33 €/mes, o 1% por reserva"],
       "check-in-operaciones": ["Desde el 3%", "por estancia"],
       "limpieza-lavanderia": ["A medida", "desde 20 € por estancia"],
       "fotografia-profesional": ["A medida", "desde 245 €"],
