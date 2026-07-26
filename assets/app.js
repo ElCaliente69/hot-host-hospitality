@@ -2404,7 +2404,7 @@
       traditionalOccupancy: "—"
     });
     const comparisonTerms = [
-      ["tableEyebrow", "eyebrow"], ["tableTitle", "title"], ["tableLead", "lead"], ["inputsTitle", "inputsTitle"],
+      ["tableEyebrow", "eyebrow"], ["tableTitle", "title"], ["tableLead", "lead"], ["inputsTitle", "inputsTitle"], ["currencyLabel", "currencyLabel"],
       ["monthlyRent", "traditionalRent"], ["nightlyRate", "touristRate"], ["occupancy", "touristOccupancy"],
       ["metric", "metric"], ["traditionalColumn", "traditional"], ["selfColumn", "tourist"], ["currentColumn", "tourist"], ["hotHostColumn", "hotHost"],
       ["gross", "annualIncome"], ["nights", "occupiedNights"], ["averageRate", "averageRate"], ["occupancyMetric", "touristOccupancy"],
@@ -3904,6 +3904,7 @@
       selfManaged: "Gestión propia",
       external: "Tu gestora actual",
       newProperty: "Escenario propio",
+      currencyLabel: "Seleccionar moneda",
       estimatedDetail: "Estimación automática",
       currentDetail: "Tus datos",
       externalDetail: "Comisión editable",
@@ -3931,6 +3932,24 @@
     }, page);
     Object.assign(labels, getProfitabilityComparisonTerms(locales[activeLanguage] || locales.es));
     const inputs = Array.from(calculator.querySelectorAll("[data-profitability-input]"));
+    const currencyInputs = ["traditionalRent", "nightlyRate"].map(function (name) {
+      const amountInput = calculator.querySelector(`[data-profitability-input="${name}"]`);
+      const unit = amountInput && amountInput.nextElementSibling;
+      if (!unit || unit.tagName !== "SPAN") return null;
+      const currencySelect = document.createElement("select");
+      currencySelect.className = "earnings-currency";
+      currencySelect.dataset.profitabilityCurrency = "";
+      currencySelect.setAttribute("aria-label", labels.currencyLabel);
+      SUPPORTED_CURRENCIES.forEach(function (currencyCode) {
+        const option = document.createElement("option");
+        const symbol = CURRENCY_SYMBOLS[currencyCode];
+        option.value = currencyCode;
+        option.textContent = symbol === currencyCode ? currencyCode : `${symbol} ${currencyCode}`;
+        currencySelect.appendChild(option);
+      });
+      unit.replaceWith(currencySelect);
+      return currencySelect;
+    }).filter(function (input) { return input; });
     const situationInput = calculator.querySelector('[data-profitability-input="situation"]');
     const fields = {
       traditionalRent: calculator.querySelector('[data-profitability-field="traditionalRent"]'),
@@ -3942,18 +3961,32 @@
     const currentHeading = calculator.querySelector("[data-profitability-current-heading]");
     const currentDetail = calculator.querySelector("[data-profitability-current-detail]");
     const resultLabel = calculator.querySelector("[data-profitability-result-label]");
-    const currency = new Intl.NumberFormat(activeLanguage, {
+    let currency = new Intl.NumberFormat(activeLanguage, {
       style: "currency",
-      currency: "EUR",
+      currency: profitabilityState.currency,
       maximumFractionDigits: 0
     });
     const integer = new Intl.NumberFormat(activeLanguage, { maximumFractionDigits: 0 });
     const validSituations = ["traditional", "self-managed", "external", "new-property"];
 
     if (!validSituations.includes(profitabilityState.situation)) profitabilityState.situation = "traditional";
+    if (!SUPPORTED_CURRENCIES.includes(profitabilityState.currency)) profitabilityState.currency = "EUR";
+
+    function getCurrencyRate() {
+      const rate = Number(exchangeRatesPerEur[profitabilityState.currency]);
+      return Number.isFinite(rate) && rate > 0 ? rate : 1;
+    }
+
+    function toDisplayCurrency(eurValue) {
+      return eurValue * getCurrencyRate();
+    }
+
+    function formatInputValue(eurValue) {
+      return String(Number(toDisplayCurrency(eurValue).toFixed(2)));
+    }
 
     function amount(value, available) {
-      return available ? currency.format(value) : "—";
+      return available ? currency.format(toDisplayCurrency(value)) : "—";
     }
 
     function setOutput(name, value) {
@@ -3987,6 +4020,11 @@
     }
 
     function updateResults() {
+      currency = new Intl.NumberFormat(activeLanguage, {
+        style: "currency",
+        currency: profitabilityState.currency,
+        maximumFractionDigits: 0
+      });
       const situation = profitabilityState.situation;
       const traditionalRent = Math.max(0, Number(profitabilityState.traditionalRent) || 0);
       const enteredRate = Math.max(0, Number(profitabilityState.nightlyRate) || 0);
@@ -4074,7 +4112,7 @@
       if (hotHostAvailable && referenceAvailable) {
         const difference = hotHostNet - referenceNet;
         const sign = difference >= 0 ? "+" : "−";
-        setOutput("difference", `${sign}${currency.format(Math.abs(difference))}`);
+        setOutput("difference", `${sign}${amount(Math.abs(difference), true)}`);
         setOutput("differenceLabel", situation === "traditional" ? labels.versusTraditional : labels.versusCurrent);
       } else {
         setOutput("difference", "—");
@@ -4086,7 +4124,12 @@
     function syncInputValues() {
       inputs.forEach(function (input) {
         const key = input.dataset.profitabilityInput;
-        input.value = profitabilityState[key];
+        input.value = key === "traditionalRent" || key === "nightlyRate"
+          ? (profitabilityState[key] === "" ? "" : formatInputValue(profitabilityState[key]))
+          : profitabilityState[key];
+      });
+      currencyInputs.forEach(function (input) {
+        input.value = profitabilityState.currency;
       });
     }
 
@@ -4094,7 +4137,10 @@
       input.addEventListener("input", function () {
         const key = input.dataset.profitabilityInput;
         if (key === "situation") return;
-        profitabilityState[key] = input.value === "" ? "" : Number(input.value);
+        const value = Number(input.value);
+        profitabilityState[key] = input.value === ""
+          ? ""
+          : (key === "traditionalRent" || key === "nightlyRate" ? value / getCurrencyRate() : value);
         updateResults();
       });
       input.addEventListener("change", function () {
@@ -4105,10 +4151,23 @@
       });
     });
 
+    currencyInputs.forEach(function (input) {
+      input.addEventListener("change", function () {
+        profitabilityState.currency = SUPPORTED_CURRENCIES.includes(input.value) ? input.value : "EUR";
+        syncInputValues();
+        updateResults();
+      });
+    });
+
     if (situationInput) situationInput.value = profitabilityState.situation;
     syncInputValues();
     updateFieldVisibility();
     updateResults();
+    loadExchangeRates().then(function () {
+      if (!calculator.isConnected) return;
+      syncInputValues();
+      updateResults();
+    });
   }
 
   function setupServiceCarousels(locale) {
