@@ -28,7 +28,7 @@
   const AUDIT_OFFER_END = Date.parse("2026-09-30T23:59:59+02:00");
   const MARKET_OCCUPANCY = 63;
   const HOT_HOST_OCCUPANCY = 72;
-  const HOT_HOST_RATE_MULTIPLIER = 1.17;
+  const HOT_HOST_RATE_MULTIPLIER = 1.30;
   const HOT_HOST_MANAGEMENT_FEE = 0.20;
   const DEFAULT_EARNINGS = {
     rentalModel: "traditional",
@@ -2474,7 +2474,7 @@
     const paragraphs = (founder.paragraphs || []).map(function (paragraph) {
       return `<p>${escapeHtml(paragraph)}</p>`;
     }).join("");
-    return `<section class="section founder-section"><div class="wrap founder-grid"><figure class="founder-portrait founder-portrait-cutout"><img src="assets/yunior-bacallao-alonso-cutout.png" alt="${escapeHtml(founder.photoAlt)}" width="450" height="792" loading="lazy" decoding="async"><figcaption><span>${escapeHtml(founder.signature)}</span><small>${escapeHtml(founder.role)}</small></figcaption></figure><article class="founder-copy"><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h2>${escapeHtml(founder.title)}</h2><p class="founder-identity"><strong>${escapeHtml(founder.signature)}</strong><span>${escapeHtml(founder.role)}</span></p><p class="lead">${escapeHtml(founder.lead)}</p><div class="founder-prose">${paragraphs}</div><blockquote>${escapeHtml(founder.quote)}</blockquote><a class="btn primary" href="contacto.html">${escapeHtml((locales[activeLanguage] || locales.es).common.requestAssessment)}</a></article></div></section>`;
+    return `<section class="section founder-section"><div class="wrap founder-grid"><figure class="founder-portrait founder-portrait-studio"><img src="assets/yunior-bacallao-alonso-founder.png" alt="${escapeHtml(founder.photoAlt)}" width="1122" height="1404" loading="lazy" decoding="async"><figcaption><span>${escapeHtml(founder.signature)}</span><small>${escapeHtml(founder.role)}</small></figcaption></figure><article class="founder-copy"><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h2>${escapeHtml(founder.title)}</h2><p class="founder-identity"><strong>${escapeHtml(founder.signature)}</strong><span>${escapeHtml(founder.role)}</span></p><p class="lead">${escapeHtml(founder.lead)}</p><div class="founder-prose">${paragraphs}</div><blockquote>${escapeHtml(founder.quote)}</blockquote><a class="btn primary" href="contacto.html">${escapeHtml((locales[activeLanguage] || locales.es).common.requestAssessment)}</a></article></div></section>`;
   }
 
   function renderAbout(locale) {
@@ -4364,7 +4364,7 @@
           "@type": "Person",
           name: BUSINESS.owner,
           jobTitle: BUSINESS.role,
-          image: new URL("assets/yunior-bacallao-alonso.jpg", SITE_URL).href
+          image: new URL("assets/yunior-bacallao-alonso-founder.png", SITE_URL).href
         },
         areaServed: ["Europe", "North America", "South America"]
       },
@@ -4438,7 +4438,7 @@
     const pageFile = getCurrentPageFile();
     const canonicalUrl = localizedPageUrl(pageFile, activeLanguage);
     const imageUrlForPage = pageKey === "about" || pageKey === "founder"
-      ? new URL("assets/yunior-bacallao-alonso.jpg", SITE_URL).href
+      ? new URL("assets/yunior-bacallao-alonso-founder.png", SITE_URL).href
       : new URL("assets/logo-3h.png", SITE_URL).href;
 
     document.title = title;
