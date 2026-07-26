@@ -2124,6 +2124,21 @@
     return allContent[language] || allContent.es || {};
   }
 
+  function getProfitabilityCtaLabel() {
+    const labels = {
+      es: "¿Cuánto podría ganar?",
+      en: "How much could I earn?",
+      fr: "Combien pourrais-je gagner ?",
+      it: "Quanto potrei guadagnare?",
+      de: "Wie viel könnte ich verdienen?",
+      pl: "Ile mógłbym zarobić?",
+      nl: "Hoeveel zou ik kunnen verdienen?",
+      pt: "Quanto poderia ganhar?",
+      el: "Πόσα θα μπορούσα να κερδίσω;"
+    };
+    return labels[activeLanguage] || labels.es;
+  }
+
   function getCurrentPageFile() {
     const path = window.location.pathname.split("/").pop();
     return path && path.endsWith(".html") ? path : "index.html";
@@ -2359,6 +2374,51 @@
     return `<main class="profitability-page"><section class="page-hero profitability-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(labels.breadcrumb)}</div><div class="eyebrow">${escapeHtml(labels.eyebrow)}</div><h1>${escapeHtml(labels.title)}</h1><p class="lead">${escapeHtml(labels.lead)}</p></div></section><section class="section profitability-section" id="comparador"><div class="wrap"><div class="profitability-layout" data-profitability-calculator><aside class="profitability-inputs" aria-labelledby="profitabilityInputsTitle"><h2 id="profitabilityInputsTitle">${escapeHtml(labels.inputsTitle)}</h2><label for="profitabilitySituation">${escapeHtml(labels.situation)}<select id="profitabilitySituation" data-profitability-input="situation"><option value="traditional">${escapeHtml(labels.traditional)}</option><option value="self-managed">${escapeHtml(labels.selfManaged)}</option><option value="external">${escapeHtml(labels.external)}</option><option value="new-property">${escapeHtml(labels.newProperty)}</option></select></label><label data-profitability-field="traditionalRent">${escapeHtml(labels.monthlyRent)}<span class="profitability-control"><input data-profitability-input="traditionalRent" type="number" min="0" max="100000" step="50" inputmode="decimal" value="${value("traditionalRent")}"><span>€</span></span></label><label data-profitability-field="nightlyRate">${escapeHtml(labels.nightlyRate)}<span class="profitability-control"><input data-profitability-input="nightlyRate" type="number" min="0" max="5000" step="5" inputmode="decimal" value="${value("nightlyRate")}"><span>€</span></span></label><label data-profitability-field="occupancy">${escapeHtml(labels.occupancy)}<span class="profitability-control"><input data-profitability-input="occupancy" type="number" min="0" max="100" step="1" inputmode="decimal" value="${value("occupancy")}"><span>%</span></span></label><label data-profitability-field="externalFee">${escapeHtml(labels.externalFee)}<span class="profitability-control"><input data-profitability-input="externalFee" type="number" min="0" max="100" step="1" inputmode="decimal" value="${value("externalFee")}"><span>%</span></span></label><p class="profitability-note">${escapeHtml(labels.note)}</p></aside><div class="profitability-results"><div class="profitability-table-scroll"><table><thead><tr><th scope="col"></th><th scope="col" data-profitability-column="traditional"><span>${escapeHtml(labels.traditionalColumn)}</span><small>${escapeHtml(labels.traditionalDetail)}</small></th><th scope="col" data-profitability-column="self-managed"><span>${escapeHtml(labels.selfColumn)}</span><small>${escapeHtml(labels.selfDetail)}</small></th><th scope="col" data-profitability-column="external"><span>${escapeHtml(labels.externalColumn)}</span><small>${escapeHtml(labels.externalDetail)}</small></th><th scope="col" data-profitability-column="hot-host"><span>${escapeHtml(labels.hotHostColumn)}</span><small>${escapeHtml(labels.hotHostDetail)}</small></th></tr></thead><tbody><tr><th scope="row">${escapeHtml(labels.gross)}</th><td data-profitability-output="traditionalGross">—</td><td data-profitability-output="selfGross">—</td><td data-profitability-output="externalGross">—</td><td data-profitability-output="hotHostGross">—</td></tr><tr><th scope="row">${escapeHtml(labels.management)}</th><td data-profitability-output="traditionalFee">—</td><td data-profitability-output="selfFee">—</td><td data-profitability-output="externalFee">—</td><td data-profitability-output="hotHostFee">—</td></tr><tr class="profitability-net-row"><th scope="row">${escapeHtml(labels.net)}</th><td data-profitability-output="traditionalNet">—</td><td data-profitability-output="selfNet">—</td><td data-profitability-output="externalNet">—</td><td data-profitability-output="hotHostNet">—</td></tr><tr><th scope="row">${escapeHtml(labels.monthlyNet)}</th><td data-profitability-output="traditionalMonthly">—</td><td data-profitability-output="selfMonthly">—</td><td data-profitability-output="externalMonthly">—</td><td data-profitability-output="hotHostMonthly">—</td></tr></tbody></table></div><p class="profitability-missing" data-profitability-missing hidden>${escapeHtml(labels.missingValue)}</p><div class="profitability-cta"><span>${escapeHtml(labels.note)}</span><a class="btn primary" href="contacto.html">${escapeHtml(labels.requestAudit)}</a></div></div></div></div></section>${renderCta(locale)}</main>`;
   }
 
+  function getProfitabilityComparisonTerms(locale) {
+    const extensions = {
+      es: { situation: "¿Cómo alquilas ahora?", selfManaged: "Me gestiono por mi cuenta", external: "Trabajo con otra gestora", newProperty: "Aún no he alquilado", externalFee: "Comisión de tu gestora", management: "Coste de gestión", net: "Neto anual para ti", monthlyNet: "Neto mensual para ti", externalColumn: "Gestora externa", newColumn: "Escenario propio", currentDetail: "Tus datos", estimatedDetail: "Estimación automática", externalDetail: "Comisión editable", estimatedNote: "A partir de tu renta actual estimamos la tarifa y la ocupación de los escenarios turísticos. Una auditoría permite afinarlo con los datos reales de tu vivienda.", directNote: "Usamos la tarifa y ocupación que indiques para tu modelo actual. La proyección Hot Host es orientativa y no incluye impuestos ni costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.", noData: "Introduce los datos para ver la estimación.", versusCurrent: "frente a tu gestión actual" },
+      en: { situation: "How do you rent now?", selfManaged: "I manage it myself", external: "I work with another manager", newProperty: "I have not rented it yet", externalFee: "Your manager's commission", management: "Management cost", net: "Your annual net income", monthlyNet: "Your monthly net income", externalColumn: "External manager", newColumn: "Own scenario", currentDetail: "Your figures", estimatedDetail: "Automatic estimate", externalDetail: "Editable commission", estimatedNote: "We estimate the tourist rates and occupancy from your current monthly rent. An audit can refine the figures using your property's real data.", directNote: "We use the rate and occupancy you enter for your current model. The Hot Host projection is indicative and excludes taxes and variable costs such as cleaning, linen, utilities, maintenance or platforms.", noData: "Enter your figures to see the estimate.", versusCurrent: "compared with your current management" },
+      fr: { situation: "Comment louez-vous actuellement ?", selfManaged: "Je gère moi-même", external: "Je travaille avec un autre gestionnaire", newProperty: "Je n'ai pas encore loué", externalFee: "Commission de votre gestionnaire", management: "Coût de gestion", net: "Votre net annuel", monthlyNet: "Votre net mensuel", externalColumn: "Gestionnaire externe", newColumn: "Scénario propre", currentDetail: "Vos données", estimatedDetail: "Estimation automatique", externalDetail: "Commission modifiable", estimatedNote: "Nous estimons le tarif et l'occupation touristiques à partir de votre loyer actuel. Un audit permet d'affiner les chiffres avec les données réelles du logement.", directNote: "Nous utilisons le tarif et l'occupation indiqués pour votre modèle actuel. La projection Hot Host est indicative et exclut impôts et coûts variables tels que ménage, linge, fournitures, maintenance ou plateformes.", noData: "Saisissez vos données pour voir l'estimation.", versusCurrent: "par rapport à votre gestion actuelle" },
+      it: { situation: "Come affitti ora?", selfManaged: "Gestisco in autonomia", external: "Lavoro con un altro gestore", newProperty: "Non ho ancora affittato", externalFee: "Commissione del tuo gestore", management: "Costo di gestione", net: "Il tuo netto annuale", monthlyNet: "Il tuo netto mensile", externalColumn: "Gestore esterno", newColumn: "Scenario proprio", currentDetail: "I tuoi dati", estimatedDetail: "Stima automatica", externalDetail: "Commissione modificabile", estimatedNote: "Stimiamo tariffa e occupazione turistica dal tuo canone attuale. Un audit consente di perfezionare le cifre con i dati reali dell'alloggio.", directNote: "Usiamo la tariffa e l'occupazione indicate per il tuo modello attuale. La proiezione Hot Host è indicativa ed esclude imposte e costi variabili come pulizia, biancheria, utenze, manutenzione o piattaforme.", noData: "Inserisci i dati per vedere la stima.", versusCurrent: "rispetto alla tua gestione attuale" },
+      de: { situation: "Wie vermieten Sie derzeit?", selfManaged: "Ich verwalte selbst", external: "Ich arbeite mit einer anderen Verwaltung", newProperty: "Ich habe noch nicht vermietet", externalFee: "Provision Ihrer Verwaltung", management: "Verwaltungskosten", net: "Ihr jährlicher Nettobetrag", monthlyNet: "Ihr monatlicher Nettobetrag", externalColumn: "Externe Verwaltung", newColumn: "Eigenes Szenario", currentDetail: "Ihre Daten", estimatedDetail: "Automatische Schätzung", externalDetail: "Anpassbare Provision", estimatedNote: "Wir schätzen den touristischen Preis und die Auslastung anhand Ihrer aktuellen Monatsmiete. Ein Audit kann die Werte mit den tatsächlichen Objektdaten verfeinern.", directNote: "Wir verwenden den von Ihnen angegebenen Preis und die Auslastung für Ihr aktuelles Modell. Die Hot-Host-Prognose ist unverbindlich und enthält keine Steuern oder variablen Kosten wie Reinigung, Wäsche, Nebenkosten, Wartung oder Plattformen.", noData: "Geben Sie Ihre Daten ein, um die Schätzung zu sehen.", versusCurrent: "gegenüber Ihrer aktuellen Verwaltung" },
+      pl: { situation: "Jak obecnie wynajmujesz?", selfManaged: "Zarządzam samodzielnie", external: "Współpracuję z innym zarządcą", newProperty: "Jeszcze nie wynajmowałem", externalFee: "Prowizja zarządcy", management: "Koszt zarządzania", net: "Twój roczny dochód netto", monthlyNet: "Twój miesięczny dochód netto", externalColumn: "Zewnętrzny zarządca", newColumn: "Własny scenariusz", currentDetail: "Twoje dane", estimatedDetail: "Automatyczna estymacja", externalDetail: "Edytowalna prowizja", estimatedNote: "Szacujemy stawkę turystyczną i obłożenie na podstawie obecnego czynszu. Audyt pozwala doprecyzować dane na podstawie rzeczywistych danych obiektu.", directNote: "Używamy stawki i obłożenia podanych dla obecnego modelu. Projekcja Hot Host jest orientacyjna i nie obejmuje podatków ani kosztów zmiennych, takich jak sprzątanie, pranie, media, utrzymanie czy platformy.", noData: "Wprowadź dane, aby zobaczyć estymację.", versusCurrent: "w porównaniu z obecnym zarządzaniem" },
+      nl: { situation: "Hoe verhuurt u nu?", selfManaged: "Ik beheer het zelf", external: "Ik werk met een andere beheerder", newProperty: "Ik heb nog niet verhuurd", externalFee: "Commissie van uw beheerder", management: "Beheerkosten", net: "Uw jaarlijkse netto-opbrengst", monthlyNet: "Uw maandelijkse netto-opbrengst", externalColumn: "Externe beheerder", newColumn: "Eigen scenario", currentDetail: "Uw gegevens", estimatedDetail: "Automatische schatting", externalDetail: "Aanpasbare commissie", estimatedNote: "We schatten het toeristische tarief en de bezetting op basis van uw huidige maandhuur. Een audit kan de cijfers verfijnen met echte gegevens van uw accommodatie.", directNote: "We gebruiken het tarief en de bezetting die u voor uw huidige model invoert. De Hot Host-projectie is indicatief en is exclusief belastingen en variabele kosten zoals schoonmaak, linnengoed, nutsvoorzieningen, onderhoud of platforms.", noData: "Vul uw gegevens in om de schatting te zien.", versusCurrent: "vergeleken met uw huidige beheer" },
+      pt: { situation: "Como arrenda atualmente?", selfManaged: "Faço a gestão por conta própria", external: "Trabalho com outro gestor", newProperty: "Ainda não arrendei", externalFee: "Comissão do seu gestor", management: "Custo de gestão", net: "O seu líquido anual", monthlyNet: "O seu líquido mensal", externalColumn: "Gestor externo", newColumn: "Cenário próprio", currentDetail: "Os seus dados", estimatedDetail: "Estimativa automática", externalDetail: "Comissão editável", estimatedNote: "Estimamos a tarifa turística e a ocupação a partir da sua renda atual. Uma auditoria permite afinar os valores com os dados reais do alojamento.", directNote: "Usamos a tarifa e a ocupação indicadas para o seu modelo atual. A projeção Hot Host é indicativa e não inclui impostos nem custos variáveis como limpeza, lavandaria, consumos, manutenção ou plataformas.", noData: "Introduza os dados para ver a estimativa.", versusCurrent: "face à sua gestão atual" },
+      el: { situation: "Πώς νοικιάζετε τώρα;", selfManaged: "Διαχειρίζομαι μόνος μου", external: "Συνεργάζομαι με άλλο διαχειριστή", newProperty: "Δεν έχω νοικιάσει ακόμη", externalFee: "Προμήθεια διαχειριστή", management: "Κόστος διαχείρισης", net: "Το ετήσιο καθαρό σας ποσό", monthlyNet: "Το μηνιαίο καθαρό σας ποσό", externalColumn: "Εξωτερικός διαχειριστής", newColumn: "Δικό σας σενάριο", currentDetail: "Τα στοιχεία σας", estimatedDetail: "Αυτόματη εκτίμηση", externalDetail: "Επεξεργάσιμη προμήθεια", estimatedNote: "Εκτιμούμε την τουριστική τιμή και πληρότητα από το τρέχον μηνιαίο μίσθωμά σας. Ένας έλεγχος μπορεί να βελτιώσει τα στοιχεία με πραγματικά δεδομένα του καταλύματος.", directNote: "Χρησιμοποιούμε την τιμή και την πληρότητα που δηλώνετε για το τρέχον μοντέλο σας. Η προβολή Hot Host είναι ενδεικτική και δεν περιλαμβάνει φόρους ή μεταβλητά κόστη όπως καθαρισμό, λινά, κοινόχρηστα, συντήρηση ή πλατφόρμες.", noData: "Συμπληρώστε τα στοιχεία για να δείτε την εκτίμηση.", versusCurrent: "σε σύγκριση με την τρέχουσα διαχείρισή σας" }
+    };
+    const externalIndicators = {
+      es: { externalOwnerTime: "Baja", externalPricing: "Según tu gestora", externalGuestCare: "Tu gestora" },
+      en: { externalOwnerTime: "Low", externalPricing: "Set by your manager", externalGuestCare: "Your manager" },
+      fr: { externalOwnerTime: "Faible", externalPricing: "Selon votre gestionnaire", externalGuestCare: "Votre gestionnaire" },
+      it: { externalOwnerTime: "Bassa", externalPricing: "Secondo il tuo gestore", externalGuestCare: "Il tuo gestore" },
+      de: { externalOwnerTime: "Niedrig", externalPricing: "Durch Ihre Verwaltung", externalGuestCare: "Ihre Verwaltung" },
+      pl: { externalOwnerTime: "Niska", externalPricing: "Według zarządcy", externalGuestCare: "Twój zarządca" },
+      nl: { externalOwnerTime: "Laag", externalPricing: "Volgens uw beheerder", externalGuestCare: "Uw beheerder" },
+      pt: { externalOwnerTime: "Baixa", externalPricing: "Segundo o seu gestor", externalGuestCare: "O seu gestor" },
+      el: { externalOwnerTime: "Χαμηλή", externalPricing: "Σύμφωνα με τον διαχειριστή", externalGuestCare: "Ο διαχειριστής σας" }
+    };
+    const comparison = (locale.home && locale.home.comparison) || {};
+    const terms = Object.assign({}, extensions[activeLanguage] || extensions.es, externalIndicators[activeLanguage] || externalIndicators.es, {
+      traditionalNights: "—",
+      traditionalRate: "—",
+      traditionalOccupancy: "—"
+    });
+    const comparisonTerms = [
+      ["tableEyebrow", "eyebrow"], ["tableTitle", "title"], ["tableLead", "lead"], ["inputsTitle", "inputsTitle"],
+      ["monthlyRent", "traditionalRent"], ["nightlyRate", "touristRate"], ["occupancy", "touristOccupancy"],
+      ["metric", "metric"], ["traditionalColumn", "traditional"], ["selfColumn", "tourist"], ["currentColumn", "tourist"], ["hotHostColumn", "hotHost"],
+      ["gross", "annualIncome"], ["nights", "occupiedNights"], ["averageRate", "averageRate"], ["occupancyMetric", "touristOccupancy"],
+      ["ownerTime", "ownerTime"], ["pricing", "pricing"], ["guestCare", "guestCare"], ["traditionalOwnerTime", "ownerTimeLow"],
+      ["selfOwnerTime", "ownerTimeHigh"], ["hotHostOwnerTime", "ownerTimeLow"], ["traditionalPricing", "pricingFixed"],
+      ["selfPricing", "pricingManual"], ["hotHostPricing", "pricingDynamic"], ["traditionalGuestCare", "guestCareTenant"],
+      ["selfGuestCare", "guestCareOwner"], ["hotHostGuestCare", "guestCareHotHost"], ["resultLabel", "resultLabel"], ["versusTraditional", "versusTraditional"]
+    ];
+    comparisonTerms.forEach(function (term) {
+      if (comparison[term[1]]) terms[term[0]] = comparison[term[1]];
+    });
+    return terms;
+  }
+
   function renderProfitabilityComparison(locale) {
     const page = getExperienceContent(activeLanguage).profitability || {};
     const labels = Object.assign({
@@ -2417,6 +2477,7 @@
       noData: "Introduce los datos para ver la estimación.",
       requestAudit: "Solicitar auditoría"
     }, page);
+    Object.assign(labels, getProfitabilityComparisonTerms(locale));
     const values = profitabilityState;
     const inputValue = function (key) {
       return values[key] === "" ? "" : escapeHtml(values[key]);
@@ -2452,7 +2513,7 @@
     const initialVisibleServices = Math.min(3, services.length);
 
     return `<main class="home-page">
-      <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="servicios.html#recorrido">${escapeHtml(home.discover)}</a><a class="btn ghost" href="rentabilidad.html#comparador">${escapeHtml(home.analyse)}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
+      <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="sobre-hot-host.html#recorrido">${escapeHtml(home.discover)}</a><a class="btn ghost" href="rentabilidad.html#comparador">${escapeHtml(getProfitabilityCtaLabel())}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
       <section class="section home-services-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.servicesEyebrow)}</div><h2>${escapeHtml(home.servicesTitle)}</h2></div><p>${escapeHtml(home.servicesLead)}</p></div><div class="services-carousel" data-services-carousel role="region" aria-roledescription="${escapeHtml(locale.common.carouselRole)}" aria-label="${escapeHtml(home.servicesTitle)}" tabindex="0"><div class="services-carousel-viewport" data-services-viewport><div class="services-carousel-track">${serviceCards}</div></div><div class="carousel-controls services-carousel-controls"><button class="carousel-button" type="button" data-services-previous aria-label="${escapeHtml(locale.common.previousServices)}">←</button><span class="carousel-status" data-services-status aria-live="polite">${escapeHtml(renderServiceCounter(locale.common.serviceCounter, 1, initialVisibleServices, services.length))}</span><button class="carousel-button" type="button" data-services-next aria-label="${escapeHtml(locale.common.nextServices)}">→</button></div></div><div style="text-align:center;margin-top:26px"><a class="btn ghost" href="servicios.html">${escapeHtml(home.allServices)}</a></div></div></section>
       ${renderCta(locale)}
     </main>`;
@@ -2460,12 +2521,7 @@
 
   function renderServices(locale, services) {
     const page = locale.servicesPage;
-    const experience = getExperienceContent(activeLanguage);
-    const stagesContent = experience.journey || page.stages;
-    const stages = stagesContent.map(function (stage, index) {
-      return renderProcessStep(stage, PROCESS_IMAGES.journey[index], index, "journey", page.processLabel, locale);
-    }).join("");
-    return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section process-section" id="recorrido"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(page.processLabel)}</div><h2>${escapeHtml(experience.journeyTitle || page.title.join(" "))}</h2></div><p>${escapeHtml(experience.journeyLead || page.lead)}</p></div><div class="infographic infographic-journey">${stages}</div></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderCta(locale)}</main>`;
+    return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderCta(locale)}</main>`;
   }
 
   function renderFounderStory() {
@@ -2481,6 +2537,10 @@
     const about = locale.about;
     const founder = getSupplementalContent(activeLanguage).founder;
     const founderPage = getExperienceContent(activeLanguage).founderPage || {};
+    const servicesPage = locale.servicesPage;
+    const journeyStages = (getExperienceContent(activeLanguage).journey || servicesPage.stages).map(function (stage, index) {
+      return renderProcessStep(stage, PROCESS_IMAGES.journey[index], index, "journey", servicesPage.processLabel, locale);
+    }).join("");
     const prose = about.prose.map(function (section) {
       return `<h2>${escapeHtml(section.title)}</h2>${section.paragraphs.map(function (paragraph) { return `<p>${escapeHtml(paragraph)}</p>`; }).join("")}`;
     }).join("");
@@ -2507,9 +2567,11 @@
     }).join("");
 
     const founderTeaser = founder ? `<section class="section about-founder-teaser"><div class="wrap"><a class="about-founder-link" href="fundador.html"><span class="about-founder-link-copy"><span class="eyebrow">${escapeHtml(founder.eyebrow)}</span><strong>${escapeHtml(founderPage.title || founder.title)}</strong><small>${escapeHtml(founderPage.intro || founder.lead)}</small></span><span class="about-founder-link-action">${escapeHtml(founderPage.breadcrumb || "Fundador")} <span aria-hidden="true">↗</span></span></a></div></section>` : "";
+    const journey = `<section class="section process-section" id="recorrido"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(servicesPage.processLabel)}</div><h2>${escapeHtml(getExperienceContent(activeLanguage).journeyTitle || servicesPage.title.join(" "))}</h2></div><p>${escapeHtml(getExperienceContent(activeLanguage).journeyLead || servicesPage.lead)}</p></div><div class="infographic infographic-journey">${journeyStages}</div></div></section>`;
 
     return `<main>
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(about.breadcrumb)}</div><div class="eyebrow">${escapeHtml(about.eyebrow)}</div><h1>${renderStarredLines(about.title, locale.home.starsLabel)}</h1><p class="lead">${escapeHtml(about.lead)}</p></div></section>
+      ${journey}
       ${founderTeaser}
       <section class="section"><div class="wrap service-detail"><div class="prose">${prose}</div><aside class="side-panel credentials-panel" aria-labelledby="credentialsTitle"><h3 id="credentialsTitle">${escapeHtml(about.credentialsTitle)}</h3><p class="credentials-lead">${escapeHtml(about.credentialsLead)}</p><ul class="credentials-list credentials-primary-list">${primaryCredential}</ul><button class="credentials-toggle" type="button" data-credentials-toggle data-expand-label="${escapeHtml(about.credentialsExpand)}" data-collapse-label="${escapeHtml(about.credentialsCollapse)}" aria-expanded="false" aria-controls="credentialsDetails"><span data-credentials-toggle-label>${escapeHtml(about.credentialsExpand)}</span><span class="credentials-toggle-icon" aria-hidden="true">⌄</span></button><div class="credentials-hover-preview" aria-hidden="true"><ul class="credentials-list credentials-preview-list">${extraCredentials}</ul></div><div class="credentials-details" id="credentialsDetails" aria-hidden="true"><ul class="credentials-list credentials-extra-list">${extraCredentials}</ul></div><a class="credentials-cta" href="contacto.html">${escapeHtml(about.credentialsCta)}</a></aside></div></section>
       <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.pillarsEyebrow)}</div><h2>${escapeHtml(about.pillarsTitle)}</h2></div></div><div class="grid grid-4 pillars-grid">${pillars}</div></div></section>
@@ -3867,6 +3929,7 @@
       versusTraditional: "frente al alquiler tradicional",
       versusCurrent: "frente a tu gestión actual"
     }, page);
+    Object.assign(labels, getProfitabilityComparisonTerms(locales[activeLanguage] || locales.es));
     const inputs = Array.from(calculator.querySelectorAll("[data-profitability-input]"));
     const situationInput = calculator.querySelector('[data-profitability-input="situation"]');
     const fields = {
