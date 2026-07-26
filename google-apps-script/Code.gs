@@ -1,5 +1,6 @@
 const UPLOAD_CONFIG = Object.freeze({
-  rootFolderName: "Hot Host - Solicitudes web",
+  rootFolderId: "1sxrelfXdz9Sm3e-JF9gHmPocHS2Fnw42",
+  rootFolderName: "Solicitudes_Web_Hot_Host",
   maxRequestCharacters: 30 * 1024 * 1024,
   maxMetadataCharacters: 64 * 1024,
   maxFiles: 10,
@@ -13,20 +14,38 @@ const UPLOAD_CONFIG = Object.freeze({
 });
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: "Hot Host property photo upload" });
+  try {
+    const folder = getRootFolder_();
+    return jsonResponse_({
+      ok: true,
+      configured: true,
+      service: "Hot Host property photo upload",
+      destination: folder.getName(),
+      folderId: folder.getId(),
+      timeZone: Session.getScriptTimeZone(),
+      version: "2026-07-24-3"
+    });
+  } catch (error) {
+    console.error(error);
+    return jsonResponse_({
+      ok: false,
+      configured: false,
+      service: "Hot Host property photo upload",
+      error: String(error.message || error),
+      version: "2026-07-24-3"
+    });
+  }
 }
 
 function doPost(event) {
   let requestFolder = null;
   try {
-    if (!event || !event.postData || !event.postData.contents) {
-      throw new Error("Empty request");
-    }
-    if (event.postData.contents.length > UPLOAD_CONFIG.maxRequestCharacters) {
+    const rawPayload = readPayload_(event);
+    if (rawPayload.length > UPLOAD_CONFIG.maxRequestCharacters) {
       throw new Error("Request is too large");
     }
 
-    const payload = JSON.parse(event.postData.contents);
+    const payload = JSON.parse(rawPayload);
     if (payload.website) return jsonResponse_({ ok: true });
     validatePayload_(payload);
     enforceRateLimit_(payload.contact.email);
@@ -34,16 +53,17 @@ function doPost(event) {
     const lock = LockService.getScriptLock();
     lock.waitLock(30000);
     try {
-      const rootFolder = getRootFolder_();
-      requestFolder = rootFolder.createFolder(buildFolderName_(payload));
+      requestFolder = getRootFolder_().createFolder(buildFolderName_(payload));
     } finally {
       lock.releaseLock();
     }
 
     const storedPhotos = payload.photos.map(function (photo, index) {
-      if (photo.data.length > Math.ceil(UPLOAD_CONFIG.maxFileBytes * 4 / 3) + 4) {
+      const maxBase64Length = Math.ceil(UPLOAD_CONFIG.maxFileBytes * 4 / 3) + 8;
+      if (photo.data.length > maxBase64Length) {
         throw new Error("An optimised image exceeds the allowed size");
       }
+
       const bytes = Utilities.base64Decode(photo.data);
       if (bytes.length > UPLOAD_CONFIG.maxFileBytes) {
         throw new Error("An optimised image exceeds the allowed size");
@@ -51,6 +71,7 @@ function doPost(event) {
       if (!hasValidImageSignature_(bytes, photo.mimeType)) {
         throw new Error("Image content does not match its declared type");
       }
+
       const fileName = sanitiseFileName_(photo.name, index, photo.mimeType);
       requestFolder.createFile(Utilities.newBlob(bytes, photo.mimeType, fileName));
       return { name: fileName, mimeType: photo.mimeType, bytes: bytes.length };
@@ -67,6 +88,7 @@ function doPost(event) {
       property: payload.property,
       photos: storedPhotos
     };
+
     requestFolder.createFile(
       "solicitud.json",
       JSON.stringify(metadata, null, 2),
@@ -77,7 +99,8 @@ function doPost(event) {
       ok: true,
       submissionId: payload.submissionId,
       filesStored: storedPhotos.length,
-      folderUrl: requestFolder.getUrl()
+      folderUrl: requestFolder.getUrl(),
+      version: "2026-07-24-3"
     });
   } catch (error) {
     if (requestFolder) {
@@ -88,8 +111,30 @@ function doPost(event) {
       }
     }
     console.error(error);
-    return jsonResponse_({ ok: false, error: String(error.message || error) });
+    return jsonResponse_({
+      ok: false,
+      error: String(error.message || error),
+      version: "2026-07-24-3"
+    });
   }
+}
+
+function readPayload_(event) {
+  if (!event) throw new Error("Empty request");
+
+  if (event.parameter && typeof event.parameter.payload === "string" && event.parameter.payload) {
+    return event.parameter.payload;
+  }
+
+  if (event.parameters && event.parameters.payload && event.parameters.payload.length) {
+    return String(event.parameters.payload[0]);
+  }
+
+  if (event.postData && typeof event.postData.contents === "string" && event.postData.contents) {
+    return event.postData.contents;
+  }
+
+  throw new Error("Empty request");
 }
 
 function validatePayload_(payload) {
@@ -106,6 +151,7 @@ function validatePayload_(payload) {
   if (!Array.isArray(payload.photos) || !payload.photos.length) {
     throw new Error("No photos received");
   }
+
   const metadataLength = JSON.stringify({
     submissionId: payload.submissionId,
     submittedAt: payload.submittedAt,
@@ -115,10 +161,14 @@ function validatePayload_(payload) {
     contact: payload.contact,
     property: payload.property
   }).length;
-  if (metadataLength > UPLOAD_CONFIG.maxMetadataCharacters) throw new Error("Request metadata is too large");
+
+  if (metadataLength > UPLOAD_CONFIG.maxMetadataCharacters) {
+    throw new Error("Request metadata is too large");
+  }
   if (payload.photos.length > UPLOAD_CONFIG.maxFiles) throw new Error("Too many photos");
+
   payload.photos.forEach(function (photo) {
-    if (!photo || !UPLOAD_CONFIG.allowedMimeTypes.includes(photo.mimeType)) {
+    if (!photo || UPLOAD_CONFIG.allowedMimeTypes.indexOf(photo.mimeType) === -1) {
       throw new Error("Unsupported image type");
     }
     if (!photo.data || typeof photo.data !== "string") throw new Error("Invalid image data");
@@ -137,11 +187,15 @@ function enforceRateLimit_(email) {
   const cache = CacheService.getScriptCache();
   const globalKey = "upload-global";
   const lock = LockService.getScriptLock();
+
   lock.waitLock(30000);
   try {
     const currentCount = Number(cache.get(key) || 0);
     const globalCount = Number(cache.get(globalKey) || 0);
-    if (currentCount >= UPLOAD_CONFIG.maxUploadsPerEmail || globalCount >= UPLOAD_CONFIG.maxUploadsGlobally) {
+    if (
+      currentCount >= UPLOAD_CONFIG.maxUploadsPerEmail ||
+      globalCount >= UPLOAD_CONFIG.maxUploadsGlobally
+    ) {
       throw new Error("Upload rate limit reached");
     }
     cache.put(key, String(currentCount + 1), UPLOAD_CONFIG.rateLimitSeconds);
@@ -152,29 +206,62 @@ function enforceRateLimit_(email) {
 }
 
 function getRootFolder_() {
-  const properties = PropertiesService.getScriptProperties();
-  const storedId = properties.getProperty("ROOT_FOLDER_ID");
-  if (storedId) {
-    try {
-      return DriveApp.getFolderById(storedId);
-    } catch (error) {
-      properties.deleteProperty("ROOT_FOLDER_ID");
-    }
+  if (!UPLOAD_CONFIG.rootFolderId) {
+    throw new Error("Drive destination folder is not configured");
   }
 
-  const existingFolders = DriveApp.getFoldersByName(UPLOAD_CONFIG.rootFolderName);
-  const rootFolder = existingFolders.hasNext()
-    ? existingFolders.next()
-    : DriveApp.createFolder(UPLOAD_CONFIG.rootFolderName);
-  properties.setProperty("ROOT_FOLDER_ID", rootFolder.getId());
-  return rootFolder;
+  try {
+    const folder = DriveApp.getFolderById(UPLOAD_CONFIG.rootFolderId);
+    folder.getName();
+    return folder;
+  } catch (error) {
+    throw new Error(
+      "The configured Drive folder (" + UPLOAD_CONFIG.rootFolderName + ") is unavailable. " +
+      "Verify that the Apps Script project runs with a Google account that can edit the folder."
+    );
+  }
+}
+
+function testConfiguration() {
+  const folder = getRootFolder_();
+  const result = {
+    ok: true,
+    folderName: folder.getName(),
+    folderId: folder.getId(),
+    folderUrl: folder.getUrl(),
+    timeZone: Session.getScriptTimeZone()
+  };
+  console.log(JSON.stringify(result));
+  return result;
+}
+
+function testWriteAccess() {
+  const folder = getRootFolder_();
+  const file = folder.createFile(
+    "test-apps-script-" + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyyMMdd-HHmmss") + ".txt",
+    "Hot Host Apps Script write test",
+    MimeType.PLAIN_TEXT
+  );
+  const result = {
+    ok: true,
+    fileName: file.getName(),
+    fileId: file.getId(),
+    fileUrl: file.getUrl()
+  };
+  console.log(JSON.stringify(result));
+  return result;
 }
 
 function buildFolderName_(payload) {
-  const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd_HHmmss");
+  const timestamp = Utilities.formatDate(
+    new Date(),
+    Session.getScriptTimeZone(),
+    "yyyy-MM-dd_HHmmss"
+  );
   const contactName = sanitiseText_(payload.contact.name, "Contacto", 50);
   const city = sanitiseText_(payload.property.city, "Sin ciudad", 40);
-  return `${timestamp} - ${contactName} - ${city} - ${payload.submissionId.slice(0, 8)}`;
+  return timestamp + " - " + contactName + " - " + city + " - " +
+    payload.submissionId.slice(0, 8);
 }
 
 function sanitiseText_(value, fallback, maxLength) {
@@ -186,30 +273,47 @@ function sanitiseText_(value, fallback, maxLength) {
 }
 
 function sanitiseFileName_(value, index, mimeType) {
-  const extension = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[mimeType];
+  const extension = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp"
+  }[mimeType];
   const withoutExtension = String(value || "").replace(/\.[^.]+$/, "");
-  const cleanName = sanitiseText_(withoutExtension, `photo-${index + 1}`, 80);
-  return `${cleanName}.${extension}`;
+  const cleanName = sanitiseText_(withoutExtension, "photo-" + (index + 1), 80);
+  return cleanName + "." + extension;
 }
 
 function hasValidImageSignature_(bytes, mimeType) {
   function byteAt(index) {
     return (Number(bytes[index]) + 256) % 256;
   }
+
   if (mimeType === "image/jpeg") {
-    return bytes.length >= 3 && byteAt(0) === 0xff && byteAt(1) === 0xd8 && byteAt(2) === 0xff;
+    return bytes.length >= 3 &&
+      byteAt(0) === 0xff &&
+      byteAt(1) === 0xd8 &&
+      byteAt(2) === 0xff;
   }
+
   if (mimeType === "image/png") {
     const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
     return bytes.length >= signature.length && signature.every(function (value, index) {
       return byteAt(index) === value;
     });
   }
+
   if (mimeType === "image/webp") {
-    return bytes.length >= 12
-      && byteAt(0) === 0x52 && byteAt(1) === 0x49 && byteAt(2) === 0x46 && byteAt(3) === 0x46
-      && byteAt(8) === 0x57 && byteAt(9) === 0x45 && byteAt(10) === 0x42 && byteAt(11) === 0x50;
+    return bytes.length >= 12 &&
+      byteAt(0) === 0x52 &&
+      byteAt(1) === 0x49 &&
+      byteAt(2) === 0x46 &&
+      byteAt(3) === 0x46 &&
+      byteAt(8) === 0x57 &&
+      byteAt(9) === 0x45 &&
+      byteAt(10) === 0x42 &&
+      byteAt(11) === 0x50;
   }
+
   return false;
 }
 
@@ -218,17 +322,8 @@ function jsonResponse_(value) {
     .createTextOutput(JSON.stringify(value))
     .setMimeType(ContentService.MimeType.JSON);
 }
-
-function resetRootFolderReference() {
-  PropertiesService.getScriptProperties().deleteProperty("ROOT_FOLDER_ID");
-}
-
 function purgeExpiredRequestFolders() {
-  const properties = PropertiesService.getScriptProperties();
-  const rootFolderId = properties.getProperty("ROOT_FOLDER_ID");
-  if (!rootFolderId) return 0;
-
-  const rootFolder = DriveApp.getFolderById(rootFolderId);
+  const rootFolder = getRootFolder_();
   const cutoff = new Date(Date.now() - UPLOAD_CONFIG.retentionDays * 24 * 60 * 60 * 1000);
   const folders = rootFolder.getFolders();
   let purged = 0;

@@ -28,7 +28,7 @@ window.HOT_HOST_CONFIG = Object.freeze({
 
 No pegues claves OAuth, contrasenas ni secretos en `config.js`: GitHub Pages publica ese archivo.
 
-Mientras el endpoint permanezca vacio, el selector de archivos no se muestra y el formulario solicita un enlace compartido. Antes de activarlo, publica la informacion legal y de privacidad aplicable al tratamiento de datos y fotografias.
+Mientras el endpoint permanezca vacio, el selector de archivos no se muestra y el formulario solicita un enlace compartido. No lo rellenes hasta que la URL `/exec` funcione sin iniciar sesion en Google. Antes de activarlo, publica la informacion legal y de privacidad aplicable al tratamiento de datos y fotografias.
 
 ## Probar
 
@@ -44,8 +44,8 @@ La respuesta de Apps Script se solicita en modo `no-cors`, una limitacion de los
 ## Actualizar o reparar
 
 - Para publicar cambios posteriores en `Code.gs`, edita la implementacion existente y crea una version nueva. No hace falta cambiar la URL si conservas la misma implementacion.
-- La carpeta raiz se crea automaticamente y su ID queda guardado en las propiedades del script.
-- Si eliminas la carpeta raiz, ejecuta una vez `resetRootFolderReference` desde el editor y vuelve a probar.
+- La carpeta raiz se identifica con `rootFolderId` en `Code.gs`.
+- Si eliminas o cambias la carpeta raiz, actualiza `rootFolderId` con el nuevo ID, crea una nueva version de la implementacion y vuelve a probar.
 - Ejecuta `purgeExpiredRequestFolders` manualmente si necesitas aplicar antes la retencion de un ano.
 - Las carpetas y fotografias permanecen privadas salvo que cambies manualmente sus permisos en Drive.
 
