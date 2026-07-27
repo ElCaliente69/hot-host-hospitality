@@ -258,8 +258,8 @@ window.HOT_HOST_LOCALES.nl = {
     commentsPlaceholder: "Doelen, vragen of andere relevante informatie...",
     privacyConsent: "Ik geef Hot Host Hospitality toestemming om de ingediende gegevens en foto's uitsluitend te gebruiken om deze aanvraag te beoordelen.",
     privacyNote: "Voeg geen personen of gevoelige documenten toe. U kunt verwijdering aanvragen via direccion@hhosthospitality.com.",
-    actionsLabel: "Kies hoe u de aanvraag wilt verzenden",
-    sendEmail: "Versturen per e-mail →",
+    actionsLabel: "De aanvraag wordt rechtstreeks naar Hot Host Hospitality verstuurd",
+    sendEmail: "Aanvraag versturen →",
     sendWhatsapp: "Versturen via WhatsApp ↗",
     validation: {
       required: "Dit veld is verplicht.",
@@ -276,6 +276,8 @@ window.HOT_HOST_LOCALES.nl = {
     },
     status: {
       submissionError: "De aanvraag kon niet worden geregistreerd. Laad de pagina opnieuw en probeer het nogmaals; blijft het probleem bestaan, mail dan naar direccion@hhosthospitality.com.",
+      submissionSending: "Uw aanvraag wordt veilig verstuurd...",
+      submissionSent: "Uw aanvraag is opgeslagen. Open uw e-mail en klik op ‘E-mail verifiëren’ om deze te activeren.",
       emailOpened: "Gmail is geopend met uw aanvraag klaar voor verzending. Controleer het bericht en klik op Verzenden.",
       whatsappOpened: "WhatsApp is geopend met uw aanvraag klaar voor verzending. Controleer het bericht en klik op Verzenden.",
       blockedBefore: "De browser heeft het venster geblokkeerd. ",

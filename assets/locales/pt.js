@@ -258,8 +258,8 @@ window.HOT_HOST_LOCALES.pt = {
     commentsPlaceholder: "Objetivos, dúvidas ou qualquer outra informação relevante...",
     privacyConsent: "Autorizo a Hot Host Hospitality a utilizar os dados e fotografias enviados exclusivamente para avaliar este pedido.",
     privacyNote: "Não inclua pessoas nem documentos sensíveis. Pode pedir a eliminação através de direccion@hhosthospitality.com.",
-    actionsLabel: "Escolha como pretende enviar o pedido",
-    sendEmail: "Enviar por e-mail →",
+    actionsLabel: "O pedido será enviado diretamente para a Hot Host Hospitality",
+    sendEmail: "Enviar pedido →",
     sendWhatsapp: "Enviar por WhatsApp ↗",
     validation: {
       required: "Este campo é obrigatório.",
@@ -276,6 +276,8 @@ window.HOT_HOST_LOCALES.pt = {
     },
     status: {
       submissionError: "Não foi possível registar o pedido. Recarregue a página e tente novamente; se o problema persistir, escreva para direccion@hhosthospitality.com.",
+      submissionSending: "A enviar o pedido em segurança...",
+      submissionSent: "O pedido foi guardado. Consulte o e-mail e clique em «Verificar e-mail» para o ativar.",
       emailOpened: "O Gmail foi aberto com o pedido preparado. Reveja-o e clique em Enviar.",
       whatsappOpened: "O WhatsApp foi aberto com o pedido preparado. Reveja-o e clique em Enviar.",
       blockedBefore: "O navegador bloqueou a janela. ",

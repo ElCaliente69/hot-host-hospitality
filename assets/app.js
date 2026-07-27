@@ -16,7 +16,6 @@
   // ECB reference fallback from 2026-07-21; live public rates replace it when available.
   const FALLBACK_RATES_PER_EUR = { EUR: 1, USD: 1.1418, GBP: 0.85205, CHF: 0.9259, PLN: 4.3305 };
   const MAX_EARNINGS_SCALE = 100;
-  const WHATSAPP_NUMBER = "34600907716";
   const CONTACT_EMAIL = "direccion@hhosthospitality.com";
   const MAX_PROPERTY_PHOTOS = 10;
   const MAX_PROPERTY_PHOTO_BYTES = 20 * 1024 * 1024;
@@ -24,7 +23,7 @@
   const MAX_UPLOAD_REQUEST_CHARACTERS = 30 * 1024 * 1024;
   const MAX_PROPERTY_PHOTO_DIMENSION = 1920;
   const PHOTO_PROCESS_TIMEOUT_MS = 20000;
-  const PHOTO_UPLOAD_TIMEOUT_MS = 45000;
+  const PHOTO_UPLOAD_TIMEOUT_MS = 120000;
   const AUDIT_OFFER_END = Date.parse("2026-09-30T23:59:59+02:00");
   const MARKET_OCCUPANCY = 63;
   const HOT_HOST_OCCUPANCY = 72;
@@ -661,8 +660,8 @@
         commentsPlaceholder: "Objetivos, dudas o cualquier dato relevante...",
         privacyConsent: "Autorizo a Hot Host Hospitality a utilizar los datos y fotografías enviados únicamente para evaluar esta solicitud.",
         privacyNote: "No incluyas personas ni documentos sensibles. Puedes solicitar la eliminación de la información escribiendo a direccion@hhosthospitality.com.",
-        actionsLabel: "Elige cómo quieres enviar la consulta",
-        sendEmail: "Enviar por correo →",
+        actionsLabel: "La solicitud se enviará directamente a Hot Host Hospitality",
+        sendEmail: "Enviar solicitud →",
         sendWhatsapp: "Enviar por WhatsApp ↗",
         validation: {
           required: "Este campo es obligatorio.",
@@ -679,6 +678,8 @@
         },
         status: {
           submissionError: "No se pudo registrar la solicitud. Recarga la página e inténtalo de nuevo; si continúa, escribe a direccion@hhosthospitality.com.",
+          submissionSending: "Enviando la solicitud de forma segura...",
+          submissionSent: "Solicitud guardada. Revisa tu email y pulsa «Verificar email» para activarla.",
           emailOpened: "Se ha abierto Gmail con la consulta preparada. Revísala y pulsa Enviar.",
           whatsappOpened: "Se ha abierto WhatsApp con la consulta preparada. Revísala y pulsa Enviar.",
           blockedBefore: "El navegador bloqueó la ventana. ",
@@ -1082,8 +1083,8 @@
         commentsPlaceholder: "Goals, questions or any other relevant information...",
         privacyConsent: "I authorise Hot Host Hospitality to use the submitted details and photographs solely to assess this enquiry.",
         privacyNote: "Do not include people or sensitive documents. You may request deletion by emailing direccion@hhosthospitality.com.",
-        actionsLabel: "Choose how you want to send the enquiry",
-        sendEmail: "Send by email →",
+        actionsLabel: "The enquiry will be sent directly to Hot Host Hospitality",
+        sendEmail: "Send enquiry →",
         sendWhatsapp: "Send by WhatsApp ↗",
         validation: {
           required: "This field is required.",
@@ -1100,6 +1101,8 @@
         },
         status: {
           submissionError: "The enquiry could not be registered. Reload the page and try again; if the problem continues, email direccion@hhosthospitality.com.",
+          submissionSending: "Sending your enquiry securely...",
+          submissionSent: "Your enquiry has been saved. Check your email and select “Verify email” to activate it.",
           emailOpened: "Gmail has opened with your enquiry ready. Review it and click Send.",
           whatsappOpened: "WhatsApp has opened with your enquiry ready. Review it and click Send.",
           blockedBefore: "The browser blocked the window. ",
@@ -1503,8 +1506,8 @@
         commentsPlaceholder: "Objectifs, questions ou toute autre information utile...",
         privacyConsent: "J’autorise Hot Host Hospitality à utiliser les informations et photographies transmises uniquement pour évaluer cette demande.",
         privacyNote: "N’incluez ni personnes ni documents sensibles. Vous pouvez demander la suppression des informations à direccion@hhosthospitality.com.",
-        actionsLabel: "Choisissez comment envoyer la demande",
-        sendEmail: "Envoyer par e-mail →",
+        actionsLabel: "La demande sera envoyée directement à Hot Host Hospitality",
+        sendEmail: "Envoyer la demande →",
         sendWhatsapp: "Envoyer par WhatsApp ↗",
         validation: {
           required: "Ce champ est obligatoire.",
@@ -1521,6 +1524,8 @@
         },
         status: {
           submissionError: "La demande n’a pas pu être enregistrée. Rechargez la page et réessayez ; si le problème persiste, écrivez à direccion@hhosthospitality.com.",
+          submissionSending: "Envoi sécurisé de la demande...",
+          submissionSent: "Votre demande a été enregistrée. Consultez votre e-mail et cliquez sur « Vérifier l’e-mail » pour l’activer.",
           emailOpened: "Gmail s’est ouvert avec votre demande prête. Vérifiez-la puis cliquez sur Envoyer.",
           whatsappOpened: "WhatsApp s’est ouvert avec votre demande prête. Vérifiez-la puis cliquez sur Envoyer.",
           blockedBefore: "Le navigateur a bloqué la fenêtre. ",
@@ -1924,8 +1929,8 @@
         commentsPlaceholder: "Obiettivi, domande o qualsiasi altra informazione utile...",
         privacyConsent: "Autorizzo Hot Host Hospitality a utilizzare i dati e le fotografie inviati esclusivamente per valutare questa richiesta.",
         privacyNote: "Non includere persone o documenti sensibili. Puoi richiedere la cancellazione scrivendo a direccion@hhosthospitality.com.",
-        actionsLabel: "Scegli come inviare la richiesta",
-        sendEmail: "Invia via e-mail →",
+        actionsLabel: "La richiesta verrà inviata direttamente a Hot Host Hospitality",
+        sendEmail: "Invia richiesta →",
         sendWhatsapp: "Invia via WhatsApp ↗",
         validation: {
           required: "Questo campo è obbligatorio.",
@@ -1942,6 +1947,8 @@
         },
         status: {
           submissionError: "Non è stato possibile registrare la richiesta. Ricarica la pagina e riprova; se il problema persiste, scrivi a direccion@hhosthospitality.com.",
+          submissionSending: "Invio sicuro della richiesta...",
+          submissionSent: "La richiesta è stata salvata. Controlla l’e-mail e premi «Verifica e-mail» per attivarla.",
           emailOpened: "Gmail si è aperto con la richiesta pronta. Controllala e premi Invia.",
           whatsappOpened: "WhatsApp si è aperto con la richiesta pronta. Controllala e premi Invia.",
           blockedBefore: "Il browser ha bloccato la finestra. ",
@@ -2614,10 +2621,9 @@
         <div class="field"><label for="touristRental">${escapeHtml(form.touristRental)}</label><select id="touristRental" name="touristRental" required>${renderOptions(form.rentalOptions, form.selectOption)}</select></div>
         <div class="field" id="listingUrlField" hidden><label for="listingUrl">${escapeHtml(form.listingUrl)}</label><input id="listingUrl" name="listingUrl" type="url" placeholder="${escapeHtml(form.listingPlaceholder)}"></div>
         <div class="field property-photos-field" id="propertyPhotosField" hidden>${directUploadLabel}<div class="property-photo-dropzone" data-photo-dropzone${driveUploadAvailable ? "" : " hidden"}><input id="propertyPhotos" name="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-describedby="propertyPhotosHelp propertyPhotosStatus"${driveUploadAvailable ? "" : " disabled"}><span class="property-photo-icon" aria-hidden="true">＋</span><strong>${escapeHtml(form.photosUpload)}</strong><small class="field-help" id="propertyPhotosHelp">${escapeHtml(form.photosUploadHelp)}</small></div><p class="property-photos-status" id="propertyPhotosStatus" aria-live="polite"></p><div class="property-photo-previews" id="propertyPhotoPreviews"></div><label class="property-photos-link-label" for="photosUrl">${escapeHtml(form.photosUrl)}${optionalPhotosLink}</label><input id="photosUrl" name="photosUrl" type="url" placeholder="${escapeHtml(form.photosPlaceholder)}" aria-describedby="photosHelp"><small class="field-help" id="photosHelp">${escapeHtml(form.photosHelp)}</small></div>
-        <div class="form-trap" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
         <div class="field"><label for="message">${escapeHtml(form.comments)} <span style="font-weight:400">${escapeHtml(form.optional)}</span></label><textarea id="message" name="message" placeholder="${escapeHtml(form.commentsPlaceholder)}"></textarea></div>
         <div class="field consent-field"><label class="consent-control" for="privacyConsent"><input id="privacyConsent" name="privacyConsent" type="checkbox" required><span>${escapeHtml(form.privacyConsent)}</span></label><small class="field-help">${escapeHtml(form.privacyNote)}${privacyLink}</small></div>
-        <p class="form-actions-label" id="deliveryLabel">${escapeHtml(form.actionsLabel)}</p><div class="form-actions" role="group" aria-labelledby="deliveryLabel"><button class="btn form-action email-action" type="submit" name="deliveryMethod" value="email">${escapeHtml(form.sendEmail)}</button><button class="btn form-action whatsapp-action" type="submit" name="deliveryMethod" value="whatsapp">${escapeHtml(form.sendWhatsapp)}</button></div><p id="formStatus" aria-live="polite"></p>
+        <p class="form-actions-label" id="deliveryLabel">${escapeHtml(form.actionsLabel)}</p><div class="form-actions" aria-labelledby="deliveryLabel"><button class="btn form-action email-action" type="submit">${escapeHtml(form.sendEmail)}</button></div><p id="formStatus" aria-live="polite"></p>
       </form></div></section>
     </main>`;
   }
@@ -2970,19 +2976,57 @@
       const targetFrame = document.createElement("iframe");
       const requestForm = document.createElement("form");
       const payloadInput = document.createElement("input");
+      let submitted = false;
       let settled = false;
+      let timeout;
 
-      function settle() {
+      function cleanup() {
+        window.clearTimeout(timeout);
+        window.removeEventListener("message", handleResponse);
+        targetFrame.remove();
+        requestForm.remove();
+      }
+
+      function finish(callback, value) {
         if (settled) return;
         settled = true;
-        resolve();
+        cleanup();
+        callback(value);
+      }
+
+      function submitRequest() {
+        if (submitted) return;
+        submitted = true;
+        try {
+          requestForm.submit();
+        } catch (error) {
+          finish(reject, error);
+        }
+      }
+
+      function handleResponse(event) {
+        const trustedGoogleOrigin = /^https:\/\/(?:[a-z0-9-]+\.)*googleusercontent\.com$/i.test(event.origin)
+          || event.origin === "https://script.google.com";
+        if (event.source !== targetFrame.contentWindow && !trustedGoogleOrigin) return;
+        const message = event.data;
+        if (!message || message.source !== "hot-host-workspace" || !message.result) return;
+        const result = message.result;
+        if (result.submissionId && result.submissionId !== payload.submissionId) return;
+        if (result.ok) finish(resolve, result);
+        else finish(reject, new Error(result.error || "Workspace request failed"));
       }
 
       targetFrame.name = targetName;
       targetFrame.title = "";
-      targetFrame.hidden = true;
+      targetFrame.srcdoc = "<!doctype html><title></title>";
+      targetFrame.tabIndex = -1;
+      targetFrame.style.cssText = "position:absolute;left:-10000px;width:1px;height:1px;border:0;overflow:hidden";
       targetFrame.setAttribute("aria-hidden", "true");
-      targetFrame.addEventListener("load", settle);
+      targetFrame.addEventListener("load", function () {
+        if (!submitted) {
+          submitRequest();
+        }
+      });
 
       requestForm.method = "POST";
       requestForm.action = endpoint;
@@ -2995,22 +3039,11 @@
       payloadInput.name = "payload";
       payloadInput.value = payloadBody;
       requestForm.appendChild(payloadInput);
-      document.body.append(targetFrame, requestForm);
-
-      try {
-        requestForm.submit();
-      } catch (error) {
-        targetFrame.remove();
-        requestForm.remove();
-        reject(error);
-        return;
-      }
-
-      window.setTimeout(settle, 1500);
-      window.setTimeout(function () {
-        targetFrame.remove();
-        requestForm.remove();
+      window.addEventListener("message", handleResponse);
+      timeout = window.setTimeout(function () {
+        finish(reject, new Error("Workspace request timed out"));
       }, PHOTO_UPLOAD_TIMEOUT_MS);
+      document.body.append(targetFrame, requestForm);
     });
   }
 
@@ -3250,7 +3283,6 @@
         return;
       }
 
-      const deliveryMethod = event.submitter && event.submitter.value === "whatsapp" ? "whatsapp" : "email";
       const data = new FormData(form);
       const typeCode = String(data.get("propertyType"));
       const role = getOptionLabel(locale.form.roles, String(data.get("contactRole")));
@@ -3262,147 +3294,74 @@
 
       const phoneCountry = getCountry(String(data.get("phoneCountry")));
       const internationalPhone = `+${phoneCountry[1]} ${String(data.get("phone")).trim()}`;
-      const labels = locale.form.emailBody;
       const selectedPhotos = touristRental.value === "no" ? selectedPropertyPhotos.slice() : [];
       const photosLink = String(data.get("photosUrl") || "").trim();
-      const shouldSubmitToWorkspace = Boolean(workspaceEndpoint);
       const submissionId = createSubmissionId();
-      let photoSubmissionReference = "";
-      let messageWindow = null;
 
-      if (!shouldSubmitToWorkspace) {
+      if (!workspaceEndpoint) {
         status.textContent = locale.form.status.submissionError;
         status.dataset.kind = "validation";
         return;
       }
 
-      if (shouldSubmitToWorkspace) {
-        messageWindow = window.open("about:blank", "_blank");
-        if (messageWindow) messageWindow.opener = null;
-        const submitButtons = Array.from(form.querySelectorAll("button[type='submit']"));
-        submitButtons.forEach(function (button) { button.disabled = true; });
-        if (selectedPhotos.length) {
-          status.textContent = locale.form.driveUploading;
-          status.dataset.kind = "uploading";
-          setPhotoStatus(locale.form.driveUploading, "uploading");
-        }
-        try {
-          await submitWorkspaceRequest(workspaceEndpoint, selectedPhotos, {
-            submissionId: submissionId,
-            submittedAt: new Date().toISOString(),
-            language: activeLanguage,
-            sourceUrl: window.location.href.split(/[?#]/, 1)[0],
-            deliveryMethod: deliveryMethod,
-            website: String(data.get("website") || ""),
-            consent: {
-              accepted: Boolean(data.get("privacyConsent")),
-              text: locale.form.privacyConsent
-            },
-            contact: {
-              relationship: role,
-              name: String(data.get("name")).trim(),
-              email: String(data.get("email")).trim(),
-              phone: internationalPhone
-            },
-            property: {
-              street: String(data.get("streetAddress")).trim(),
-              postalCode: String(data.get("postalCode")).trim(),
-              city: String(data.get("city")).trim(),
-              country: getCountryName(String(data.get("propertyCountry"))),
-              type: propertyTypeLabel,
-              bedrooms: String(data.get("bedrooms")).trim(),
-              bathrooms: String(data.get("bathrooms")).trim(),
-              floor: String(data.get("floor") || "").trim(),
-              totalFloors: String(data.get("totalFloors") || "").trim(),
-              touristRental: rental,
-              listingUrl: String(data.get("listingUrl") || "").trim(),
-              photosUrl: photosLink,
-              comments: String(data.get("message") || "").trim()
-            }
-          });
-          if (selectedPhotos.length) {
-            photoSubmissionReference = `${selectedPhotos.length} · ${submissionId}`;
-            setPhotoStatus(
-              formatFormMessage(locale.form.driveUploaded, { count: selectedPhotos.length }),
-              "submitted"
-            );
+      const submitButtons = Array.from(form.querySelectorAll("button[type='submit']"));
+      submitButtons.forEach(function (button) { button.disabled = true; });
+      status.textContent = selectedPhotos.length
+        ? locale.form.driveUploading
+        : locale.form.status.submissionSending;
+      status.dataset.kind = "uploading";
+      if (selectedPhotos.length) setPhotoStatus(locale.form.driveUploading, "uploading");
+
+      try {
+        await submitWorkspaceRequest(workspaceEndpoint, selectedPhotos, {
+          submissionId: submissionId,
+          submittedAt: new Date().toISOString(),
+          language: activeLanguage,
+          sourceUrl: window.location.href.split(/[?#]/, 1)[0],
+          deliveryMethod: "email",
+          website: "",
+          consent: {
+            accepted: Boolean(data.get("privacyConsent")),
+            text: locale.form.privacyConsent
+          },
+          contact: {
+            relationship: role,
+            name: String(data.get("name")).trim(),
+            email: String(data.get("email")).trim(),
+            phone: internationalPhone
+          },
+          property: {
+            street: String(data.get("streetAddress")).trim(),
+            postalCode: String(data.get("postalCode")).trim(),
+            city: String(data.get("city")).trim(),
+            country: getCountryName(String(data.get("propertyCountry"))),
+            type: propertyTypeLabel,
+            bedrooms: String(data.get("bedrooms")).trim(),
+            bathrooms: String(data.get("bathrooms")).trim(),
+            floor: String(data.get("floor") || "").trim(),
+            totalFloors: String(data.get("totalFloors") || "").trim(),
+            touristRental: rental,
+            listingUrl: String(data.get("listingUrl") || "").trim(),
+            photosUrl: photosLink,
+            comments: String(data.get("message") || "").trim()
           }
-        } catch (error) {
-          console.error(error);
-          if (selectedPhotos.length) {
-            setPhotoStatus(locale.form.driveUploadError, "error");
-          }
-          if (messageWindow) messageWindow.close();
-          status.textContent = locale.form.status.submissionError;
-          status.dataset.kind = "validation";
-          submitButtons.forEach(function (button) { button.disabled = false; });
-          return;
-        }
+        });
+      } catch (error) {
+        console.error(error);
+        if (selectedPhotos.length) setPhotoStatus(locale.form.driveUploadError, "error");
+        status.textContent = locale.form.status.submissionError;
+        status.dataset.kind = "validation";
         submitButtons.forEach(function (button) { button.disabled = false; });
+        return;
       }
 
-      const lines = [
-        `${labels.relationship}: ${role}`,
-        `${labels.name}: ${String(data.get("name")).trim()}`,
-        `${labels.email}: ${String(data.get("email")).trim()}`,
-        `${labels.phone}: ${internationalPhone}`,
-        "",
-        `${labels.address}:`,
-        `  ${labels.street}: ${String(data.get("streetAddress")).trim()}`,
-        `  ${labels.postalCode}: ${String(data.get("postalCode")).trim()}`,
-        `  ${labels.city}: ${String(data.get("city")).trim()}`,
-        `  ${labels.country}: ${getCountryName(String(data.get("propertyCountry")))}`,
-        "",
-        `${labels.propertyType}: ${propertyTypeLabel}`,
-        `${labels.bedrooms}: ${String(data.get("bedrooms")).trim()}`,
-        `${labels.bathrooms}: ${String(data.get("bathrooms")).trim()}`,
-        data.get("floor") ? `${labels.floor}: ${String(data.get("floor")).trim()}` : "",
-        data.get("totalFloors") ? `${labels.totalFloors}: ${String(data.get("totalFloors")).trim()}` : "",
-        `${labels.rental}: ${rental}`,
-        data.get("listingUrl") ? `${labels.listingUrl}: ${String(data.get("listingUrl")).trim()}` : "",
-        photosLink ? `${labels.photosUrl}: ${photosLink}` : "",
-        photoSubmissionReference ? `${labels.photosUploaded}: ${photoSubmissionReference}` : "",
-        `${labels.consent}: ${locale.form.privacyConsent}`,
-        data.get("message") ? `${labels.comments}: ${String(data.get("message")).trim()}` : ""
-      ].filter(function (line, index, allLines) {
-        return line !== "" || (index > 0 && allLines[index - 1] !== "");
-      });
-
-      const safeName = String(data.get("name")).replace(/[\r\n]+/g, " ").trim();
-      const safePropertyType = propertyTypeLabel.replace(/[\r\n]+/g, " ");
-      const subjectText = `${labels.subject} · ${safePropertyType} · ${safeName}`;
-      const messageText = lines.join("\n");
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(CONTACT_EMAIL)}&su=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(messageText)}`;
-      const whatsappText = `${subjectText}\n\n${messageText}`;
-      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappText)}`;
-      const targetUrl = deliveryMethod === "whatsapp" ? whatsappUrl : gmailUrl;
-      const openedMessage = deliveryMethod === "whatsapp" ? locale.form.status.whatsappOpened : locale.form.status.emailOpened;
-      const blockedLinkText = deliveryMethod === "whatsapp" ? locale.form.status.blockedWhatsappLink : locale.form.status.blockedEmailLink;
-      if (!messageWindow || messageWindow.closed) messageWindow = window.open("about:blank", "_blank");
+      submitButtons.forEach(function (button) { button.disabled = false; });
       delete status.dataset.kind;
-
-      if (messageWindow && !messageWindow.closed) {
-        try {
-          messageWindow.opener = null;
-          messageWindow.location.replace(targetUrl);
-          status.textContent = openedMessage;
-          return;
-        } catch (error) {
-          messageWindow = null;
-        }
-      }
-      if (!messageWindow) {
-        const link = document.createElement("a");
-        link.href = targetUrl;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        const strong = document.createElement("strong");
-        strong.textContent = blockedLinkText;
-        link.appendChild(strong);
-        status.textContent = locale.form.status.blockedBefore;
-        status.appendChild(link);
-        status.appendChild(document.createTextNode(locale.form.status.blockedAfter));
-      }
+      status.textContent = locale.form.status.submissionSent;
+      form.reset();
+      selectedPropertyPhotos = [];
+      updatePropertyFields();
+      updateRentalFields();
     });
   }
 

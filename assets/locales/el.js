@@ -258,8 +258,8 @@ window.HOT_HOST_LOCALES.el = {
     commentsPlaceholder: "Στόχοι, ερωτήσεις ή οποιαδήποτε άλλη σχετική πληροφορία...",
     privacyConsent: "Εξουσιοδοτώ τη Hot Host Hospitality να χρησιμοποιήσει τα στοιχεία και τις φωτογραφίες που υποβάλλονται αποκλειστικά για την αξιολόγηση αυτού του αιτήματος.",
     privacyNote: "Μην συμπεριλάβετε άτομα ή ευαίσθητα έγγραφα. Μπορείτε να ζητήσετε διαγραφή στο direccion@hhosthospitality.com.",
-    actionsLabel: "Επιλέξτε πώς θέλετε να στείλετε το αίτημα",
-    sendEmail: "Αποστολή μέσω email →",
+    actionsLabel: "Το αίτημα θα σταλεί απευθείας στη Hot Host Hospitality",
+    sendEmail: "Αποστολή αιτήματος →",
     sendWhatsapp: "Αποστολή μέσω WhatsApp ↗",
     validation: {
       required: "Αυτό το πεδίο είναι υποχρεωτικό.",
@@ -276,6 +276,8 @@ window.HOT_HOST_LOCALES.el = {
     },
     status: {
       submissionError: "Δεν ήταν δυνατή η καταχώριση του αιτήματος. Ανανεώστε τη σελίδα και δοκιμάστε ξανά· αν το πρόβλημα συνεχιστεί, γράψτε στο direccion@hhosthospitality.com.",
+      submissionSending: "Ασφαλής αποστολή του αιτήματος...",
+      submissionSent: "Το αίτημα αποθηκεύτηκε. Ελέγξτε το email σας και πατήστε «Επαλήθευση email» για να το ενεργοποιήσετε.",
       emailOpened: "Το Gmail άνοιξε με το αίτημά σας έτοιμο. Ελέγξτε το και πατήστε Αποστολή.",
       whatsappOpened: "Το WhatsApp άνοιξε με το αίτημά σας έτοιμο. Ελέγξτε το και πατήστε Αποστολή.",
       blockedBefore: "Το πρόγραμμα περιήγησης απέκλεισε το παράθυρο. ",

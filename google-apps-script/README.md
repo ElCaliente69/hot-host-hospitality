@@ -8,7 +8,7 @@ La web se publica en GitHub Pages y no dispone de un servidor privado. Por eso n
 2. **Google Sheets (obligatorio):** registra una fila por solicitud con contacto, propiedad, consentimiento, canal, referencias de Drive y estado.
 3. **Google Drive (recomendado):** guarda las fotografias y el archivo `solicitud.json` en una carpeta privada por solicitud.
 4. **Google Calendar (opcional):** crea un evento de seguimiento tras cada solicitud. Esta desactivado por defecto.
-5. **Gmail mediante MailApp (recomendado):** envia una notificacion interna a la cuenta indicada, aunque el visitante no termine de enviar el mensaje preparado en su Gmail o WhatsApp.
+5. **Gmail mediante MailApp (recomendado):** envia directamente una notificacion interna a la cuenta indicada; el visitante no necesita abrir Gmail ni WhatsApp.
 6. **GitHub Pages (obligatorio para activar la web):** expone unicamente la URL publica `/exec` mediante una variable del repositorio.
 
 Google Sheets sustituye a lo que normalmente se llama "Excel" dentro de Google Workspace y permite descargar o exportar el registro como `.xlsx`. Una sincronizacion bidireccional con Microsoft Excel o Microsoft 365 no pertenece a Google API y requeriria una integracion separada con Microsoft Graph.
@@ -50,6 +50,8 @@ Puedes crearlos manualmente o dejar que Apps Script los cree.
 
 No ejecutes esta opcion si ya tienes recursos y aun no has guardado sus IDs, porque crearia otros nuevos.
 
+Si los recursos ya existen pero faltan sus propiedades, ejecuta `recoverWorkspaceConfiguration`. La funcion busca la hoja, carpeta y calendario existentes por nombre, elige la hoja `Hot Host - Solicitudes web` con mas filas y restaura los IDs sin crear recursos nuevos.
+
 ## 2. Crear el proyecto Apps Script
 
 1. Inicia sesion con la cuenta empresarial y abre <https://script.google.com/>.
@@ -75,9 +77,10 @@ Abre **Configuracion del proyecto > Propiedades del script** y copia las variabl
 | `GOOGLE_CALENDAR_EVENT_DURATION_MINUTES` | Si activas Calendar | Duracion; por defecto `30`. |
 | `GOOGLE_GMAIL_NOTIFICATION_ENABLED` | Si | `true` o `false`. |
 | `GOOGLE_GMAIL_NOTIFICATION_TO` | Si activas Gmail | Destinatario interno del aviso. |
+| `GOOGLE_APPS_SCRIPT_WEB_APP_URL` | Si | URL publica `/exec` usada por el boton privado de verificacion y estado. |
 | `GOOGLE_DATA_RETENTION_DAYS` | Si | Retencion; por defecto `365`. |
 
-`GOOGLE_APPS_SCRIPT_WEB_APP_URL` no se guarda como propiedad privada: se obtiene al desplegar y se usa en GitHub Pages.
+`GOOGLE_APPS_SCRIPT_WEB_APP_URL` es publica, no una credencial. Guardala tambien como propiedad del script para construir los enlaces privados con token; el token no se guarda en texto legible, solo su hash.
 
 ## 4. Autorizar y probar
 
@@ -97,7 +100,8 @@ Google solicitara autorizacion para los ambitos declarados en `appsscript.json`.
 3. En **Ejecutar como**, selecciona **Yo**.
 4. En **Quien tiene acceso**, selecciona **Cualquier usuario**.
 5. Implementa y copia la URL que termina en `/exec`.
-6. Abre esa URL en una ventana privada. Debe devolver JSON con `sheets: true` y los servicios habilitados.
+6. Guarda esa misma URL en la propiedad `GOOGLE_APPS_SCRIPT_WEB_APP_URL`.
+7. Abre la URL en una ventana privada. Debe devolver JSON con `sheets: true`, `verification: true` y los servicios habilitados.
 
 Cada cambio posterior en `Code.gs` o `appsscript.json` requiere editar la implementacion y crear una version nueva. Conservando la misma implementacion, la URL no cambia.
 
@@ -122,13 +126,23 @@ La URL publica puede permanecer en `assets/config.js`. Si quieres sustituirla si
 
 1. Abre `contacto.html` en el sitio publicado.
 2. Completa una solicitud de prueba y acepta la politica de privacidad.
-3. Comprueba que Sheets contiene una fila con la misma referencia.
+3. Comprueba que Sheets contiene una fila con estado `Pendiente de verificación`.
 4. Si adjuntaste fotos, comprueba la carpeta privada de Drive y `solicitud.json`.
-5. Si Calendar esta activo, comprueba el evento de seguimiento.
-6. Si Gmail esta activo, comprueba el aviso interno y su campo de respuesta.
-7. Comprueba que el visitante sigue viendo Gmail o WhatsApp con su consulta preparada.
+5. Abre el correo del visitante y pulsa el boton verde **Verificar email**.
+6. Comprueba que la pagina privada muestra `En proceso`, Calendar crea el seguimiento y llega el aviso interno a la empresa.
+7. Cambia en Sheets el estado a `Confirmada` o `Denegada` y vuelve a abrir el mismo enlace privado.
+8. Para `Confirmada`, escribe la cita en `appointmentAt`, preferiblemente como `dd/mm/aaaa hh:mm`.
 
-La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHub Pages y Apps Script no comparten origen. El navegador puede iniciar el envio, pero no leer la respuesta. Durante las primeras pruebas revisa **Ejecuciones** en Apps Script y usa `submissionId` para localizar cada registro.
+## Estados de una solicitud
+
+- `Pendiente de verificación`: datos y fotografias guardados; falta validar el correo del visitante.
+- `En proceso`: correo validado y solicitud notificada al negocio.
+- `Confirmada`: la pagina privada muestra tambien el valor de `appointmentAt`.
+- `Denegada`: la pagina privada conserva y muestra la denegacion; cambiar el estado no elimina la fila ni sus archivos.
+
+El equipo actualiza `status` y `appointmentAt` directamente en Sheets. El enlace del email consulta la fila en cada apertura, por lo que no hace falta generar otro enlace cuando cambia el estado.
+
+La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHub Pages y Apps Script no comparten origen. Apps Script responde con una pagina HTML minima que autoriza el marco y comunica el resultado mediante `postMessage` exclusivamente al origen configurado en `PUBLIC_SITE_URL`. Durante las primeras pruebas revisa tambien **Ejecuciones** y usa `submissionId` para localizar cada registro.
 
 ## Seguridad y limites
 

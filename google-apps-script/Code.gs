@@ -1,5 +1,5 @@
 const INTEGRATION_DEFAULTS = Object.freeze({
-  version: "2026-07-27-1",
+  version: "2026-07-27-2",
   publicSiteUrl: "https://elcaliente69.github.io/hot-host-hospitality/",
   rootFolderName: "Solicitudes_Web_Hot_Host",
   leadsSheetName: "Solicitudes web",
@@ -47,8 +47,21 @@ const LEAD_HEADERS = Object.freeze([
   "driveFolderId",
   "driveFolderUrl",
   "calendarEventId",
-  "status"
+  "status",
+  "verificationTokenHash",
+  "verificationEmailSentAt",
+  "emailVerifiedAt",
+  "internalNotificationSentAt",
+  "statusUpdatedAt",
+  "appointmentAt"
 ]);
+
+const REQUEST_STATUSES = Object.freeze({
+  pendingVerification: "Pendiente de verificación",
+  processing: "En proceso",
+  confirmed: "Confirmada",
+  denied: "Denegada"
+});
 
 const SCRIPT_PROPERTY_KEYS = Object.freeze([
   "PUBLIC_SITE_URL",
@@ -61,10 +74,16 @@ const SCRIPT_PROPERTY_KEYS = Object.freeze([
   "GOOGLE_CALENDAR_EVENT_DURATION_MINUTES",
   "GOOGLE_GMAIL_NOTIFICATION_ENABLED",
   "GOOGLE_GMAIL_NOTIFICATION_TO",
+  "GOOGLE_APPS_SCRIPT_WEB_APP_URL",
   "GOOGLE_DATA_RETENTION_DAYS"
 ]);
 
-function doGet() {
+function doGet(event) {
+  const requestToken = event && event.parameter
+    ? String(event.parameter.request || "").trim()
+    : "";
+  if (requestToken) return renderRequestStatus_(requestToken);
+
   const config = getConfiguration_();
   return jsonResponse_({
     ok: Boolean(config.spreadsheetId),
@@ -72,7 +91,8 @@ function doGet() {
       sheets: Boolean(config.spreadsheetId),
       drive: Boolean(config.driveFolderId),
       calendar: Boolean(config.calendarFollowupEnabled && config.calendarId),
-      gmail: Boolean(config.gmailNotificationEnabled && config.notificationEmail)
+      gmail: Boolean(config.gmailNotificationEnabled && config.notificationEmail),
+      verification: Boolean(config.webAppUrl)
     },
     service: "Hot Host Google Workspace integration",
     timeZone: Session.getScriptTimeZone(),
@@ -82,7 +102,6 @@ function doGet() {
 
 function doPost(event) {
   let requestFolder = null;
-  let calendarEvent = null;
   let reservationCreated = false;
   let leadStored = false;
 
@@ -93,13 +112,13 @@ function doPost(event) {
     }
 
     const payload = JSON.parse(rawPayload);
-    if (payload.website) return jsonResponse_({ ok: true, ignored: true });
+    if (payload.website) return postResponse_({ ok: true, ignored: true });
 
     const config = getConfiguration_();
     validatePayload_(payload, config);
     const sheet = getLeadsSheet_(config);
     if (!reserveSubmission_(payload.submissionId, sheet)) {
-      return jsonResponse_({
+      return postResponse_({
         ok: true,
         duplicate: true,
         submissionId: payload.submissionId,
@@ -119,51 +138,44 @@ function doPost(event) {
       storeRequestMetadata_(requestFolder, payload, storedPhotos);
     }
 
-    try {
-      calendarEvent = createCalendarFollowup_(payload, config);
-    } catch (calendarError) {
-      warnings.push("calendar");
-      console.error(calendarError);
-    }
-
     const receivedAt = new Date().toISOString();
+    const verificationToken = createVerificationToken_();
     const record = buildLeadRecord_(
       payload,
       receivedAt,
       storedPhotos,
       requestFolder,
-      calendarEvent
+      null,
+      hashVerificationToken_(verificationToken)
     );
-    appendLead_(sheet, record);
+    const leadRow = appendLead_(sheet, record);
     leadStored = true;
     markSubmissionProcessed_(payload.submissionId);
 
-    let notificationSent = false;
+    let verificationSent = false;
     try {
-      notificationSent = sendLeadNotification_(payload, record, config);
-    } catch (notificationError) {
-      warnings.push("gmail");
-      console.error(notificationError);
+      verificationSent = sendVerificationEmail_(payload, verificationToken, config);
+      if (verificationSent) {
+        const verificationEmailSentAt = new Date().toISOString();
+        updateLeadFields_(sheet, leadRow, { verificationEmailSentAt: verificationEmailSentAt });
+        record.verificationEmailSentAt = verificationEmailSentAt;
+      }
+    } catch (verificationError) {
+      warnings.push("verification-email");
+      console.error(verificationError);
     }
 
-    return jsonResponse_({
+    return postResponse_({
       ok: true,
       submissionId: payload.submissionId,
       filesStored: storedPhotos.length,
-      calendarCreated: Boolean(calendarEvent),
-      notificationSent: notificationSent,
+      verificationSent: verificationSent,
+      status: record.status,
       warnings: warnings,
       version: INTEGRATION_DEFAULTS.version
     });
   } catch (error) {
     if (!leadStored) {
-      if (calendarEvent) {
-        try {
-          calendarEvent.deleteEvent();
-        } catch (calendarCleanupError) {
-          console.error(calendarCleanupError);
-        }
-      }
       if (requestFolder) {
         try {
           requestFolder.setTrashed(true);
@@ -176,7 +188,7 @@ function doPost(event) {
       releaseSubmissionReservation_(extractSubmissionId_(event));
     }
     console.error(error);
-    return jsonResponse_({
+    return postResponse_({
       ok: false,
       error: String(error.message || error),
       version: INTEGRATION_DEFAULTS.version
@@ -209,6 +221,11 @@ function getConfiguration_() {
     ),
     gmailNotificationEnabled: getBooleanProperty_(properties, "GOOGLE_GMAIL_NOTIFICATION_ENABLED", false),
     notificationEmail: getStringProperty_(properties, "GOOGLE_GMAIL_NOTIFICATION_TO", ""),
+    webAppUrl: getStringProperty_(
+      properties,
+      "GOOGLE_APPS_SCRIPT_WEB_APP_URL",
+      ScriptApp.getService().getUrl() || ""
+    ),
     retentionDays: getIntegerProperty_(
       properties,
       "GOOGLE_DATA_RETENTION_DAYS",
@@ -401,6 +418,18 @@ function ensureLeadHeaders_(sheet) {
   });
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight("bold");
   sheet.setFrozenRows(1);
+  const statusColumn = headers.indexOf("status") + 1;
+  if (statusColumn && !sheet.getRange(2, statusColumn).getDataValidation()) {
+    const allowedStatuses = Object.keys(REQUEST_STATUSES).map(function (key) {
+      return REQUEST_STATUSES[key];
+    });
+    const statusRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(allowedStatuses, true)
+      .setAllowInvalid(true)
+      .build();
+    sheet.getRange(2, statusColumn, Math.max(1, sheet.getMaxRows() - 1), 1)
+      .setDataValidation(statusRule);
+  }
   return headers;
 }
 
@@ -423,6 +452,39 @@ function appendLead_(sheet, record) {
   });
   const row = Math.max(2, sheet.getLastRow() + 1);
   sheet.getRange(row, 1, 1, values.length).setNumberFormat("@").setValues([values]);
+  const appointmentColumn = headers.indexOf("appointmentAt") + 1;
+  if (appointmentColumn) sheet.getRange(row, appointmentColumn).setNumberFormat("dd/mm/yyyy hh:mm");
+  return row;
+}
+
+function getLeadRecord_(sheet, row) {
+  const headers = ensureLeadHeaders_(sheet);
+  const values = sheet.getRange(row, 1, 1, headers.length).getValues()[0];
+  return headers.reduce(function (record, header, index) {
+    record[header] = values[index];
+    return record;
+  }, {});
+}
+
+function updateLeadFields_(sheet, row, updates) {
+  const headers = ensureLeadHeaders_(sheet);
+  Object.keys(updates).forEach(function (header) {
+    const column = headers.indexOf(header) + 1;
+    if (!column) throw new Error("Unknown lead field: " + header);
+    sheet.getRange(row, column).setValue(protectSheetValue_(updates[header]));
+  });
+}
+
+function findVerificationRow_(sheet, tokenHash) {
+  const headers = ensureLeadHeaders_(sheet);
+  const tokenColumn = headers.indexOf("verificationTokenHash") + 1;
+  if (!tokenColumn || sheet.getLastRow() < 2) return 0;
+  const match = sheet
+    .getRange(2, tokenColumn, sheet.getLastRow() - 1, 1)
+    .createTextFinder(String(tokenHash))
+    .matchEntireCell(true)
+    .findNext();
+  return match ? match.getRow() : 0;
 }
 
 function protectSheetValue_(value) {
@@ -493,7 +555,7 @@ function storeRequestMetadata_(requestFolder, payload, storedPhotos) {
   );
 }
 
-function buildLeadRecord_(payload, receivedAt, storedPhotos, requestFolder, calendarEvent) {
+function buildLeadRecord_(payload, receivedAt, storedPhotos, requestFolder, calendarEvent, verificationTokenHash) {
   const property = payload.property;
   return {
     submissionId: payload.submissionId,
@@ -525,8 +587,317 @@ function buildLeadRecord_(payload, receivedAt, storedPhotos, requestFolder, cale
     driveFolderId: requestFolder ? requestFolder.getId() : "",
     driveFolderUrl: requestFolder ? requestFolder.getUrl() : "",
     calendarEventId: calendarEvent ? calendarEvent.getId() : "",
-    status: "Nuevo"
+    status: REQUEST_STATUSES.pendingVerification,
+    verificationTokenHash: verificationTokenHash,
+    verificationEmailSentAt: "",
+    emailVerifiedAt: "",
+    internalNotificationSentAt: "",
+    statusUpdatedAt: receivedAt,
+    appointmentAt: ""
   };
+}
+
+function createVerificationToken_() {
+  return (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, "");
+}
+
+function hashVerificationToken_(token) {
+  return Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    String(token),
+    Utilities.Charset.UTF_8
+  ).map(function (value) {
+    return (value + 256).toString(16).slice(-2);
+  }).join("");
+}
+
+function buildVerificationUrl_(token, config) {
+  const webAppUrl = String(config.webAppUrl || "").trim().replace(/[?#].*$/, "");
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(webAppUrl)) {
+    throw new Error("Google Apps Script web app URL is not configured for verification");
+  }
+  return webAppUrl + "?request=" + encodeURIComponent(token);
+}
+
+function getVerificationCopy_(language) {
+  if (String(language || "").toLowerCase() !== "es") {
+    return {
+      emailSubject: "Verify your email - Hot Host Hospitality",
+      greeting: "Hello",
+      emailIntro: "We have received your property audit request. Verify your email to activate it and allow our team to review it.",
+      verifyButton: "Verify email",
+      emailNote: "This private button will continue to show the current status of your request. Do not share it.",
+      emailFooter: "If you did not send this request, you can ignore this message.",
+      pageTitle: "Request status - Hot Host Hospitality",
+      verifiedLabel: "Email verified",
+      verifiedTitle: "Email verified",
+      verifiedText: "You can close this window and use the private button in your email whenever you want to check the status of your request.",
+      statusTitle: "Current status",
+      reference: "Reference",
+      appointment: "Audit or appointment date",
+      appointmentPending: "The date has not been assigned yet.",
+      close: "Close window",
+      invalidTitle: "Invalid private link",
+      invalidText: "This verification link is invalid or no longer matches a request.",
+      errorTitle: "We could not load the request",
+      errorText: "Please try again shortly or contact direccion@hhosthospitality.com.",
+      statuses: {
+        pending: "Pending verification",
+        processing: "In progress",
+        confirmed: "Confirmed",
+        denied: "Declined"
+      }
+    };
+  }
+  return {
+    emailSubject: "Verifica tu email - Hot Host Hospitality",
+    greeting: "Hola",
+    emailIntro: "Hemos recibido tu solicitud de auditoría para una propiedad. Verifica tu email para activarla y permitir que nuestro equipo la revise.",
+    verifyButton: "Verificar email",
+    emailNote: "Este botón privado seguirá mostrando el estado actualizado de tu solicitud. No lo compartas.",
+    emailFooter: "Si no enviaste esta solicitud, puedes ignorar este mensaje.",
+    pageTitle: "Estado de solicitud - Hot Host Hospitality",
+    verifiedLabel: "Email verificado",
+    verifiedTitle: "Mail verificado",
+    verifiedText: "Puedes cerrar esta ventana y usar el botón privado de tu email cuando quieras consultar el estado de tu solicitud.",
+    statusTitle: "Estado actual",
+    reference: "Referencia",
+    appointment: "Fecha de cita o auditoría",
+    appointmentPending: "La fecha todavía no ha sido asignada.",
+    close: "Cerrar ventana",
+    invalidTitle: "Enlace privado no válido",
+    invalidText: "Este enlace de verificación no es válido o ya no corresponde a una solicitud.",
+    errorTitle: "No pudimos cargar la solicitud",
+    errorText: "Inténtalo de nuevo en unos minutos o escribe a direccion@hhosthospitality.com.",
+    statuses: {
+      pending: REQUEST_STATUSES.pendingVerification,
+      processing: REQUEST_STATUSES.processing,
+      confirmed: REQUEST_STATUSES.confirmed,
+      denied: REQUEST_STATUSES.denied
+    }
+  };
+}
+
+function sendVerificationEmail_(payload, token, config) {
+  const copy = getVerificationCopy_(payload.language);
+  const verificationUrl = buildVerificationUrl_(token, config);
+  const contactName = sanitiseText_(payload.contact.name, "", 80);
+  const greeting = contactName ? copy.greeting + " " + contactName + "," : copy.greeting + ",";
+  const body = [
+    greeting,
+    "",
+    copy.emailIntro,
+    "",
+    copy.verifyButton + ": " + verificationUrl,
+    "",
+    copy.emailNote,
+    copy.emailFooter
+  ].join("\n");
+  const htmlBody = [
+    '<div style="margin:0;padding:32px 16px;background:#f5f1e8;color:#201a12;font-family:Arial,sans-serif">',
+    '<div style="max-width:620px;margin:0 auto;overflow:hidden;border:1px solid #dfd3bd;border-radius:20px;background:#fffdf9;box-shadow:0 18px 50px rgba(52,36,13,.12)">',
+    '<div style="padding:24px 30px;background:#131313;color:#fff"><div style="font-size:22px;font-weight:800;letter-spacing:.14em">HOT HOST</div><div style="margin-top:4px;color:#e1aa3f;font-size:11px;font-weight:700;letter-spacing:.24em">HOSPITALITY</div></div>',
+    '<div style="padding:34px 30px 30px"><p style="margin:0 0 18px;font-size:17px">' + escapeHtml_(greeting) + '</p>',
+    '<h1 style="margin:0 0 14px;color:#201a12;font-family:Georgia,serif;font-size:30px;line-height:1.15">' + escapeHtml_(copy.verifyButton) + '</h1>',
+    '<p style="margin:0 0 26px;color:#645846;font-size:16px;line-height:1.65">' + escapeHtml_(copy.emailIntro) + '</p>',
+    '<p style="margin:0 0 28px;text-align:center"><a href="' + escapeHtml_(verificationUrl) + '" style="display:inline-block;padding:15px 26px;border-radius:999px;background:#198754;color:#fff;font-size:16px;font-weight:800;text-decoration:none">' + escapeHtml_(copy.verifyButton) + '</a></p>',
+    '<div style="padding:16px 18px;border-left:4px solid #e1aa3f;border-radius:8px;background:#faf5e9;color:#665943;font-size:14px;line-height:1.55">' + escapeHtml_(copy.emailNote) + '</div>',
+    '<p style="margin:24px 0 0;color:#8a7e6c;font-size:12px;line-height:1.5">' + escapeHtml_(copy.emailFooter) + '</p></div></div></div>'
+  ].join("");
+  const message = {
+    to: payload.contact.email,
+    subject: copy.emailSubject,
+    body: body,
+    htmlBody: htmlBody,
+    name: "Hot Host Hospitality"
+  };
+  if (config.notificationEmail) message.replyTo = config.notificationEmail;
+  MailApp.sendEmail(message);
+  return true;
+}
+
+function renderRequestStatus_(token) {
+  const cleanToken = String(token || "").trim();
+  if (!/^[a-f0-9]{64}$/i.test(cleanToken)) {
+    return buildRequestMessagePage_(getVerificationCopy_("es"), "invalid");
+  }
+
+  try {
+    const config = getConfiguration_();
+    const sheet = getLeadsSheet_(config);
+    const row = findVerificationRow_(sheet, hashVerificationToken_(cleanToken));
+    if (!row) return buildRequestMessagePage_(getVerificationCopy_("es"), "invalid");
+
+    const lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    let record;
+    try {
+      record = getLeadRecord_(sheet, row);
+      const now = new Date().toISOString();
+      if (!record.emailVerifiedAt) {
+        const nextStatus = getRequestStatusKey_(record.status) === "pending"
+          ? REQUEST_STATUSES.processing
+          : String(record.status || REQUEST_STATUSES.processing);
+        updateLeadFields_(sheet, row, {
+          emailVerifiedAt: now,
+          status: nextStatus,
+          statusUpdatedAt: now
+        });
+        record.emailVerifiedAt = now;
+        record.status = nextStatus;
+        record.statusUpdatedAt = now;
+      }
+
+      const payload = buildPayloadFromLeadRecord_(record);
+      if (config.calendarFollowupEnabled && !record.calendarEventId) {
+        try {
+          const calendarEvent = createCalendarFollowup_(payload, config);
+          if (calendarEvent) {
+            record.calendarEventId = calendarEvent.getId();
+            updateLeadFields_(sheet, row, { calendarEventId: record.calendarEventId });
+          }
+        } catch (calendarError) {
+          console.error(calendarError);
+        }
+      }
+
+      if (config.gmailNotificationEnabled && !record.internalNotificationSentAt) {
+        try {
+          if (sendLeadNotification_(payload, record, config)) {
+            record.internalNotificationSentAt = new Date().toISOString();
+            updateLeadFields_(sheet, row, {
+              internalNotificationSentAt: record.internalNotificationSentAt
+            });
+          }
+        } catch (notificationError) {
+          console.error(notificationError);
+        }
+      }
+    } finally {
+      lock.releaseLock();
+    }
+    return buildRequestStatusPage_(record);
+  } catch (error) {
+    console.error(error);
+    return buildRequestMessagePage_(getVerificationCopy_("es"), "error");
+  }
+}
+
+function buildPayloadFromLeadRecord_(record) {
+  return {
+    submissionId: String(record.submissionId || ""),
+    submittedAt: String(record.submittedAt || ""),
+    language: String(record.language || "es"),
+    sourceUrl: String(record.sourceUrl || ""),
+    deliveryMethod: String(record.deliveryMethod || "email"),
+    consent: {
+      accepted: /^(true|1|yes)$/i.test(String(record.consentAccepted || "")),
+      text: String(record.consentText || "")
+    },
+    contact: {
+      relationship: String(record.relationship || ""),
+      name: String(record.name || ""),
+      email: String(record.email || ""),
+      phone: String(record.phone || "")
+    },
+    property: {
+      street: String(record.street || ""),
+      postalCode: String(record.postalCode || ""),
+      city: String(record.city || ""),
+      country: String(record.country || ""),
+      type: String(record.propertyType || ""),
+      bedrooms: String(record.bedrooms || ""),
+      bathrooms: String(record.bathrooms || ""),
+      floor: String(record.floor || ""),
+      totalFloors: String(record.totalFloors || ""),
+      touristRental: String(record.touristRental || ""),
+      listingUrl: String(record.listingUrl || ""),
+      photosUrl: String(record.photosUrl || ""),
+      comments: String(record.comments || "")
+    }
+  };
+}
+
+function getRequestStatusKey_(status) {
+  const normalized = String(status || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+  if (normalized.indexOf("deneg") !== -1 || normalized.indexOf("declin") !== -1) return "denied";
+  if (normalized.indexOf("confirm") !== -1) return "confirmed";
+  if (normalized.indexOf("pend") !== -1 || normalized.indexOf("verific") !== -1) return "pending";
+  return "processing";
+}
+
+function formatAppointment_(value) {
+  if (!value) return "";
+  let date = value instanceof Date ? value : null;
+  const text = String(value).trim();
+  if (!date) {
+    const localMatch = text.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:[ T](\d{1,2}):(\d{2}))?$/);
+    if (localMatch) {
+      date = new Date(
+        Number(localMatch[3]),
+        Number(localMatch[2]) - 1,
+        Number(localMatch[1]),
+        Number(localMatch[4] || 0),
+        Number(localMatch[5] || 0)
+      );
+    } else {
+      date = new Date(text);
+    }
+  }
+  if (!date || Number.isNaN(date.getTime())) return text;
+  return Utilities.formatDate(date, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
+}
+
+function buildRequestStatusPage_(record) {
+  const copy = getVerificationCopy_(record.language);
+  const statusKey = getRequestStatusKey_(record.status);
+  const statusLabel = copy.statuses[statusKey];
+  const appointment = statusKey === "confirmed" ? formatAppointment_(record.appointmentAt) : "";
+  const appointmentHtml = statusKey === "confirmed"
+    ? '<div class="appointment"><span>' + escapeHtml_(copy.appointment) + '</span><strong>' +
+      escapeHtml_(appointment || copy.appointmentPending) + '</strong></div>'
+    : "";
+  const html = '<!doctype html><html lang="' + escapeHtml_(record.language || "es") + '"><head>' +
+    '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<meta name="robots" content="noindex,nofollow"><title>' + escapeHtml_(copy.pageTitle) + '</title>' +
+    requestPageStyles_() + '</head><body><main class="card">' +
+    '<div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div>' +
+    '<div class="verified">&#10003; ' + escapeHtml_(copy.verifiedLabel) + '</div>' +
+    '<h1>' + escapeHtml_(copy.verifiedTitle) + '</h1><p class="lead">' + escapeHtml_(copy.verifiedText) + '</p>' +
+    '<section class="status"><span>' + escapeHtml_(copy.statusTitle) + '</span><strong class="pill ' + statusKey + '">' + escapeHtml_(statusLabel) + '</strong></section>' +
+    appointmentHtml + '<p class="reference">' + escapeHtml_(copy.reference) + ': <strong>' + escapeHtml_(record.submissionId) + '</strong></p>' +
+    '<button type="button" onclick="window.close()">' + escapeHtml_(copy.close) + '</button>' +
+    '</main></body></html>';
+  return HtmlService.createHtmlOutput(html).setTitle(copy.pageTitle);
+}
+
+function buildRequestMessagePage_(copy, kind) {
+  const isInvalid = kind === "invalid";
+  const title = isInvalid ? copy.invalidTitle : copy.errorTitle;
+  const text = isInvalid ? copy.invalidText : copy.errorText;
+  const html = '<!doctype html><html lang="es"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">' +
+    '<title>' + escapeHtml_(title) + '</title>' + requestPageStyles_() + '</head><body>' +
+    '<main class="card"><div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div>' +
+    '<h1>' + escapeHtml_(title) + '</h1><p class="lead">' + escapeHtml_(text) + '</p></main></body></html>';
+  return HtmlService.createHtmlOutput(html).setTitle(title);
+}
+
+function requestPageStyles_() {
+  return '<style>:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;background:radial-gradient(circle at top,#fff8e7,#eee4d2 70%);color:#241d14;font-family:Arial,sans-serif}.card{width:min(680px,calc(100vw - 32px));padding:38px;border:1px solid #dfd0b6;border-radius:26px;background:#fffdf9;box-shadow:0 24px 70px rgba(62,43,17,.16)}.brand{margin:-38px -38px 32px;padding:25px 38px;border-radius:26px 26px 0 0;background:#131313;color:#fff}.brand strong{display:block;font-size:22px;letter-spacing:.14em}.brand span{display:block;margin-top:4px;color:#e1aa3f;font-size:11px;font-weight:800;letter-spacing:.24em}.verified{display:inline-flex;gap:8px;align-items:center;padding:8px 13px;border-radius:999px;background:#e6f5eb;color:#126c3e;font-size:13px;font-weight:800}h1{margin:18px 0 12px;font:700 clamp(32px,7vw,52px)/1.05 Georgia,serif}.lead{margin:0;color:#685c49;font-size:17px;line-height:1.65}.status,.appointment{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:28px;padding:18px 20px;border:1px solid #eadfcf;border-radius:16px;background:#faf6ed}.status>span,.appointment span{color:#776a57;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.pill{padding:8px 13px;border-radius:999px;font-size:14px}.pill.pending{background:#fff2c7;color:#725200}.pill.processing{background:#e8f0ff;color:#254d91}.pill.confirmed{background:#e6f5eb;color:#126c3e}.pill.denied{background:#fbe8e8;color:#963535}.appointment strong{text-align:right}.reference{margin:22px 0 0;color:#817563;font-size:13px;overflow-wrap:anywhere}button{margin-top:28px;padding:13px 21px;border:0;border-radius:999px;background:#198754;color:#fff;font-size:15px;font-weight:800;cursor:pointer}@media(max-width:520px){.card{padding:26px}.brand{margin:-26px -26px 26px;padding:22px 26px}.status,.appointment{align-items:flex-start;flex-direction:column}.appointment strong{text-align:left}}</style>';
+}
+
+function escapeHtml_(value) {
+  return String(value === undefined || value === null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function createCalendarFollowup_(payload, config) {
@@ -575,13 +946,14 @@ function sendLeadNotification_(payload, record, config) {
   if (!config.gmailNotificationEnabled) return false;
   if (!config.notificationEmail) throw new Error("Gmail notification address is not configured");
 
-  const subject = "Nueva solicitud web - " +
+  const subject = "Nueva solicitud web verificada - " +
     sanitiseText_(payload.contact.name, "Contacto", 60) + " - " +
     sanitiseText_(payload.property.city, "Sin ciudad", 40);
   const body = [
-    "Nueva solicitud recibida desde la web de Hot Host Hospitality.",
+    "Nueva solicitud con email verificado recibida desde la web de Hot Host Hospitality.",
     "",
     "Referencia: " + payload.submissionId,
+    "Estado: " + record.status,
     "Nombre: " + payload.contact.name,
     "Email: " + payload.contact.email,
     "Telefono: " + payload.contact.phone,
@@ -697,6 +1069,71 @@ function createWorkspaceResources() {
   return testConfiguration();
 }
 
+function recoverWorkspaceConfiguration() {
+  const properties = PropertiesService.getScriptProperties();
+  const updates = {};
+
+  function setIfMissing(name, value) {
+    const currentValue = properties.getProperty(name);
+    if ((!currentValue || !String(currentValue).trim()) && value !== undefined && value !== null && value !== "") {
+      updates[name] = String(value);
+    }
+  }
+
+  setIfMissing("PUBLIC_SITE_URL", INTEGRATION_DEFAULTS.publicSiteUrl);
+  setIfMissing("GOOGLE_SHEETS_LEADS_SHEET", INTEGRATION_DEFAULTS.leadsSheetName);
+  setIfMissing("GOOGLE_CALENDAR_FOLLOWUP_DELAY_HOURS", INTEGRATION_DEFAULTS.followupDelayHours);
+  setIfMissing("GOOGLE_CALENDAR_EVENT_DURATION_MINUTES", INTEGRATION_DEFAULTS.eventDurationMinutes);
+  setIfMissing("GOOGLE_GMAIL_NOTIFICATION_ENABLED", "true");
+  setIfMissing("GOOGLE_GMAIL_NOTIFICATION_TO", Session.getEffectiveUser().getEmail());
+  setIfMissing("GOOGLE_DATA_RETENTION_DAYS", INTEGRATION_DEFAULTS.retentionDays);
+  setIfMissing("GOOGLE_APPS_SCRIPT_WEB_APP_URL", ScriptApp.getService().getUrl());
+
+  if (!properties.getProperty("GOOGLE_SHEETS_SPREADSHEET_ID")) {
+    const files = DriveApp.getFilesByType(MimeType.GOOGLE_SHEETS);
+    let bestSpreadsheetId = "";
+    let bestScore = -1;
+    while (files.hasNext()) {
+      const file = files.next();
+      try {
+        const spreadsheet = SpreadsheetApp.openById(file.getId());
+        const sheet = spreadsheet.getSheetByName(INTEGRATION_DEFAULTS.leadsSheetName);
+        if (!sheet) continue;
+        const preferredName = file.getName() === "Hot Host - Solicitudes web" ? 100000 : 0;
+        const relatedName = /hot host|solicitud/i.test(file.getName()) ? 10000 : 0;
+        const score = preferredName + relatedName + sheet.getLastRow();
+        if (score > bestScore) {
+          bestSpreadsheetId = file.getId();
+          bestScore = score;
+        }
+      } catch (spreadsheetError) {
+        console.error(spreadsheetError);
+      }
+    }
+    if (!bestSpreadsheetId) throw new Error("A spreadsheet with the Solicitudes web tab was not found");
+    updates.GOOGLE_SHEETS_SPREADSHEET_ID = bestSpreadsheetId;
+  }
+
+  if (!properties.getProperty("GOOGLE_DRIVE_FOLDER_ID")) {
+    const folders = DriveApp.getFoldersByName(INTEGRATION_DEFAULTS.rootFolderName);
+    if (!folders.hasNext()) throw new Error("Existing Hot Host Drive folder was not found");
+    updates.GOOGLE_DRIVE_FOLDER_ID = folders.next().getId();
+  }
+
+  if (!properties.getProperty("GOOGLE_CALENDAR_ID")) {
+    const calendars = CalendarApp.getCalendarsByName("Hot Host - Seguimiento web");
+    if (calendars.length) {
+      updates.GOOGLE_CALENDAR_ID = calendars[0].getId();
+      setIfMissing("GOOGLE_CALENDAR_FOLLOWUP_ENABLED", "true");
+    }
+  }
+
+  if (Object.keys(updates).length) properties.setProperties(updates, false);
+  const result = testConfiguration();
+  console.log(JSON.stringify({ recovered: Object.keys(updates), configuration: result }));
+  return result;
+}
+
 function getConfigurationChecklist() {
   const properties = PropertiesService.getScriptProperties();
   const result = {};
@@ -716,6 +1153,7 @@ function testConfiguration() {
     spreadsheetName: sheet.getParent().getName(),
     sheetName: sheet.getName(),
     publicSiteUrl: config.publicSiteUrl,
+    webAppUrl: config.webAppUrl,
     drive: null,
     calendar: null,
     gmail: null,
@@ -848,4 +1286,25 @@ function jsonResponse_(value) {
   return ContentService
     .createTextOutput(JSON.stringify(value))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function postResponse_(value) {
+  const siteUrl = getStringProperty_(
+    PropertiesService.getScriptProperties(),
+    "PUBLIC_SITE_URL",
+    INTEGRATION_DEFAULTS.publicSiteUrl
+  );
+  const originMatch = String(siteUrl).match(/^https:\/\/[^/]+/i);
+  const targetOrigin = originMatch ? originMatch[0] : "*";
+  const result = JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+  const html = '<!doctype html><html><head><meta charset="utf-8"></head><body>' +
+    '<script>var message={source:"hot-host-workspace",result:' + result + '};var origin=' +
+    JSON.stringify(targetOrigin) + ';window.parent.postMessage(message,origin);' +
+    'if(window.top!==window.parent){window.top.postMessage(message,origin);}<\/script></body></html>';
+  return HtmlService
+    .createHtmlOutput(html)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }

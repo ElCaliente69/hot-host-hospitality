@@ -258,8 +258,8 @@ window.HOT_HOST_LOCALES.de = {
     commentsPlaceholder: "Ziele, Fragen oder andere relevante Informationen...",
     privacyConsent: "Ich ermächtige Hot Host Hospitality, die übermittelten Daten und Fotos ausschließlich zur Prüfung dieser Anfrage zu verwenden.",
     privacyNote: "Füge keine Personen oder sensiblen Dokumente hinzu. Du kannst die Löschung per E-Mail an direccion@hhosthospitality.com beantragen.",
-    actionsLabel: "Wähle aus, wie du die Anfrage senden möchtest",
-    sendEmail: "Per E-Mail senden →",
+    actionsLabel: "Die Anfrage wird direkt an Hot Host Hospitality gesendet",
+    sendEmail: "Anfrage senden →",
     sendWhatsapp: "Per WhatsApp senden ↗",
     validation: {
       required: "Dieses Feld ist erforderlich.",
@@ -276,6 +276,8 @@ window.HOT_HOST_LOCALES.de = {
     },
     status: {
       submissionError: "Die Anfrage konnte nicht registriert werden. Lade die Seite neu und versuche es erneut; falls das Problem weiterhin besteht, schreibe an direccion@hhosthospitality.com.",
+      submissionSending: "Die Anfrage wird sicher gesendet...",
+      submissionSent: "Die Anfrage wurde gespeichert. Öffne deine E-Mail und klicke auf „E-Mail bestätigen“, um sie zu aktivieren.",
       emailOpened: "Gmail wurde mit deiner vorbereiteten Anfrage geöffnet. Prüfe sie und klicke auf Senden.",
       whatsappOpened: "WhatsApp wurde mit deiner vorbereiteten Anfrage geöffnet. Prüfe sie und klicke auf Senden.",
       blockedBefore: "Der Browser hat das Fenster blockiert. ",
