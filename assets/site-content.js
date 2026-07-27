@@ -285,6 +285,15 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     pt: { profitability: "Rentabilidade", founder: "Fundador", legalHub: "Informação legal e privacidade", overview: "Ver página principal", legalOverview: "Ver informação legal" },
     el: { profitability: "Κερδοφορία", founder: "Ιδρυτής", legalHub: "Νομικές πληροφορίες και απόρρητο", overview: "Δείτε την κύρια σελίδα", legalOverview: "Δείτε νομικές πληροφορίες" }
   };
+  const localizedFounderPages = {
+    fr: { breadcrumb: "Fondateur", title: "L'hospitalité s'apprend sur le terrain.", intro: "Découvrez le parcours de Yunior Bacallao Alonso et le regard opérationnel qui guide Hot Host.", ctaEyebrow: "Parlons de votre hébergement", ctaTitle: "Une bonne gestion commence par une bonne compréhension du lieu." },
+    it: { breadcrumb: "Fondatore", title: "L'ospitalità si impara sul campo.", intro: "Scopri il percorso di Yunior Bacallao Alonso e il criterio operativo alla base di Hot Host.", ctaEyebrow: "Parliamo del tuo alloggio", ctaTitle: "Una buona gestione inizia dalla comprensione del luogo." },
+    de: { breadcrumb: "Gründer", title: "Gastfreundschaft lernt man an vorderster Front.", intro: "Lerne Yunior Bacallao Alonso kennen und entdecke das operative Gespür hinter Hot Host.", ctaEyebrow: "Lass uns über deine Unterkunft sprechen", ctaTitle: "Gutes Management beginnt damit, den Ort wirklich zu verstehen." },
+    pl: { breadcrumb: "Założyciel", title: "Gościnności uczy się na pierwszej linii.", intro: "Poznaj drogę Yuniora Bacallao Alonso i podejście operacyjne stojące za Hot Host.", ctaEyebrow: "Porozmawiajmy o Twoim obiekcie", ctaTitle: "Dobre zarządzanie zaczyna się od zrozumienia miejsca." },
+    nl: { breadcrumb: "Oprichter", title: "Gastvrijheid leer je in de praktijk.", intro: "Maak kennis met Yunior Bacallao Alonso en het operationele inzicht achter Hot Host.", ctaEyebrow: "Laten we het over uw accommodatie hebben", ctaTitle: "Goed beheer begint met begrip voor de plek." },
+    pt: { breadcrumb: "Fundador", title: "A hospitalidade aprende-se na linha da frente.", intro: "Conheça o percurso de Yunior Bacallao Alonso e o critério operacional por trás da Hot Host.", ctaEyebrow: "Falemos do seu alojamento", ctaTitle: "Uma boa gestão começa por compreender bem o lugar." },
+    el: { breadcrumb: "Ιδρυτής", title: "Η φιλοξενία μαθαίνεται στην πρώτη γραμμή.", intro: "Γνωρίστε τη διαδρομή του Yunior Bacallao Alonso και την επιχειρησιακή προσέγγιση πίσω από τη Hot Host.", ctaEyebrow: "Ας μιλήσουμε για το κατάλυμά σας", ctaTitle: "Η καλή διαχείριση ξεκινά από την κατανόηση του χώρου." }
+  };
   const translatedPricing = {
     fr: ["À partir de 20%", "sur les revenus"], it: ["Dal 20%", "dei ricavi"], de: ["Ab 20 %", "der Einnahmen"], pl: ["Od 20%", "przychodów"], nl: ["Vanaf 20%", "van de inkomsten"], pt: ["Desde 20%", "das receitas"], el: ["Από 20%", "των εσόδων"]
   };
@@ -293,7 +302,8 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     const localizedPrice = translatedPricing[language];
     locales[language] = Object.assign({}, english, {
       nav: localNavigation[language],
-      prices: Object.assign({}, english.prices, { "gestion-integral": localizedPrice })
+      prices: Object.assign({}, english.prices, { "gestion-integral": localizedPrice }),
+      founderPage: localizedFounderPages[language]
     });
   });
   window.HOT_HOST_EXPERIENCE = Object.freeze({ locales: locales });
