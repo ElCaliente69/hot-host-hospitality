@@ -1,5 +1,5 @@
 const INTEGRATION_DEFAULTS = Object.freeze({
-  version: "2026-07-27-4",
+  version: "2026-07-27-5",
   publicSiteUrl: "https://elcaliente69.github.io/hot-host-hospitality/",
   rootFolderName: "Solicitudes_Web_Hot_Host",
   leadsSheetName: "Solicitudes web",
@@ -711,12 +711,22 @@ function hashVerificationToken_(token) {
 }
 
 function buildVerificationUrl_(token, config) {
-  const webAppUrl = getWebAppUrl_(config);
-  return webAppUrl + "?request=" + encodeURIComponent(token);
+  return buildPublicWorkflowUrl_("request", token, config);
 }
 
 function buildAdminReviewUrl_(token, config) {
-  return getWebAppUrl_(config) + "?admin=" + encodeURIComponent(token);
+  return buildPublicWorkflowUrl_("admin", token, config);
+}
+
+function buildPublicWorkflowUrl_(parameter, token, config) {
+  if (["request", "admin"].indexOf(parameter) === -1) {
+    throw new Error("Invalid private link type");
+  }
+  const siteUrl = String(config.publicSiteUrl || "").trim().replace(/\/+$/, "");
+  if (!/^https:\/\/[^/?#]+(?:\/[^?#]*)?$/.test(siteUrl)) {
+    throw new Error("Public site URL is not configured");
+  }
+  return siteUrl + "/solicitud.html#" + parameter + "=" + encodeURIComponent(token);
 }
 
 function getWebAppUrl_(config) {

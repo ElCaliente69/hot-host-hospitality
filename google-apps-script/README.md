@@ -88,7 +88,7 @@ Abre **Configuracion del proyecto > Propiedades del script** y copia las variabl
 | `GOOGLE_APPS_SCRIPT_WEB_APP_URL` | Si | URL publica `/exec` usada por el boton privado de verificacion y estado. |
 | `GOOGLE_DATA_RETENTION_DAYS` | Si | Retencion; por defecto `365`. |
 
-`GOOGLE_APPS_SCRIPT_WEB_APP_URL` es publica, no una credencial. Guardala tambien como propiedad del script para construir los enlaces privados. Los tokens de visitante, agenda y administrador no se guardan en texto legible, solo sus hashes.
+`GOOGLE_APPS_SCRIPT_WEB_APP_URL` es publica, no una credencial. Guardala tambien como propiedad del script para abrir el backend desde los enlaces privados. Los correos enlazan primero a `solicitud.html` en el dominio del negocio; el token viaja en el fragmento `#`, que no se envia al hosting estatico, y el navegador lo redirige a Apps Script. Los tokens de visitante, agenda y administrador no se guardan en texto legible, solo sus hashes.
 
 La disponibilidad acordada esta fijada de lunes a jueves. Dentro de 11:00-14:00 se ofrecen citas de 30 minutos a las 11:00, 12:00 y 13:00, dejando 30 minutos entre ellas. Los valores horarios, margen, duracion y horizonte se pueden cambiar mediante propiedades; para cambiar los dias hay que actualizar `bookingWeekdays` en `Code.gs`.
 

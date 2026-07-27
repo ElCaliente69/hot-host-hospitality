@@ -2591,6 +2591,14 @@
     </main>`;
   }
 
+  function isContactTestMode() {
+    try {
+      return new URL(window.location.href).searchParams.get("test") === "1";
+    } catch (error) {
+      return false;
+    }
+  }
+
   function renderContact(locale) {
     const contact = locale.contact;
     const form = locale.form;
@@ -2602,7 +2610,8 @@
     const directUploadLabel = driveUploadAvailable ? `<label for="propertyPhotos">${escapeHtml(form.photosUpload)}</label>` : "";
     const legal = getSupplementalContent(activeLanguage).legal;
     const privacyLink = legal ? ` <a href="privacidad.html">${escapeHtml(legal.nav.privacy)}</a>` : "";
-    return `<main>
+    const testTool = isContactTestMode() ? `<section class="contact-test-tool" aria-labelledby="contactTestTitle"><div class="wrap"><div><span>Pruebas internas</span><h2 id="contactTestTitle">Enviar solicitud numerada</h2><p>Genera una solicitud sin fotografías. El límite de seguridad sigue siendo 5 pruebas por email cada 6 horas.</p></div><div class="contact-test-controls"><label for="contactTestEmail">Email que recibirá la verificación</label><div><input id="contactTestEmail" type="email" autocomplete="email" required placeholder="cliente@gmail.com"><button class="btn" id="contactTestSend" type="button">Enviar Test - test 1</button></div><p id="contactTestStatus" aria-live="polite"></p></div></div></section>` : "";
+    return `<main>${testTool}
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(contact.breadcrumb)}</div><div class="eyebrow">${escapeHtml(contact.eyebrow)}</div><h1>${escapeHtml(contact.title)}</h1></div></section>
       <section class="section"><div class="wrap contact-grid"><div><h2>${escapeHtml(contact.heading)}</h2><p class="lead">${escapeHtml(contact.lead)}</p><div class="contact-item"><small>${escapeHtml(contact.serviceAreaLabel)}</small><strong>${escapeHtml(contact.serviceArea)}</strong></div><div class="contact-item"><small>${escapeHtml(contact.emailLabel)}</small><strong>${escapeHtml(CONTACT_EMAIL)}</strong></div><div class="contact-item"><small>WhatsApp</small><strong>+34 600 907 716</strong></div><div class="contact-item"><small>${escapeHtml(contact.hoursLabel)}</small><strong>${escapeHtml(contact.hours)}</strong></div></div>
       <form class="contact-form" id="contactForm" novalidate>${offer}<h3>${escapeHtml(form.title)}</h3>
@@ -2971,7 +2980,7 @@
       throw new Error("Workspace request is too large");
     }
     // A native form POST reaches Apps Script without requiring a CORS response.
-    await new Promise(function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
       const targetName = `workspace-submit-${payload.submissionId}`;
       const targetFrame = document.createElement("iframe");
       const requestForm = document.createElement("form");
@@ -3280,6 +3289,9 @@
         status.textContent = locale.form.validation.review;
         status.dataset.kind = "validation";
         form.reportValidity();
+        form.dispatchEvent(new CustomEvent("hot-host-submission-result", {
+          detail: { ok: false, reason: "validation" }
+        }));
         return;
       }
 
@@ -3301,6 +3313,9 @@
       if (!workspaceEndpoint) {
         status.textContent = locale.form.status.submissionError;
         status.dataset.kind = "validation";
+        form.dispatchEvent(new CustomEvent("hot-host-submission-result", {
+          detail: { ok: false, reason: "configuration" }
+        }));
         return;
       }
 
@@ -3312,8 +3327,9 @@
       status.dataset.kind = "uploading";
       if (selectedPhotos.length) setPhotoStatus(locale.form.driveUploading, "uploading");
 
+      let workspaceResult;
       try {
-        await submitWorkspaceRequest(workspaceEndpoint, selectedPhotos, {
+        workspaceResult = await submitWorkspaceRequest(workspaceEndpoint, selectedPhotos, {
           submissionId: submissionId,
           submittedAt: new Date().toISOString(),
           language: activeLanguage,
@@ -3352,6 +3368,9 @@
         status.textContent = locale.form.status.submissionError;
         status.dataset.kind = "validation";
         submitButtons.forEach(function (button) { button.disabled = false; });
+        form.dispatchEvent(new CustomEvent("hot-host-submission-result", {
+          detail: { ok: false, reason: "submission", error: String(error.message || error) }
+        }));
         return;
       }
 
@@ -3362,6 +3381,120 @@
       selectedPropertyPhotos = [];
       updatePropertyFields();
       updateRentalFields();
+      form.dispatchEvent(new CustomEvent("hot-host-submission-result", {
+        detail: { ok: true, result: workspaceResult }
+      }));
+    });
+  }
+
+  function setupContactTestTool() {
+    const tool = document.querySelector(".contact-test-tool");
+    if (!tool) return;
+    const emailInput = tool.querySelector("#contactTestEmail");
+    const sendButton = tool.querySelector("#contactTestSend");
+    const status = tool.querySelector("#contactTestStatus");
+    const workspaceEndpoint = getGoogleAppsScriptEndpoint();
+    const storageKey = "hotHostContactTestCount";
+    const emailStorageKey = "hotHostContactTestEmail";
+    const contactForm = document.querySelector("#contactForm");
+    let testCount = Number.parseInt(window.localStorage.getItem(storageKey) || "0", 10);
+    if (!Number.isFinite(testCount) || testCount < 0) testCount = 0;
+    const privateParameters = new URLSearchParams(window.location.hash.slice(1));
+    emailInput.value = privateParameters.get("testEmail") || window.localStorage.getItem(emailStorageKey) || "";
+
+    function updateButtonLabel() {
+      sendButton.textContent = `Enviar Test - test ${testCount + 1}`;
+    }
+
+    updateButtonLabel();
+    const canSubmitTests = window.location.protocol === "https:" && window.location.hostname === "hhosthospitality.com";
+    if (!canSubmitTests) {
+      status.textContent = "El envío de pruebas solo está habilitado en https://hhosthospitality.com/contacto.html?test=1";
+      status.dataset.kind = "warning";
+    }
+
+    let testPending = false;
+    contactForm.addEventListener("hot-host-submission-result", function (event) {
+      if (!testPending) return;
+      testPending = false;
+      const detail = event.detail || {};
+      const testNumber = testCount + 1;
+      const testName = `Test - test ${testNumber}`;
+      if (detail.ok) {
+        testCount = testNumber;
+        window.localStorage.setItem(storageKey, String(testCount));
+        window.localStorage.setItem(emailStorageKey, emailInput.value);
+        updateButtonLabel();
+        if (detail.result && detail.result.verificationSent === false) {
+          status.textContent = `${testName} se guardó, pero Google no aceptó el correo de verificación.`;
+          status.dataset.kind = "warning";
+        } else {
+          status.textContent = `${testName} enviado a ${emailInput.value}.`;
+          status.dataset.kind = "success";
+        }
+      } else {
+        status.textContent = `No se pudo enviar ${testName}. Revisa el límite de pruebas o la ejecución de Apps Script.`;
+        status.dataset.kind = "error";
+      }
+      sendButton.disabled = false;
+      emailInput.disabled = false;
+    });
+
+    sendButton.addEventListener("click", function () {
+      emailInput.value = String(emailInput.value || "").trim();
+      if (!emailInput.reportValidity()) return;
+      if (!workspaceEndpoint) {
+        status.textContent = "La integración de Google Workspace no está configurada.";
+        status.dataset.kind = "error";
+        return;
+      }
+
+      const testNumber = testCount + 1;
+      const testName = `Test - test ${testNumber}`;
+      const recipient = emailInput.value;
+      const setValue = function (selector, value) {
+        const control = contactForm.querySelector(selector);
+        control.value = value;
+        control.dispatchEvent(new Event("input", { bubbles: true }));
+        control.dispatchEvent(new Event("change", { bubbles: true }));
+      };
+
+      selectedPropertyPhotos = [];
+      contactForm.reset();
+      setValue("#contactRole", "owner");
+      setValue("#name", testName);
+      setValue("#email", recipient);
+      setValue("#phoneCountry", "ES");
+      setValue("#phone", "600000000");
+      setValue("#streetAddress", `Calle Test ${testNumber}`);
+      setValue("#postalCode", "41001");
+      setValue("#city", "Sevilla");
+      setValue("#propertyCountry", "ES");
+      setValue("#propertyType", "flat");
+      setValue("#bedrooms", "1");
+      setValue("#bathrooms", "1");
+      setValue("#floor", "1");
+      setValue("#touristRental", "yes");
+      setValue("#listingUrl", "https://hhosthospitality.com/");
+      setValue("#photosUrl", "");
+      setValue("#message", testName);
+      const consent = contactForm.querySelector("#privacyConsent");
+      consent.checked = true;
+      consent.dispatchEvent(new Event("change", { bubbles: true }));
+
+      if (!canSubmitTests) {
+        status.textContent = `${testName} preparado en el formulario. El envío real solo está habilitado en hhosthospitality.com.`;
+        status.dataset.kind = "warning";
+        contactForm.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      testPending = true;
+      sendButton.disabled = true;
+      emailInput.disabled = true;
+      status.textContent = `Enviando ${testName}...`;
+      status.dataset.kind = "sending";
+      contactForm.requestSubmit(contactForm.querySelector("button[type='submit']"));
     });
   }
 
@@ -4603,6 +4736,7 @@
     setupShellInteractions(locale);
     setupCredentialsDisclosure();
     setupContactForm(locale, formState);
+    setupContactTestTool();
     setupProcessDialog();
     setupEarningsCalculator(locale);
     setupProfitabilityComparison();
