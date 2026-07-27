@@ -8,7 +8,7 @@ La web se publica en GitHub Pages y no dispone de un servidor privado. Por eso n
 2. **Google Sheets (obligatorio):** registra una fila por solicitud con contacto, propiedad, consentimiento, canal, referencias de Drive y estado.
 3. **Google Drive (recomendado):** guarda las fotografias y el archivo `solicitud.json` en una carpeta privada por solicitud.
 4. **Google Calendar y Google Meet (recomendado):** publica los huecos libres; cuando el visitante selecciona uno, espera la confirmacion final del administrador y solo entonces crea el evento con Meet.
-5. **Gmail mediante MailApp (recomendado):** envia la revision al administrador, la decision al visitante y la confirmacion final sin abrir Gmail ni WhatsApp.
+5. **Gmail API con permiso `gmail.send` (recomendado):** envia la revision al administrador, la decision al visitante y la confirmacion final sin permitir lectura ni borrado del correo.
 6. **GitHub Pages (obligatorio para activar la web):** expone unicamente la URL publica `/exec` mediante una variable del repositorio.
 
 Google Sheets sustituye a lo que normalmente se llama "Excel" dentro de Google Workspace y permite descargar o exportar el registro como `.xlsx`. Una sincronizacion bidireccional con Microsoft Excel o Microsoft 365 no pertenece a Google API y requeriria una integracion separada con Microsoft Graph.
@@ -62,7 +62,7 @@ Si los recursos ya existen pero faltan sus propiedades, ejecuta `recoverWorkspac
 5. Sustituye el manifiesto por `appsscript.json`.
 6. Confirma que la zona horaria es `Europe/Madrid` o la que corresponda al negocio.
 
-El manifiesto habilita el servicio avanzado **Calendar API v3**, necesario para generar Google Meet. Si el proyecto usa un proyecto de Google Cloud estandar, comprueba tambien que **Google Calendar API** este habilitada en Google Cloud Console.
+El manifiesto habilita los servicios avanzados **Calendar API v3**, necesario para generar Google Meet, y **Gmail API v1**, usada solo con el permiso `gmail.send` para entregar mensajes sin conceder lectura ni borrado del correo. Si el proyecto usa un proyecto de Google Cloud estandar, comprueba tambien que **Google Calendar API** y **Gmail API** esten habilitadas en Google Cloud Console.
 
 ## 3. Configurar propiedades privadas
 
@@ -84,7 +84,7 @@ Abre **Configuracion del proyecto > Propiedades del script** y copia las variabl
 | `GOOGLE_CALENDAR_BOOKING_END_HOUR` | Si activas Calendar | Fin de la ventana diaria; `14`. |
 | `GOOGLE_CALENDAR_BOOKING_BUFFER_MINUTES` | Si activas Calendar | Separacion antes y despues de otros eventos; `30`. |
 | `GOOGLE_GMAIL_NOTIFICATION_ENABLED` | Si | `true` o `false`. |
-| `GOOGLE_GMAIL_NOTIFICATION_TO` | Si activas Gmail | Destinatario interno del aviso. |
+| `GOOGLE_GMAIL_NOTIFICATION_TO` | Si activas Gmail | Destinatario interno y direccion remitente; la cuenta que despliega debe poder enviar como esta direccion. |
 | `GOOGLE_APPS_SCRIPT_WEB_APP_URL` | Si | URL publica `/exec` usada por el boton privado de verificacion y estado. |
 | `GOOGLE_DATA_RETENTION_DAYS` | Si | Retencion; por defecto `365`. |
 
@@ -99,9 +99,10 @@ Ejecuta en este orden desde el editor:
 1. `recoverWorkspaceConfiguration`: conserva los recursos existentes y completa las nuevas propiedades de agenda con sus valores predeterminados.
 2. `getConfigurationChecklist`: muestra que propiedades estan presentes.
 3. `testConfiguration`: comprueba acceso de lectura, configuracion y cantidad de huecos disponibles.
-4. `testWriteAccess`: crea y elimina datos de prueba y comprueba que Calendar puede generar un enlace de Google Meet.
-5. `sendPendingAdminReviewEmails`: envia el nuevo enlace de revision a solicitudes verificadas antiguas que sigan `En proceso`; se ejecuta una sola vez tras migrar esta version.
-6. `installRetentionCleanupTrigger`: instala una limpieza diaria de filas, eventos y carpetas que superen la retencion configurada.
+4. `testGmailSendAccess`: solicita el permiso limitado `gmail.send` y envia a la cuenta administrativa un mensaje de prueba mediante Gmail API.
+5. `testWriteAccess`: crea y elimina datos de prueba y comprueba que Calendar puede generar un enlace de Google Meet.
+6. `sendPendingAdminReviewEmails`: envia el nuevo enlace de revision a solicitudes verificadas antiguas que sigan `En proceso`; se ejecuta una sola vez tras migrar esta version.
+7. `installRetentionCleanupTrigger`: instala una limpieza diaria de filas, eventos y carpetas que superen la retencion configurada.
 
 Google solicitara autorizacion para los ambitos declarados en `appsscript.json`. Comprueba que la cuenta mostrada sea la cuenta empresarial propietaria.
 

@@ -1,5 +1,5 @@
 const INTEGRATION_DEFAULTS = Object.freeze({
-  version: "2026-07-27-5",
+  version: "2026-07-27-6",
   publicSiteUrl: "https://elcaliente69.github.io/hot-host-hospitality/",
   rootFolderName: "Solicitudes_Web_Hot_Host",
   leadsSheetName: "Solicitudes web",
@@ -874,6 +874,70 @@ function getVerificationCopy_(language) {
   };
 }
 
+function sendWorkspaceEmail_(message) {
+  const to = validateEmailHeaderAddress_(message.to, "recipient");
+  const replyTo = message.replyTo
+    ? validateEmailHeaderAddress_(message.replyTo, "reply-to")
+    : "";
+  const configuredSender = PropertiesService.getScriptProperties().getProperty("GOOGLE_GMAIL_NOTIFICATION_TO");
+  const sender = validateEmailHeaderAddress_(message.from || configuredSender, "sender");
+  const senderName = sanitiseEmailHeader_(message.name || "Hot Host Hospitality");
+  const subject = sanitiseEmailHeader_(message.subject);
+  const body = String(message.body || "");
+  const htmlBody = String(message.htmlBody || "");
+  if (!subject || !body) throw new Error("Email subject and body are required");
+
+  const boundary = "hot_host_" + Utilities.getUuid().replace(/-/g, "");
+  const mime = [
+    "From: " + encodeEmailHeader_(senderName) + " <" + sender + ">",
+    "To: " + to,
+    replyTo ? "Reply-To: " + replyTo : "",
+    "Subject: " + encodeEmailHeader_(subject),
+    "MIME-Version: 1.0",
+    'Content-Type: multipart/alternative; boundary="' + boundary + '"',
+    "",
+    "--" + boundary,
+    'Content-Type: text/plain; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    encodeMimeBody_(body),
+    "--" + boundary,
+    'Content-Type: text/html; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    encodeMimeBody_(htmlBody || escapeHtml_(body).replace(/\n/g, "<br>")),
+    "--" + boundary + "--",
+    ""
+  ].filter(function (line, index) {
+    return line !== "" || index !== 2;
+  }).join("\r\n");
+  const raw = Utilities.base64EncodeWebSafe(mime, Utilities.Charset.UTF_8).replace(/=+$/, "");
+  const sentMessage = Gmail.Users.Messages.send({ raw: raw }, "me");
+  if (!sentMessage || !sentMessage.id) throw new Error("Gmail API did not confirm the message");
+  return sentMessage.id;
+}
+
+function validateEmailHeaderAddress_(value, label) {
+  const email = String(value || "").trim();
+  if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email) || /[\r\n]/.test(email)) {
+    throw new Error("Invalid email " + label);
+  }
+  return email;
+}
+
+function sanitiseEmailHeader_(value) {
+  return String(value || "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function encodeEmailHeader_(value) {
+  return "=?UTF-8?B?" + Utilities.base64Encode(String(value), Utilities.Charset.UTF_8) + "?=";
+}
+
+function encodeMimeBody_(value) {
+  const encoded = Utilities.base64Encode(String(value), Utilities.Charset.UTF_8);
+  return (encoded.match(/.{1,76}/g) || [""]).join("\r\n");
+}
+
 function sendVerificationEmail_(payload, token, config) {
   const copy = getVerificationCopy_(payload.language);
   const verificationUrl = buildVerificationUrl_(token, config);
@@ -908,7 +972,7 @@ function sendVerificationEmail_(payload, token, config) {
     name: "Hot Host Hospitality"
   };
   if (config.notificationEmail) message.replyTo = config.notificationEmail;
-  MailApp.sendEmail(message);
+  sendWorkspaceEmail_(message);
   return true;
 }
 
@@ -1883,7 +1947,7 @@ function sendLeadNotification_(payload, record, adminToken, config) {
     "El enlace solo abre la revisión. Aprobar o denegar requiere una segunda pulsación explícita."
   );
 
-  MailApp.sendEmail({
+  sendWorkspaceEmail_({
     to: config.notificationEmail,
     subject: subject,
     body: body,
@@ -1924,7 +1988,7 @@ function sendSchedulingEmail_(record, bookingToken, config) {
     name: "Hot Host Hospitality"
   };
   if (config.notificationEmail) message.replyTo = config.notificationEmail;
-  MailApp.sendEmail(message);
+  sendWorkspaceEmail_(message);
   return true;
 }
 
@@ -1942,7 +2006,7 @@ function sendAppointmentReviewEmail_(record, adminToken, config) {
     { label: "Email", value: record.email },
     { label: "Cita seleccionada", value: appointment }
   ];
-  MailApp.sendEmail({
+  sendWorkspaceEmail_({
     to: config.notificationEmail,
     subject: subject,
     body: [
@@ -1995,7 +2059,7 @@ function sendVisitorDenialEmail_(record, config) {
     name: "Hot Host Hospitality"
   };
   if (config.notificationEmail) message.replyTo = config.notificationEmail;
-  MailApp.sendEmail(message);
+  sendWorkspaceEmail_(message);
   return true;
 }
 
@@ -2025,7 +2089,7 @@ function sendVisitorAppointmentDenialEmail_(record, config) {
     name: "Hot Host Hospitality"
   };
   if (config.notificationEmail) message.replyTo = config.notificationEmail;
-  MailApp.sendEmail(message);
+  sendWorkspaceEmail_(message);
   return true;
 }
 
@@ -2065,7 +2129,7 @@ function sendVisitorBookingConfirmation_(record, config) {
     name: "Hot Host Hospitality"
   };
   if (config.notificationEmail) message.replyTo = config.notificationEmail;
-  MailApp.sendEmail(message);
+  sendWorkspaceEmail_(message);
   return true;
 }
 
@@ -2102,7 +2166,7 @@ function sendVisitorDeclineAcknowledgement_(record, config) {
     name: "Hot Host Hospitality"
   };
   if (config.notificationEmail) message.replyTo = config.notificationEmail;
-  MailApp.sendEmail(message);
+  sendWorkspaceEmail_(message);
   return true;
 }
 
@@ -2128,7 +2192,7 @@ function sendFinalAdminNotification_(record, outcome, config) {
     return item.label + ": " + item.value;
   });
   body.unshift(intro, "");
-  MailApp.sendEmail({
+  sendWorkspaceEmail_({
     to: config.notificationEmail,
     subject: subject,
     body: body.join("\n"),
@@ -2371,7 +2435,7 @@ function testConfiguration() {
     if (!config.notificationEmail) throw new Error("Gmail notification address is not configured");
     result.gmail = {
       recipient: config.notificationEmail,
-      remainingDailyQuota: MailApp.getRemainingDailyQuota()
+      transport: "Gmail API (gmail.send)"
     };
   }
   console.log(JSON.stringify(result));
@@ -2417,6 +2481,29 @@ function sendPendingAdminReviewEmails() {
   } finally {
     lock.releaseLock();
   }
+  console.log(JSON.stringify(result));
+  return result;
+}
+
+function testGmailSendAccess() {
+  const config = getConfiguration_();
+  if (!config.notificationEmail) throw new Error("Gmail notification address is not configured");
+  const sentAt = new Date().toISOString();
+  const messageId = sendWorkspaceEmail_({
+    to: config.notificationEmail,
+    subject: "Hot Host - prueba de Gmail API",
+    body: "Gmail API autorizada correctamente.\n\nFecha: " + sentAt,
+    htmlBody: buildBrandedEmailHtml_(
+      "Gmail API autorizada",
+      "La integración puede enviar mensajes con el permiso limitado gmail.send.",
+      [{ label: "Fecha", value: sentAt }],
+      "",
+      "",
+      "Esta prueba no concede acceso para leer ni borrar correo."
+    ),
+    name: "Hot Host Hospitality"
+  });
+  const result = { ok: true, recipient: config.notificationEmail, messageId: messageId };
   console.log(JSON.stringify(result));
   return result;
 }
