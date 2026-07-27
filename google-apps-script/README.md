@@ -7,7 +7,7 @@ La web se publica en GitHub Pages y no dispone de un servidor privado. Por eso n
 1. **Google Apps Script (obligatorio):** recibe de forma segura las solicitudes del formulario y actua como backend.
 2. **Google Sheets (obligatorio):** registra una fila por solicitud con contacto, propiedad, consentimiento, canal, referencias de Drive y estado.
 3. **Google Drive (recomendado):** guarda las fotografias y el archivo `solicitud.json` en una carpeta privada por solicitud.
-4. **Google Calendar (recomendado):** publica los huecos libres para citas y crea el evento solo cuando el visitante confirma una hora.
+4. **Google Calendar y Google Meet (recomendado):** publica los huecos libres; cuando el visitante selecciona uno, espera la confirmacion final del administrador y solo entonces crea el evento con Meet.
 5. **Gmail mediante MailApp (recomendado):** envia la revision al administrador, la decision al visitante y la confirmacion final sin abrir Gmail ni WhatsApp.
 6. **GitHub Pages (obligatorio para activar la web):** expone unicamente la URL publica `/exec` mediante una variable del repositorio.
 
@@ -62,6 +62,8 @@ Si los recursos ya existen pero faltan sus propiedades, ejecuta `recoverWorkspac
 5. Sustituye el manifiesto por `appsscript.json`.
 6. Confirma que la zona horaria es `Europe/Madrid` o la que corresponda al negocio.
 
+El manifiesto habilita el servicio avanzado **Calendar API v3**, necesario para generar Google Meet. Si el proyecto usa un proyecto de Google Cloud estandar, comprueba tambien que **Google Calendar API** este habilitada en Google Cloud Console.
+
 ## 3. Configurar propiedades privadas
 
 Abre **Configuracion del proyecto > Propiedades del script** y copia las variables privadas de `.env`.
@@ -97,7 +99,7 @@ Ejecuta en este orden desde el editor:
 1. `recoverWorkspaceConfiguration`: conserva los recursos existentes y completa las nuevas propiedades de agenda con sus valores predeterminados.
 2. `getConfigurationChecklist`: muestra que propiedades estan presentes.
 3. `testConfiguration`: comprueba acceso de lectura, configuracion y cantidad de huecos disponibles.
-4. `testWriteAccess`: crea y elimina datos de prueba en los servicios habilitados.
+4. `testWriteAccess`: crea y elimina datos de prueba y comprueba que Calendar puede generar un enlace de Google Meet.
 5. `sendPendingAdminReviewEmails`: envia el nuevo enlace de revision a solicitudes verificadas antiguas que sigan `En proceso`; se ejecuta una sola vez tras migrar esta version.
 6. `installRetentionCleanupTrigger`: instala una limpieza diaria de filas, eventos y carpetas que superen la retencion configurada.
 
@@ -144,19 +146,22 @@ La URL publica puede permanecer en `assets/config.js`. Si quieres sustituirla si
 8. Prueba **Denegar**: el visitante recibe el aviso y la fila pasa a `Denegada`.
 9. Con otra solicitud, prueba **Aprobar**: el visitante recibe **Elegir cita** y la fila pasa a `Pendiente de cita`.
 10. Abre el enlace del visitante. Solo deben aparecer huecos libres de lunes a jueves, 11:00-14:00, durante los proximos 14 dias.
-11. Confirma una hora. Calendar crea el evento, Sheets guarda `appointmentAt`, la fila pasa a `Confirmada` y ambas partes reciben la confirmacion.
-12. Con otra solicitud aprobada, prueba **Rechazar y cerrar solicitud**. La fila pasa a `Cita rechazada por el solicitante` y el administrador recibe el aviso.
+11. Selecciona una hora. La fila pasa a `Cita pendiente de confirmación`, Sheets guarda `appointmentAt`, Calendar sigue vacio y el administrador recibe un segundo correo.
+12. Abre ese correo y pulsa **Confirmar cita definitivamente**. Calendar crea el evento con Google Meet, la fila pasa a `Confirmada` y el cliente recibe el correo final con **Añadir a Google Calendar** y **Unirse a Google Meet**.
+13. Con otra cita seleccionada, prueba **Denegar cita**. No debe crearse ningun evento y el cliente recibe el aviso de denegacion.
+14. Con otra solicitud aprobada, prueba **Rechazar y cerrar solicitud** desde la pagina del visitante. La fila pasa a `Cita rechazada por el solicitante` y el administrador recibe el aviso.
 
 ## Estados de una solicitud
 
 - `Pendiente de verificación`: datos y fotografias guardados; falta validar el correo del visitante.
 - `En proceso`: correo validado y solicitud notificada al negocio.
 - `Pendiente de cita`: el administrador aprobo la solicitud y el visitante puede elegir un hueco libre.
-- `Confirmada`: el visitante reservo una hora; Calendar y `appointmentAt` contienen la cita.
+- `Cita pendiente de confirmación`: el visitante eligio una hora, que queda retenida en Sheets hasta la decision final del administrador.
+- `Confirmada`: el administrador confirmo la hora; Calendar contiene el evento con Meet y `appointmentAt` contiene la cita.
 - `Denegada`: la pagina privada conserva y muestra la denegacion; cambiar el estado no elimina la fila ni sus archivos.
 - `Cita rechazada por el solicitante`: el visitante decidio no reservar y el administrador fue avisado.
 
-La decision normal se realiza desde la pagina privada enlazada en el correo interno. El administrador no necesita editar `status` ni `appointmentAt` en Sheets. El enlace del visitante consulta la fila y el calendario en cada apertura.
+Las dos decisiones administrativas se realizan desde paginas privadas enlazadas en los correos internos. El administrador no necesita editar `status` ni `appointmentAt` en Sheets. El enlace del visitante consulta la fila y el calendario en cada apertura.
 
 La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHub Pages y Apps Script no comparten origen. Apps Script responde con una pagina HTML minima que autoriza el marco y comunica el resultado mediante `postMessage` exclusivamente al origen configurado en `PUBLIC_SITE_URL`. Durante las primeras pruebas revisa tambien **Ejecuciones** y usa `submissionId` para localizar cada registro.
 
@@ -169,7 +174,7 @@ La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHu
 - Maximo aproximado de 30 MB por peticion.
 - Maximo de 5 solicitudes por correo cada 6 horas y 30 solicitudes globales por hora.
 - La Web App es publica y sus limites son una proteccion basica. Antes de recibir trafico elevado, anade un desafio anti-bot validado en el backend y actualiza la politica de privacidad correspondiente.
-- Los enlaces privados solo abren paginas de revision. Aprobar, denegar, confirmar o rechazar requiere un `POST` explicito. Antes de reservar, un bloqueo de script vuelve a consultar Calendar para evitar dobles citas.
+- Los enlaces privados solo abren paginas de revision. Aprobar, denegar, seleccionar o confirmar requiere un `POST` explicito. La hora elegida se retiene en Sheets y, antes de crear Calendar y Meet, un bloqueo vuelve a comprobar Calendar y las selecciones pendientes para evitar dobles citas.
 - Las carpetas de Drive y los documentos permanecen privados salvo que cambies sus permisos.
 - El trigger elimina filas de Sheets, eventos de Calendar y carpetas de Drive. Configura en Google Workspace/Vault una retencion equivalente para los avisos de Gmail; los mensajes de WhatsApp se gestionan con la politica de Meta y deben revisarse por separado.
 - Revisa las cuotas de Apps Script, Gmail, Calendar y Drive de la cuenta empresarial.

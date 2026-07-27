@@ -1,5 +1,5 @@
 const INTEGRATION_DEFAULTS = Object.freeze({
-  version: "2026-07-27-3",
+  version: "2026-07-27-4",
   publicSiteUrl: "https://elcaliente69.github.io/hot-host-hospitality/",
   rootFolderName: "Solicitudes_Web_Hot_Host",
   leadsSheetName: "Solicitudes web",
@@ -53,6 +53,7 @@ const LEAD_HEADERS = Object.freeze([
   "driveFolderId",
   "driveFolderUrl",
   "calendarEventId",
+  "meetingUrl",
   "status",
   "verificationTokenHash",
   "bookingTokenHash",
@@ -63,6 +64,7 @@ const LEAD_HEADERS = Object.freeze([
   "adminDecisionAt",
   "adminDecisionEmailSentAt",
   "visitorDecisionAt",
+  "appointmentReviewEmailSentAt",
   "visitorConfirmationSentAt",
   "finalNotificationSentAt",
   "statusUpdatedAt",
@@ -73,6 +75,7 @@ const REQUEST_STATUSES = Object.freeze({
   pendingVerification: "Pendiente de verificación",
   processing: "En proceso",
   scheduling: "Pendiente de cita",
+  awaitingConfirmation: "Cita pendiente de confirmación",
   confirmed: "Confirmada",
   denied: "Denegada",
   declined: "Cita rechazada por el solicitante"
@@ -674,6 +677,7 @@ function buildLeadRecord_(payload, receivedAt, storedPhotos, requestFolder, cale
     driveFolderId: requestFolder ? requestFolder.getId() : "",
     driveFolderUrl: requestFolder ? requestFolder.getUrl() : "",
     calendarEventId: calendarEvent ? calendarEvent.getId() : "",
+    meetingUrl: "",
     status: REQUEST_STATUSES.pendingVerification,
     verificationTokenHash: verificationTokenHash,
     bookingTokenHash: "",
@@ -684,6 +688,7 @@ function buildLeadRecord_(payload, receivedAt, storedPhotos, requestFolder, cale
     adminDecisionAt: "",
     adminDecisionEmailSentAt: "",
     visitorDecisionAt: "",
+    appointmentReviewEmailSentAt: "",
     visitorConfirmationSentAt: "",
     finalNotificationSentAt: "",
     statusUpdatedAt: receivedAt,
@@ -733,7 +738,7 @@ function getVerificationCopy_(language) {
       emailFooter: "If you did not send this request, you can ignore this message.",
       schedulingEmailSubject: "Choose your appointment - Hot Host Hospitality",
       schedulingEmailTitle: "Your request has been approved",
-      schedulingEmailIntro: "Choose one of the available appointment times to continue with your property audit.",
+      schedulingEmailIntro: "Choose one of the available appointment times to continue with your property audit. Your selection will remain pending until our team confirms it.",
       schedulingButton: "Choose appointment",
       schedulingEmailNote: "Appointments are available Monday to Thursday from 11:00 to 14:00 (Madrid time). Each appointment lasts 30 minutes, with a 30-minute interval between appointments.",
       denialEmailSubject: "Update on your request - Hot Host Hospitality",
@@ -742,6 +747,9 @@ function getVerificationCopy_(language) {
       confirmationEmailSubject: "Appointment confirmed - Hot Host Hospitality",
       confirmationEmailTitle: "Your appointment is confirmed",
       confirmationEmailText: "We have reserved the following appointment for your property audit.",
+      meetingDescriptionLabel: "Meeting description",
+      addCalendarButton: "Add to Google Calendar",
+      joinMeetButton: "Join Google Meet",
       declineEmailSubject: "Appointment declined - Hot Host Hospitality",
       declineEmailTitle: "Decision recorded",
       declineEmailText: "We have recorded that you do not wish to continue with the appointment.",
@@ -757,12 +765,17 @@ function getVerificationCopy_(language) {
       scheduleIntro: "Your request has been approved. Select an available date and time below.",
       scheduleWindow: "Monday to Thursday, 11:00-14:00 (Madrid time). 30-minute appointments with a 30-minute interval.",
       selectSlot: "Available appointments",
-      confirmAppointment: "Confirm appointment",
+      confirmAppointment: "Select appointment",
       declineAppointment: "Decline and close request",
       noSlots: "There are no available appointments in the next 14 days. Please try again later or contact us by email.",
       slotUnavailable: "That appointment is no longer available. Choose another time from the updated list.",
       appointmentConfirmedTitle: "Appointment confirmed",
       appointmentConfirmedText: "Your appointment has been reserved. You can return to this private page to check the date and time.",
+      awaitingConfirmationTitle: "Appointment selected",
+      awaitingConfirmationText: "Our team must confirm your selected date and time. You will receive a final email when the appointment is added to the calendar.",
+      appointmentDeniedEmailSubject: "Appointment not confirmed - Hot Host Hospitality",
+      appointmentDeniedEmailTitle: "Appointment not confirmed",
+      appointmentDeniedEmailText: "Our team could not confirm the selected appointment. This request has been closed.",
       requestDeniedTitle: "Request declined",
       requestDeniedText: "This request has been closed after our team's review.",
       appointmentDeclinedTitle: "Appointment declined",
@@ -776,6 +789,7 @@ function getVerificationCopy_(language) {
         pending: "Pending verification",
         processing: "In progress",
         scheduling: "Appointment pending",
+        awaiting: "Pending final confirmation",
         confirmed: "Confirmed",
         denied: "Declined",
         declined: "Declined by applicant"
@@ -791,7 +805,7 @@ function getVerificationCopy_(language) {
     emailFooter: "Si no enviaste esta solicitud, puedes ignorar este mensaje.",
     schedulingEmailSubject: "Elige tu cita - Hot Host Hospitality",
     schedulingEmailTitle: "Tu solicitud ha sido aprobada",
-    schedulingEmailIntro: "Elige uno de los horarios disponibles para continuar con la auditoría de tu propiedad.",
+    schedulingEmailIntro: "Elige uno de los horarios disponibles para continuar con la auditoría de tu propiedad. La fecha quedará pendiente hasta que nuestro equipo la confirme.",
     schedulingButton: "Elegir cita",
     schedulingEmailNote: "Las citas están disponibles de lunes a jueves, de 11:00 a 14:00 (hora de Madrid). Cada cita dura 30 minutos y dejamos 30 minutos entre citas.",
     denialEmailSubject: "Actualización de tu solicitud - Hot Host Hospitality",
@@ -800,6 +814,9 @@ function getVerificationCopy_(language) {
     confirmationEmailSubject: "Cita confirmada - Hot Host Hospitality",
     confirmationEmailTitle: "Tu cita está confirmada",
     confirmationEmailText: "Hemos reservado la siguiente cita para la auditoría de tu propiedad.",
+    meetingDescriptionLabel: "Descripción de la reunión",
+    addCalendarButton: "Añadir a Google Calendar",
+    joinMeetButton: "Unirse a Google Meet",
     declineEmailSubject: "Cita rechazada - Hot Host Hospitality",
     declineEmailTitle: "Decisión registrada",
     declineEmailText: "Hemos registrado que no deseas continuar con la cita.",
@@ -815,12 +832,17 @@ function getVerificationCopy_(language) {
     scheduleIntro: "Tu solicitud ha sido aprobada. Selecciona una fecha y una hora disponibles.",
     scheduleWindow: "De lunes a jueves, de 11:00 a 14:00 (hora de Madrid). Citas de 30 minutos con 30 minutos de separación.",
     selectSlot: "Citas disponibles",
-    confirmAppointment: "Confirmar cita",
+    confirmAppointment: "Seleccionar fecha",
     declineAppointment: "Rechazar y cerrar solicitud",
     noSlots: "No quedan citas disponibles durante los próximos 14 días. Inténtalo de nuevo más tarde o escríbenos por email.",
     slotUnavailable: "Esa cita ya no está disponible. Elige otra hora de la lista actualizada.",
     appointmentConfirmedTitle: "Cita confirmada",
     appointmentConfirmedText: "Tu cita ha quedado reservada. Puedes volver a esta página privada para consultar la fecha y la hora.",
+    awaitingConfirmationTitle: "Fecha seleccionada",
+    awaitingConfirmationText: "Nuestro equipo debe confirmar definitivamente la fecha y la hora elegidas. Recibirás un último email cuando la cita se añada al calendario.",
+    appointmentDeniedEmailSubject: "Cita no confirmada - Hot Host Hospitality",
+    appointmentDeniedEmailTitle: "Cita no confirmada",
+    appointmentDeniedEmailText: "Nuestro equipo no ha podido confirmar la cita seleccionada. La solicitud ha quedado cerrada.",
     requestDeniedTitle: "Solicitud denegada",
     requestDeniedText: "La solicitud ha sido cerrada después de la revisión de nuestro equipo.",
     appointmentDeclinedTitle: "Cita rechazada",
@@ -834,6 +856,7 @@ function getVerificationCopy_(language) {
       pending: REQUEST_STATUSES.pendingVerification,
       processing: REQUEST_STATUSES.processing,
       scheduling: REQUEST_STATUSES.scheduling,
+      awaiting: REQUEST_STATUSES.awaitingConfirmation,
       confirmed: REQUEST_STATUSES.confirmed,
       denied: REQUEST_STATUSES.denied,
       declined: "Cita rechazada"
@@ -936,7 +959,7 @@ function renderRequestStatus_(token) {
     } finally {
       lock.releaseLock();
     }
-    return buildRequestStatusPage_(record, cleanToken, config);
+    return buildRequestStatusPage_(record, cleanToken, config, null, sheet);
   } catch (error) {
     console.error(error);
     return buildRequestMessagePage_(getVerificationCopy_("es"), "error");
@@ -984,6 +1007,9 @@ function getRequestStatusKey_(status) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase();
+  if (normalized === "cita pendiente de confirmacion" || normalized.indexOf("final confirmation") !== -1) {
+    return "awaiting";
+  }
   if (normalized === "pendiente de cita" || normalized.indexOf("appointment pending") !== -1) {
     return "scheduling";
   }
@@ -1018,12 +1044,14 @@ function formatAppointment_(value) {
   return Utilities.formatDate(date, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
 }
 
-function buildRequestStatusPage_(record, token, config, notice) {
+function buildRequestStatusPage_(record, token, config, notice, sheet) {
   const copy = getVerificationCopy_(record.language);
   const statusKey = getRequestStatusKey_(record.status);
   const statusLabel = copy.statuses[statusKey] || String(record.status || "");
-  const appointment = statusKey === "confirmed" ? formatAppointment_(record.appointmentAt) : "";
-  const appointmentHtml = statusKey === "confirmed"
+  const showsAppointment = statusKey === "awaiting" || statusKey === "confirmed" ||
+    (statusKey === "denied" && Boolean(record.appointmentAt));
+  const appointment = showsAppointment ? formatAppointment_(record.appointmentAt) : "";
+  const appointmentHtml = showsAppointment
     ? '<div class="appointment"><span>' + escapeHtml_(copy.appointment) + '</span><strong>' +
       escapeHtml_(appointment || copy.appointmentPending) + '</strong></div>'
     : "";
@@ -1032,6 +1060,9 @@ function buildRequestStatusPage_(record, token, config, notice) {
   if (statusKey === "scheduling") {
     heading = copy.scheduleTitle;
     lead = copy.scheduleIntro;
+  } else if (statusKey === "awaiting") {
+    heading = copy.awaitingConfirmationTitle;
+    lead = copy.awaitingConfirmationText;
   } else if (statusKey === "confirmed") {
     heading = copy.appointmentConfirmedTitle;
     lead = copy.appointmentConfirmedText;
@@ -1043,7 +1074,7 @@ function buildRequestStatusPage_(record, token, config, notice) {
     lead = copy.appointmentDeclinedText;
   }
   const schedulingHtml = statusKey === "scheduling"
-    ? buildSchedulingFormHtml_(record, token, config, copy)
+    ? buildSchedulingFormHtml_(record, token, config, copy, sheet)
     : "";
   const noticeHtml = notice
     ? '<p class="notice warning">' + escapeHtml_(notice) + '</p>'
@@ -1062,10 +1093,10 @@ function buildRequestStatusPage_(record, token, config, notice) {
   return HtmlService.createHtmlOutput(html).setTitle(copy.pageTitle);
 }
 
-function buildSchedulingFormHtml_(record, token, config, copy) {
+function buildSchedulingFormHtml_(record, token, config, copy, sheet) {
   let slots = [];
   try {
-    slots = getAvailableBookingSlots_(config);
+    slots = getAvailableBookingSlots_(config, sheet);
   } catch (error) {
     console.error(error);
   }
@@ -1133,6 +1164,12 @@ function handleWorkflowPost_(event, workflowAction) {
     if (workflowAction === "admin-deny") {
       return handleAdminDecision_(event.parameter.admin, "deny");
     }
+    if (workflowAction === "admin-confirm-appointment") {
+      return handleAdminDecision_(event.parameter.admin, "confirmAppointment");
+    }
+    if (workflowAction === "admin-deny-appointment") {
+      return handleAdminDecision_(event.parameter.admin, "denyAppointment");
+    }
     if (workflowAction === "book" || workflowAction === "decline") {
       return handleVisitorDecision_(
         event.parameter.request,
@@ -1193,9 +1230,14 @@ function handleAdminDecision_(token, decision) {
         applyLeadUpdates_(sheet, row, record, {
           status: REQUEST_STATUSES.scheduling,
           calendarEventId: "",
+          meetingUrl: "",
           appointmentAt: "",
           adminDecisionAt: decidedAt,
           adminDecisionEmailSentAt: "",
+          visitorDecisionAt: "",
+          appointmentReviewEmailSentAt: "",
+          visitorConfirmationSentAt: "",
+          finalNotificationSentAt: "",
           statusUpdatedAt: decidedAt
         });
         statusKey = "scheduling";
@@ -1226,6 +1268,7 @@ function handleAdminDecision_(token, decision) {
         applyLeadUpdates_(sheet, row, record, {
           status: REQUEST_STATUSES.denied,
           calendarEventId: "",
+          meetingUrl: "",
           appointmentAt: "",
           adminDecisionAt: decidedAt,
           adminDecisionEmailSentAt: "",
@@ -1248,6 +1291,72 @@ function handleAdminDecision_(token, decision) {
           notice = { text: "La solicitud quedó denegada, pero el correo no pudo enviarse. Puedes reintentar desde esta página.", type: "warning" };
         }
       }
+    } else if (decision === "confirmAppointment") {
+      if (statusKey === "awaiting") {
+        if (!isSelectedAppointmentAvailable_(record, config, sheet)) {
+          notice = { text: "La hora seleccionada ya no está disponible. Deniega la cita para que el cliente reciba el aviso.", type: "warning" };
+        } else {
+          const event = createBookingEvent_(record, new Date(String(record.appointmentAt)), config);
+          const confirmedAt = new Date().toISOString();
+          try {
+            applyLeadUpdates_(sheet, row, record, {
+              calendarEventId: event.id,
+              meetingUrl: event.meetingUrl,
+              status: REQUEST_STATUSES.confirmed,
+              adminDecisionAt: confirmedAt,
+              visitorConfirmationSentAt: "",
+              finalNotificationSentAt: "",
+              statusUpdatedAt: confirmedAt
+            });
+          } catch (sheetError) {
+            deleteBookingEvent_(event, config);
+            throw sheetError;
+          }
+          statusKey = "confirmed";
+        }
+      }
+      if (statusKey !== "confirmed") {
+        if (!notice) notice = { text: "La cita no está pendiente de confirmación y no se ha modificado.", type: "warning" };
+      } else {
+        deliverFinalNotifications_(sheet, row, record, "confirmed", config);
+        notice = record.visitorConfirmationSentAt
+          ? { text: "Cita confirmada. Se creó Calendar con Google Meet y el cliente recibió el aviso final.", type: "success" }
+          : { text: "La cita se creó, pero el correo final no pudo enviarse. Usa Reenviar confirmación.", type: "warning" };
+      }
+    } else if (decision === "denyAppointment") {
+      const canDenyAppointment = statusKey === "awaiting" ||
+        (statusKey === "denied" && Boolean(record.appointmentAt));
+      if (statusKey === "awaiting") {
+        const deniedAt = new Date().toISOString();
+        applyLeadUpdates_(sheet, row, record, {
+          status: REQUEST_STATUSES.denied,
+          calendarEventId: "",
+          meetingUrl: "",
+          adminDecisionAt: deniedAt,
+          visitorConfirmationSentAt: "",
+          finalNotificationSentAt: "",
+          statusUpdatedAt: deniedAt
+        });
+        statusKey = "denied";
+      }
+      if (!canDenyAppointment) {
+        notice = { text: "La cita no está pendiente de confirmación y no se ha modificado.", type: "warning" };
+      } else if (record.visitorConfirmationSentAt) {
+        notice = { text: "La denegación de la cita ya fue comunicada al cliente.", type: "success" };
+      } else {
+        try {
+          sendVisitorAppointmentDenialEmail_(record, config);
+          const sentAt = new Date().toISOString();
+          applyLeadUpdates_(sheet, row, record, {
+            visitorConfirmationSentAt: sentAt,
+            finalNotificationSentAt: sentAt
+          });
+          notice = { text: "Cita denegada. El cliente ha recibido el aviso final.", type: "success" };
+        } catch (emailError) {
+          console.error(emailError);
+          notice = { text: "La cita quedó denegada, pero el correo no pudo enviarse. Puedes reintentar desde esta página.", type: "warning" };
+        }
+      }
     } else {
       throw new Error("Invalid admin decision");
     }
@@ -1268,10 +1377,11 @@ function handleVisitorDecision_(token, action, slotValue) {
     if (!row) throw new Error("Invalid request token");
     const record = getLeadRecord_(sheet, row);
     let statusKey = getRequestStatusKey_(record.status);
+    let notice = null;
 
     if (action === "book") {
-      if (statusKey !== "scheduling" && statusKey !== "confirmed") {
-        return buildRequestStatusPage_(record, cleanToken, config);
+      if (statusKey !== "scheduling" && statusKey !== "awaiting") {
+        return buildRequestStatusPage_(record, cleanToken, config, null, sheet);
       }
       if (statusKey === "scheduling") {
         if (!config.calendarFollowupEnabled || !config.calendarId) {
@@ -1279,7 +1389,7 @@ function handleVisitorDecision_(token, action, slotValue) {
         }
         const requestedStart = new Date(String(slotValue || ""));
         if (Number.isNaN(requestedStart.getTime())) throw new Error("Invalid booking date");
-        const availableSlot = getAvailableBookingSlots_(config).some(function (slot) {
+        const availableSlot = getAvailableBookingSlots_(config, sheet).some(function (slot) {
           return slot.getTime() === requestedStart.getTime();
         });
         if (!availableSlot) {
@@ -1287,38 +1397,64 @@ function handleVisitorDecision_(token, action, slotValue) {
             record,
             cleanToken,
             config,
-            getVerificationCopy_(record.language).slotUnavailable
+            getVerificationCopy_(record.language).slotUnavailable,
+            sheet
           );
         }
 
-        const event = createBookingEvent_(record, requestedStart, config);
         const decidedAt = new Date().toISOString();
+        applyLeadUpdates_(sheet, row, record, {
+          calendarEventId: "",
+          meetingUrl: "",
+          status: REQUEST_STATUSES.awaitingConfirmation,
+          appointmentAt: requestedStart.toISOString(),
+          visitorDecisionAt: decidedAt,
+          appointmentReviewEmailSentAt: "",
+          visitorConfirmationSentAt: "",
+          finalNotificationSentAt: "",
+          statusUpdatedAt: decidedAt
+        });
+        statusKey = "awaiting";
+      }
+      if (!record.appointmentReviewEmailSentAt) {
+        const adminToken = createVerificationToken_();
+        const previousAdminTokenHash = record.adminTokenHash;
+        applyLeadUpdates_(sheet, row, record, {
+          adminTokenHash: hashVerificationToken_(adminToken)
+        });
         try {
-          applyLeadUpdates_(sheet, row, record, {
-            calendarEventId: event.getId(),
-            status: REQUEST_STATUSES.confirmed,
-            appointmentAt: requestedStart.toISOString(),
-            visitorDecisionAt: decidedAt,
-            visitorConfirmationSentAt: "",
-            finalNotificationSentAt: "",
-            statusUpdatedAt: decidedAt
-          });
-        } catch (sheetError) {
-          event.deleteEvent();
-          throw sheetError;
+          sendAppointmentReviewEmail_(record, adminToken, config);
+        } catch (emailError) {
+          console.error(emailError);
+          try {
+            applyLeadUpdates_(sheet, row, record, {
+              adminTokenHash: previousAdminTokenHash
+            });
+          } catch (restoreError) {
+            console.error(restoreError);
+          }
+          notice = "La fecha quedó seleccionada, pero no pudimos avisar al equipo. Escribe a direccion@hhosthospitality.com.";
         }
-        statusKey = "confirmed";
+        if (!notice) {
+          try {
+            applyLeadUpdates_(sheet, row, record, {
+              appointmentReviewEmailSentAt: new Date().toISOString()
+            });
+          } catch (markerError) {
+            console.error(markerError);
+          }
+        }
       }
-      deliverFinalNotifications_(sheet, row, record, "confirmed", config);
     } else if (action === "decline") {
-      if (statusKey !== "scheduling" && statusKey !== "declined") {
-        return buildRequestStatusPage_(record, cleanToken, config);
+      if (statusKey !== "scheduling" && statusKey !== "awaiting" && statusKey !== "declined") {
+        return buildRequestStatusPage_(record, cleanToken, config, null, sheet);
       }
-      if (statusKey === "scheduling") {
+      if (statusKey === "scheduling" || statusKey === "awaiting") {
         const decidedAt = new Date().toISOString();
         applyLeadUpdates_(sheet, row, record, {
           status: REQUEST_STATUSES.declined,
           appointmentAt: "",
+          appointmentReviewEmailSentAt: "",
           visitorDecisionAt: decidedAt,
           visitorConfirmationSentAt: "",
           finalNotificationSentAt: "",
@@ -1330,7 +1466,7 @@ function handleVisitorDecision_(token, action, slotValue) {
     } else {
       throw new Error("Invalid visitor decision");
     }
-    return buildRequestStatusPage_(record, cleanToken, config);
+    return buildRequestStatusPage_(record, cleanToken, config, notice, sheet);
   } finally {
     lock.releaseLock();
   }
@@ -1378,13 +1514,20 @@ function requirePrivateToken_(token) {
 function buildAdminReviewPage_(record, token, config, notice) {
   const actionUrl = getWebAppUrl_(config);
   const statusKey = getRequestStatusKey_(record.status);
+  const hasSelectedAppointment = Boolean(record.appointmentAt);
   const canApprove = statusKey === "processing" ||
     (statusKey === "scheduling" && !record.adminDecisionEmailSentAt);
   const canDeny = statusKey === "processing" || statusKey === "scheduling" ||
-    (statusKey === "denied" && !record.adminDecisionEmailSentAt);
+    (statusKey === "denied" && !hasSelectedAppointment && !record.adminDecisionEmailSentAt);
+  const canConfirmAppointment = statusKey === "awaiting" ||
+    (statusKey === "confirmed" && !record.visitorConfirmationSentAt);
+  const canDenyAppointment = statusKey === "awaiting" ||
+    (statusKey === "denied" && hasSelectedAppointment && !record.visitorConfirmationSentAt);
   const approveLabel = statusKey === "scheduling" ? "Reenviar horarios" : "Aprobar y enviar horarios";
   const denyLabel = statusKey === "denied" ? "Reenviar denegación" : "Denegar solicitud";
-  const appointment = statusKey === "confirmed" ? formatAppointment_(record.appointmentAt) : "";
+  const confirmAppointmentLabel = statusKey === "confirmed" ? "Reenviar confirmación" : "Confirmar cita definitivamente";
+  const denyAppointmentLabel = statusKey === "denied" ? "Reenviar denegación de cita" : "Denegar cita";
+  const appointment = hasSelectedAppointment ? formatAppointment_(record.appointmentAt) : "";
   const details = [
     { label: "Referencia", value: record.submissionId, wide: false },
     { label: "Estado", value: record.status, wide: false },
@@ -1397,7 +1540,8 @@ function buildAdminReviewPage_(record, token, config, notice) {
     { label: "Anuncio", value: record.listingUrl, wide: true },
     { label: "Fotos", value: record.photosUrl || record.driveFolderUrl, wide: true },
     { label: "Comentarios", value: record.comments, wide: true },
-    { label: "Cita", value: appointment, wide: true }
+    { label: "Cita seleccionada", value: appointment, wide: true },
+    { label: "Google Meet", value: record.meetingUrl, wide: true }
   ];
   const detailsHtml = details.filter(function (detail) {
     return detail.value !== undefined && detail.value !== null && String(detail.value).trim();
@@ -1411,14 +1555,25 @@ function buildAdminReviewPage_(record, token, config, notice) {
   const denyForm = canDeny
     ? buildAdminActionForm_(actionUrl, token, "admin-deny", denyLabel, "danger")
     : "";
+  const confirmAppointmentForm = canConfirmAppointment
+    ? buildAdminActionForm_(actionUrl, token, "admin-confirm-appointment", confirmAppointmentLabel, "")
+    : "";
+  const denyAppointmentForm = canDenyAppointment
+    ? buildAdminActionForm_(actionUrl, token, "admin-deny-appointment", denyAppointmentLabel, "danger")
+    : "";
   const noticeHtml = notice
     ? '<p class="notice' + (notice.type === "warning" ? ' warning' : '') + '">' + escapeHtml_(notice.text) + '</p>'
     : "";
-  const actionsHtml = approveForm || denyForm
-    ? '<div class="admin-actions">' + approveForm + denyForm + '</div>'
+  const actionForms = approveForm + denyForm + confirmAppointmentForm + denyAppointmentForm;
+  const actionsHtml = actionForms
+    ? '<div class="admin-actions">' + actionForms + '</div>'
     : '<p class="notice">La solicitud ya tiene una decisión final. No hay acciones pendientes.</p>';
+  const pageTitle = statusKey === "awaiting" ? "Confirmar cita" : "Revisar solicitud";
+  const pageLead = statusKey === "awaiting"
+    ? "El cliente eligió esta fecha. Confírmala para crear Calendar con Google Meet o deniégala para cerrar la solicitud."
+    : "Aprueba la solicitud para enviar los horarios libres o deniégala para cerrar el proceso.";
   const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Revisar solicitud - Hot Host Hospitality</title>' +
-    requestPageStyles_() + workflowPageStyles_() + '</head><body><main class="card"><div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div><div class="verified">Revisión privada</div><h1>Revisar solicitud</h1><p class="lead">Aprueba la solicitud para enviar los horarios libres o deniégala para cerrar el proceso.</p><section class="status"><span>Estado actual</span><strong class="pill ' +
+    requestPageStyles_() + workflowPageStyles_() + '</head><body><main class="card"><div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div><div class="verified">Revisión privada</div><h1>' + escapeHtml_(pageTitle) + '</h1><p class="lead">' + escapeHtml_(pageLead) + '</p><section class="status"><span>Estado actual</span><strong class="pill ' +
     escapeHtml_(statusKey) + '">' + escapeHtml_(record.status) + '</strong></section>' + noticeHtml +
     '<section class="admin-details">' + detailsHtml + '</section>' + actionsHtml +
     '<p class="reference">Este enlace es privado. No lo compartas.</p></main></body></html>';
@@ -1443,7 +1598,7 @@ function requestPageStyles_() {
 }
 
 function workflowPageStyles_() {
-  return '<style>.pill.scheduling{background:#fff2c7;color:#725200}.pill.declined{background:#fbe8e8;color:#963535}.scheduler{margin-top:24px;padding-top:4px}.schedule-window,.no-slots{padding:15px 17px;border-left:4px solid #e1aa3f;border-radius:8px;background:#faf5e9;color:#665943;line-height:1.55}.booking-form fieldset{margin:24px 0 0;padding:0;border:0}.booking-form legend{margin-bottom:12px;font-weight:800}.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.slot{display:block;cursor:pointer}.slot input{position:absolute;opacity:0;pointer-events:none}.slot span{display:flex;min-height:74px;flex-direction:column;justify-content:center;padding:13px 15px;border:1px solid #dfd3bd;border-radius:13px;background:#fff;transition:.15s ease}.slot strong{font-size:14px}.slot small{margin-top:5px;color:#776a57;font-size:13px}.slot input:checked+span{border-color:#198754;background:#eaf7ef;box-shadow:0 0 0 2px rgba(25,135,84,.15)}.slot input:focus-visible+span{outline:3px solid rgba(25,135,84,.25);outline-offset:2px}.decline-form{margin-top:14px;border-top:1px solid #eadfcf}.decline-form .danger{margin-top:18px;background:#fff;color:#963535;box-shadow:inset 0 0 0 1px #debaba}.no-slots{margin-top:22px;border-left-color:#963535;background:#fbeeee}.admin-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:24px}.detail{padding:14px 16px;border:1px solid #eadfcf;border-radius:13px;background:#faf6ed}.detail.wide{grid-column:1/-1}.detail span{display:block;color:#776a57;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.detail strong,.detail a{display:block;margin-top:6px;color:#241d14;overflow-wrap:anywhere}.admin-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.admin-actions form{flex:1}.admin-actions button{width:100%;margin-top:0}.admin-actions .danger{background:#a13d3d}.notice{margin-top:22px;padding:14px 16px;border-radius:12px;background:#eaf7ef;color:#126c3e;font-weight:700}.notice.warning{background:#fff2c7;color:#725200}@media(max-width:520px){.slots,.admin-details{grid-template-columns:1fr}.admin-actions{flex-direction:column}}</style>';
+  return '<style>.pill.scheduling,.pill.awaiting{background:#fff2c7;color:#725200}.pill.declined{background:#fbe8e8;color:#963535}.scheduler{margin-top:24px;padding-top:4px}.schedule-window,.no-slots{padding:15px 17px;border-left:4px solid #e1aa3f;border-radius:8px;background:#faf5e9;color:#665943;line-height:1.55}.booking-form fieldset{margin:24px 0 0;padding:0;border:0}.booking-form legend{margin-bottom:12px;font-weight:800}.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.slot{display:block;cursor:pointer}.slot input{position:absolute;opacity:0;pointer-events:none}.slot span{display:flex;min-height:74px;flex-direction:column;justify-content:center;padding:13px 15px;border:1px solid #dfd3bd;border-radius:13px;background:#fff;transition:.15s ease}.slot strong{font-size:14px}.slot small{margin-top:5px;color:#776a57;font-size:13px}.slot input:checked+span{border-color:#198754;background:#eaf7ef;box-shadow:0 0 0 2px rgba(25,135,84,.15)}.slot input:focus-visible+span{outline:3px solid rgba(25,135,84,.25);outline-offset:2px}.decline-form{margin-top:14px;border-top:1px solid #eadfcf}.decline-form .danger{margin-top:18px;background:#fff;color:#963535;box-shadow:inset 0 0 0 1px #debaba}.no-slots{margin-top:22px;border-left-color:#963535;background:#fbeeee}.admin-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:24px}.detail{padding:14px 16px;border:1px solid #eadfcf;border-radius:13px;background:#faf6ed}.detail.wide{grid-column:1/-1}.detail span{display:block;color:#776a57;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.detail strong,.detail a{display:block;margin-top:6px;color:#241d14;overflow-wrap:anywhere}.admin-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.admin-actions form{flex:1}.admin-actions button{width:100%;margin-top:0}.admin-actions .danger{background:#a13d3d}.notice{margin-top:22px;padding:14px 16px;border-radius:12px;background:#eaf7ef;color:#126c3e;font-weight:700}.notice.warning{background:#fff2c7;color:#725200}@media(max-width:520px){.slots,.admin-details{grid-template-columns:1fr}.admin-actions{flex-direction:column}}</style>';
 }
 
 function escapeHtml_(value) {
@@ -1455,7 +1610,7 @@ function escapeHtml_(value) {
     .replace(/'/g, "&#39;");
 }
 
-function getAvailableBookingSlots_(config) {
+function getAvailableBookingSlots_(config, sheet) {
   if (!config.calendarFollowupEnabled || !config.calendarId) return [];
   if (config.bookingEndHour <= config.bookingStartHour) {
     throw new Error("The booking hours are not valid");
@@ -1482,6 +1637,7 @@ function getAvailableBookingSlots_(config) {
     new Date(now.getTime() - bufferMilliseconds),
     new Date(horizon.getTime() + bufferMilliseconds)
   );
+  const pendingTimes = getPendingAppointmentTimes_(sheet, "");
 
   for (let dayOffset = 0; dayOffset <= config.bookingDaysAhead; dayOffset += 1) {
     const day = new Date(dayAnchor.getTime() + dayOffset * 24 * 60 * 60 * 1000);
@@ -1500,12 +1656,66 @@ function getAvailableBookingSlots_(config) {
       );
       const end = new Date(start.getTime() + config.eventDurationMinutes * 60 * 1000);
       if (start < earliest || end > horizon) continue;
-      if (isBookingWindowFree_(events, start, end, config.bookingBufferMinutes)) {
+      if (
+        pendingTimes.indexOf(start.getTime()) === -1 &&
+        isBookingWindowFree_(events, start, end, config.bookingBufferMinutes)
+      ) {
         slots.push(start);
       }
     }
   }
   return slots;
+}
+
+function getPendingAppointmentTimes_(sheet, excludedSubmissionId) {
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  const headers = ensureLeadHeaders_(sheet);
+  const submissionIndex = headers.indexOf("submissionId");
+  const statusIndex = headers.indexOf("status");
+  const appointmentIndex = headers.indexOf("appointmentAt");
+  if (statusIndex === -1 || appointmentIndex === -1) return [];
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, headers.length).getValues()
+    .filter(function (values) {
+      return getRequestStatusKey_(values[statusIndex]) === "awaiting" &&
+        String(values[submissionIndex] || "") !== String(excludedSubmissionId || "");
+    })
+    .map(function (values) {
+      const value = values[appointmentIndex];
+      const date = value instanceof Date ? value : new Date(String(value || ""));
+      return date.getTime();
+    })
+    .filter(function (timestamp) { return !Number.isNaN(timestamp); });
+}
+
+function isSelectedAppointmentAvailable_(record, config, sheet) {
+  const start = new Date(String(record.appointmentAt || ""));
+  if (Number.isNaN(start.getTime()) || start <= new Date()) return false;
+  const timeZone = Session.getScriptTimeZone();
+  const localDate = Utilities.formatDate(start, timeZone, "yyyy-MM-dd").split("-").map(Number);
+  const day = new Date(Date.UTC(localDate[0], localDate[1] - 1, localDate[2])).getUTCDay();
+  if (config.bookingWeekdays.indexOf(day) === -1) return false;
+  const localTime = Utilities.formatDate(start, timeZone, "HH:mm").split(":").map(Number);
+  const minute = localTime[0] * 60 + localTime[1];
+  const firstMinute = config.bookingStartHour * 60;
+  const lastMinute = config.bookingEndHour * 60;
+  const intervalMinutes = config.eventDurationMinutes + config.bookingBufferMinutes;
+  if (
+    minute < firstMinute ||
+    minute + config.eventDurationMinutes > lastMinute ||
+    (minute - firstMinute) % intervalMinutes !== 0
+  ) {
+    return false;
+  }
+  if (getPendingAppointmentTimes_(sheet, record.submissionId).indexOf(start.getTime()) !== -1) {
+    return false;
+  }
+  const end = new Date(start.getTime() + config.eventDurationMinutes * 60 * 1000);
+  const bufferMilliseconds = config.bookingBufferMinutes * 60 * 1000;
+  const events = getCalendar_(config).getEvents(
+    new Date(start.getTime() - bufferMilliseconds),
+    new Date(end.getTime() + bufferMilliseconds)
+  );
+  return isBookingWindowFree_(events, start, end, config.bookingBufferMinutes);
 }
 
 function isBookingWindowFree_(events, start, end, bufferMinutes) {
@@ -1524,26 +1734,74 @@ function formatClockMinutes_(minutes) {
 }
 
 function createBookingEvent_(record, start, config) {
-  const calendar = getCalendar_(config);
   const end = new Date(start.getTime() + config.eventDurationMinutes * 60 * 1000);
   const title = "Cita Hot Host - " + sanitiseText_(record.name, "Contacto", 60);
-  const description = [
-    "Referencia: " + record.submissionId,
-    "Contacto: " + record.name,
-    "Email: " + record.email,
-    "Telefono: " + record.phone,
-    "Alojamiento: " + record.propertyType,
-    "Direccion: " + [record.street, record.postalCode, record.city, record.country].filter(Boolean).join(", ")
-  ].join("\n");
-  const event = calendar.createEvent(title, start, end, {
-    description: description
-  });
+  const calendarId = config.calendarId === "primary" ? "primary" : config.calendarId;
+  const resource = {
+    summary: title,
+    description: getMeetingDescription_(record),
+    start: { dateTime: start.toISOString(), timeZone: Session.getScriptTimeZone() },
+    end: { dateTime: end.toISOString(), timeZone: Session.getScriptTimeZone() },
+    conferenceData: {
+      createRequest: {
+        requestId: ("hot-host-" + record.submissionId + "-" + Date.now()).replace(/[^a-z0-9-]/gi, "").slice(0, 120),
+        conferenceSolutionKey: { type: "hangoutsMeet" }
+      }
+    },
+    extendedProperties: {
+      private: { hotHostSubmissionId: String(record.submissionId || "") }
+    }
+  };
+  let event = null;
   try {
-    event.setTag("hotHostSubmissionId", String(record.submissionId || ""));
-  } catch (tagError) {
-    console.error(tagError);
+    event = Calendar.Events.insert(resource, calendarId, {
+      conferenceDataVersion: 1,
+      sendUpdates: "none"
+    });
+    let meetingUrl = getMeetingUrl_(event);
+    for (let attempt = 0; !meetingUrl && attempt < 10; attempt += 1) {
+      Utilities.sleep(500);
+      event = Calendar.Events.get(calendarId, event.id);
+      meetingUrl = getMeetingUrl_(event);
+    }
+    if (!meetingUrl) throw new Error("Google Meet link could not be created");
+    return { id: event.id, meetingUrl: meetingUrl, htmlLink: event.htmlLink || "" };
+  } catch (error) {
+    deleteBookingEvent_(event, config);
+    throw error;
   }
-  return event;
+}
+
+function getMeetingUrl_(event) {
+  if (event && event.hangoutLink) return String(event.hangoutLink);
+  const entryPoints = event && event.conferenceData && event.conferenceData.entryPoints;
+  if (!Array.isArray(entryPoints)) return "";
+  const videoEntry = entryPoints.find(function (entry) { return entry.entryPointType === "video"; });
+  return videoEntry ? String(videoEntry.uri || "") : "";
+}
+
+function deleteBookingEvent_(event, config) {
+  if (!event || !event.id) return;
+  try {
+    Calendar.Events.remove(config.calendarId === "primary" ? "primary" : config.calendarId, event.id, {
+      sendUpdates: "none"
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function getMeetingDescription_(record) {
+  const isSpanish = String(record.language || "").toLowerCase() === "es";
+  const property = [record.propertyType, record.city, record.country].filter(Boolean).join(" · ");
+  return [
+    isSpanish
+      ? "Reunión inicial de auditoría de rentabilidad y operación con Hot Host Hospitality."
+      : "Initial profitability and operations audit meeting with Hot Host Hospitality.",
+    "",
+    (isSpanish ? "Referencia: " : "Reference: ") + record.submissionId,
+    property ? (isSpanish ? "Propiedad: " : "Property: ") + property : ""
+  ].filter(Boolean).join("\n");
 }
 
 function deleteLegacyFollowup_(record, config) {
@@ -1660,6 +1918,47 @@ function sendSchedulingEmail_(record, bookingToken, config) {
   return true;
 }
 
+function sendAppointmentReviewEmail_(record, adminToken, config) {
+  if (!config.gmailNotificationEnabled || !config.notificationEmail) {
+    throw new Error("Gmail notification address is not configured");
+  }
+  const reviewUrl = buildAdminReviewUrl_(adminToken, config);
+  const appointment = formatAppointment_(record.appointmentAt);
+  const subject = "Confirmación final de cita - " + sanitiseText_(record.name, "Contacto", 60);
+  const intro = "El cliente ha elegido una fecha. Confírmala o deniégala antes de crear el evento de Calendar.";
+  const details = [
+    { label: "Referencia", value: record.submissionId },
+    { label: "Cliente", value: record.name },
+    { label: "Email", value: record.email },
+    { label: "Cita seleccionada", value: appointment }
+  ];
+  MailApp.sendEmail({
+    to: config.notificationEmail,
+    subject: subject,
+    body: [
+      intro,
+      "",
+      "Referencia: " + record.submissionId,
+      "Cliente: " + record.name,
+      "Email: " + record.email,
+      "Cita seleccionada: " + appointment,
+      "",
+      "Revisar y decidir: " + reviewUrl
+    ].join("\n"),
+    htmlBody: buildBrandedEmailHtml_(
+      "Confirmar cita",
+      intro,
+      details,
+      "Revisar y decidir",
+      reviewUrl,
+      "Calendar y Google Meet solo se crearán después de tu confirmación final."
+    ),
+    replyTo: String(record.email || ""),
+    name: "Hot Host Web"
+  });
+  return true;
+}
+
 function sendVisitorDenialEmail_(record, config) {
   const copy = getVerificationCopy_(record.language);
   const name = sanitiseText_(record.name, "", 80);
@@ -1690,22 +1989,21 @@ function sendVisitorDenialEmail_(record, config) {
   return true;
 }
 
-function sendVisitorBookingConfirmation_(record, config) {
+function sendVisitorAppointmentDenialEmail_(record, config) {
   const copy = getVerificationCopy_(record.language);
   const appointment = formatAppointment_(record.appointmentAt);
-  const body = [
-    copy.confirmationEmailText,
-    "",
-    copy.appointment + ": " + appointment,
-    copy.reference + ": " + record.submissionId
-  ].join("\n");
   const message = {
     to: String(record.email || ""),
-    subject: copy.confirmationEmailSubject,
-    body: body,
+    subject: copy.appointmentDeniedEmailSubject,
+    body: [
+      copy.appointmentDeniedEmailText,
+      "",
+      copy.appointment + ": " + appointment,
+      copy.reference + ": " + record.submissionId
+    ].join("\n"),
     htmlBody: buildBrandedEmailHtml_(
-      copy.confirmationEmailTitle,
-      copy.confirmationEmailText,
+      copy.appointmentDeniedEmailTitle,
+      copy.appointmentDeniedEmailText,
       [
         { label: copy.appointment, value: appointment },
         { label: copy.reference, value: record.submissionId }
@@ -1719,6 +2017,62 @@ function sendVisitorBookingConfirmation_(record, config) {
   if (config.notificationEmail) message.replyTo = config.notificationEmail;
   MailApp.sendEmail(message);
   return true;
+}
+
+function sendVisitorBookingConfirmation_(record, config) {
+  const copy = getVerificationCopy_(record.language);
+  const appointment = formatAppointment_(record.appointmentAt);
+  const meetingDescription = getMeetingDescription_(record);
+  const addCalendarUrl = buildGoogleCalendarAddUrl_(record, config);
+  const body = [
+    copy.confirmationEmailText,
+    "",
+    copy.appointment + ": " + appointment,
+    "Google Meet: " + record.meetingUrl,
+    copy.addCalendarButton + ": " + addCalendarUrl,
+    copy.meetingDescriptionLabel + ": " + meetingDescription,
+    copy.reference + ": " + record.submissionId
+  ].join("\n");
+  const message = {
+    to: String(record.email || ""),
+    subject: copy.confirmationEmailSubject,
+    body: body,
+    htmlBody: buildBrandedEmailHtml_(
+      copy.confirmationEmailTitle,
+      copy.confirmationEmailText,
+      [
+        { label: copy.appointment, value: appointment },
+        { label: "Google Meet", value: record.meetingUrl },
+        { label: copy.meetingDescriptionLabel, value: meetingDescription },
+        { label: copy.reference, value: record.submissionId }
+      ],
+      copy.addCalendarButton,
+      addCalendarUrl,
+      "",
+      copy.joinMeetButton,
+      record.meetingUrl
+    ),
+    name: "Hot Host Hospitality"
+  };
+  if (config.notificationEmail) message.replyTo = config.notificationEmail;
+  MailApp.sendEmail(message);
+  return true;
+}
+
+function buildGoogleCalendarAddUrl_(record, config) {
+  const start = new Date(String(record.appointmentAt || ""));
+  if (Number.isNaN(start.getTime())) return "";
+  const end = new Date(start.getTime() + config.eventDurationMinutes * 60 * 1000);
+  const title = "Cita Hot Host - " + sanitiseText_(record.name, "Auditoría", 60);
+  const details = getMeetingDescription_(record) + "\n\nGoogle Meet: " + String(record.meetingUrl || "");
+  const dates = Utilities.formatDate(start, "UTC", "yyyyMMdd'T'HHmmss'Z'") + "/" +
+    Utilities.formatDate(end, "UTC", "yyyyMMdd'T'HHmmss'Z'");
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE" +
+    "&text=" + encodeURIComponent(title) +
+    "&dates=" + encodeURIComponent(dates) +
+    "&details=" + encodeURIComponent(details) +
+    "&location=" + encodeURIComponent(String(record.meetingUrl || "")) +
+    "&ctz=" + encodeURIComponent(Session.getScriptTimeZone());
 }
 
 function sendVisitorDeclineAcknowledgement_(record, config) {
@@ -1750,14 +2104,15 @@ function sendFinalAdminNotification_(record, outcome, config) {
     ? "Cita confirmada - " + sanitiseText_(record.name, "Contacto", 60)
     : "Cita rechazada por el solicitante - " + sanitiseText_(record.name, "Contacto", 60);
   const intro = confirmed
-    ? "El visitante ha elegido y confirmado una cita."
+    ? "La cita ha quedado confirmada y se creó la reunión de Google Meet."
     : "El visitante ha rechazado continuar con la cita.";
   const details = [
     { label: "Referencia", value: record.submissionId },
     { label: "Nombre", value: record.name },
     { label: "Email", value: record.email },
     { label: "Teléfono", value: record.phone },
-    { label: "Cita", value: appointment }
+    { label: "Cita", value: appointment },
+    { label: "Google Meet", value: confirmed ? record.meetingUrl : "" }
   ];
   const body = details.filter(function (item) { return item.value; }).map(function (item) {
     return item.label + ": " + item.value;
@@ -1774,12 +2129,12 @@ function sendFinalAdminNotification_(record, outcome, config) {
   return true;
 }
 
-function buildBrandedEmailHtml_(title, intro, details, buttonLabel, buttonUrl, note) {
+function buildBrandedEmailHtml_(title, intro, details, buttonLabel, buttonUrl, note, secondaryButtonLabel, secondaryButtonUrl) {
   const detailsHtml = (details || []).filter(function (item) {
     return item && item.value !== undefined && item.value !== null && String(item.value).trim();
   }).map(function (item) {
     return '<div style="padding:12px 0;border-bottom:1px solid #eee5d6"><div style="color:#8a7e6c;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">' +
-      escapeHtml_(item.label) + '</div><div style="margin-top:5px;color:#201a12;font-size:15px;line-height:1.45">' +
+      escapeHtml_(item.label) + '</div><div style="margin-top:5px;color:#201a12;font-size:15px;line-height:1.45;white-space:pre-line">' +
       escapeHtml_(item.value) + '</div></div>';
   }).join("");
   const buttonHtml = buttonLabel && buttonUrl
@@ -1787,13 +2142,18 @@ function buildBrandedEmailHtml_(title, intro, details, buttonLabel, buttonUrl, n
       '" style="display:inline-block;padding:15px 26px;border-radius:999px;background:#198754;color:#fff;font-size:16px;font-weight:800;text-decoration:none">' +
       escapeHtml_(buttonLabel) + '</a></p>'
     : "";
+  const secondaryButtonHtml = secondaryButtonLabel && secondaryButtonUrl
+    ? '<p style="margin:12px 0 28px;text-align:center"><a href="' + escapeHtml_(secondaryButtonUrl) +
+      '" style="display:inline-block;padding:14px 24px;border:1px solid #198754;border-radius:999px;background:#fff;color:#126c3e;font-size:15px;font-weight:800;text-decoration:none">' +
+      escapeHtml_(secondaryButtonLabel) + '</a></p>'
+    : "";
   const noteHtml = note
     ? '<div style="margin-top:22px;padding:15px 17px;border-left:4px solid #e1aa3f;border-radius:8px;background:#faf5e9;color:#665943;font-size:13px;line-height:1.55">' +
       escapeHtml_(note) + '</div>'
     : "";
   return '<div style="margin:0;padding:32px 16px;background:#f5f1e8;color:#201a12;font-family:Arial,sans-serif"><div style="max-width:620px;margin:0 auto;overflow:hidden;border:1px solid #dfd3bd;border-radius:20px;background:#fffdf9"><div style="padding:24px 30px;background:#131313;color:#fff"><div style="font-size:22px;font-weight:800;letter-spacing:.14em">HOT HOST</div><div style="margin-top:4px;color:#e1aa3f;font-size:11px;font-weight:700;letter-spacing:.24em">HOSPITALITY</div></div><div style="padding:34px 30px 30px"><h1 style="margin:0 0 14px;font-family:Georgia,serif;font-size:30px;line-height:1.15">' +
     escapeHtml_(title) + '</h1><p style="margin:0 0 20px;color:#645846;font-size:16px;line-height:1.65">' +
-    escapeHtml_(intro) + '</p>' + detailsHtml + buttonHtml + noteHtml + '</div></div></div>';
+    escapeHtml_(intro) + '</p>' + detailsHtml + buttonHtml + secondaryButtonHtml + noteHtml + '</div></div></div>';
 }
 
 function buildFolderName_(payload) {
@@ -1993,7 +2353,7 @@ function testConfiguration() {
   if (config.calendarFollowupEnabled) {
     const calendar = getCalendar_(config);
     result.calendar = { name: calendar.getName(), id: calendar.getId() };
-    const slots = getAvailableBookingSlots_(config);
+    const slots = getAvailableBookingSlots_(config, sheet);
     result.booking.availableSlots = slots.length;
     result.booking.nextAvailableAt = slots.length ? slots[0].toISOString() : null;
   }
@@ -2059,7 +2419,7 @@ function testWriteAccess() {
   sheet.getRange(row, 1).setValue(testId);
   sheet.deleteRow(row);
 
-  const result = { ok: true, sheets: true, drive: false, calendar: false };
+  const result = { ok: true, sheets: true, drive: false, calendar: false, googleMeet: false };
   if (config.driveFolderId) {
     const file = getRootFolder_(config).createFile(testId + ".txt", "Hot Host write test", MimeType.PLAIN_TEXT);
     file.setTrashed(true);
@@ -2067,12 +2427,18 @@ function testWriteAccess() {
   }
   if (config.calendarFollowupEnabled) {
     const start = new Date(Date.now() + 60 * 60 * 1000);
-    const event = getCalendar_(config).createEvent(
-      "Hot Host integration test",
-      start,
-      new Date(start.getTime() + 5 * 60 * 1000)
-    );
-    event.deleteEvent();
+    const event = createBookingEvent_({
+      submissionId: testId,
+      language: "es",
+      name: "Prueba de integración",
+      email: config.notificationEmail,
+      phone: "",
+      propertyType: "Prueba",
+      city: "",
+      country: ""
+    }, start, config);
+    result.googleMeet = Boolean(event.meetingUrl);
+    deleteBookingEvent_(event, config);
     result.calendar = true;
   }
   console.log(JSON.stringify(result));
@@ -2106,15 +2472,26 @@ function purgeExpiredData() {
           }
         }
         if (calendarEventIndex !== -1 && values[index][calendarEventIndex] && config.calendarId) {
+          let deleted = false;
           try {
-            const event = getCalendar_(config).getEventById(values[index][calendarEventIndex]);
-            if (event) {
-              event.deleteEvent();
-              result.calendarEvents += 1;
+            Calendar.Events.remove(
+              config.calendarId === "primary" ? "primary" : config.calendarId,
+              values[index][calendarEventIndex],
+              { sendUpdates: "none" }
+            );
+            deleted = true;
+          } catch (advancedCalendarError) {
+            try {
+              const event = getCalendar_(config).getEventById(values[index][calendarEventIndex]);
+              if (event) {
+                event.deleteEvent();
+                deleted = true;
+              }
+            } catch (calendarError) {
+              console.error(calendarError);
             }
-          } catch (calendarError) {
-            console.error(calendarError);
           }
+          if (deleted) result.calendarEvents += 1;
         }
         sheet.deleteRow(index + 2);
         result.sheetRows += 1;
