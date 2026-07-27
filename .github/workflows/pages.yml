@@ -26,6 +26,7 @@ jobs:
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Configurar integracion publica de Google
+        if: ${{ vars.GOOGLE_APPS_SCRIPT_WEB_APP_URL != '' }}
         shell: pwsh
         env:
           GOOGLE_APPS_SCRIPT_WEB_APP_URL: ${{ vars.GOOGLE_APPS_SCRIPT_WEB_APP_URL }}

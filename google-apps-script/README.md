@@ -116,11 +116,7 @@ El script solo copia la URL publica a `assets/config.js`. Nunca copia IDs privad
 
 ### GitHub Pages
 
-1. Abre **GitHub > Settings > Secrets and variables > Actions > Variables**.
-2. Crea la variable de repositorio `GOOGLE_APPS_SCRIPT_WEB_APP_URL` con la URL `/exec`.
-3. Vuelve a ejecutar el workflow de Pages o publica un nuevo commit.
-
-El workflow genera `assets/config.js` durante el despliegue. La URL de la Web App es publica por definicion; no debe tratarse como secreto.
+La URL publica puede permanecer en `assets/config.js`. Si quieres sustituirla sin cambiar el repositorio, crea la variable `GOOGLE_APPS_SCRIPT_WEB_APP_URL` en **GitHub > Settings > Secrets and variables > Actions > Variables**. El workflow solo genera `assets/config.js` cuando esa variable existe.
 
 ## 7. Prueba de extremo a extremo
 
