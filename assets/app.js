@@ -2583,7 +2583,7 @@
   function renderContact(locale) {
     const contact = locale.contact;
     const form = locale.form;
-    const driveUploadAvailable = Boolean(getDriveUploadEndpoint());
+    const driveUploadAvailable = Boolean(getGoogleAppsScriptEndpoint());
     const offer = isAuditOfferActive()
       ? `<div class="contact-offer"><span>${escapeHtml(locale.common.offerKicker)}</span><strong>${escapeHtml(locale.common.offerTitle)}</strong><small>${escapeHtml(locale.common.offerDeadline)}</small></div>`
       : "";
@@ -2861,8 +2861,8 @@
     return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   }
 
-  function getDriveUploadEndpoint() {
-    const configuredEndpoint = window.HOT_HOST_CONFIG && window.HOT_HOST_CONFIG.driveUploadEndpoint;
+  function getGoogleAppsScriptEndpoint() {
+    const configuredEndpoint = window.HOT_HOST_CONFIG && window.HOT_HOST_CONFIG.googleAppsScriptEndpoint;
     if (!configuredEndpoint) return "";
     try {
       const endpoint = new URL(String(configuredEndpoint).trim());
@@ -2950,15 +2950,15 @@
     });
   }
 
-  async function uploadPropertyPhotos(endpoint, files, metadata) {
+  async function submitWorkspaceRequest(endpoint, files, metadata) {
     const photos = [];
     for (let index = 0; index < files.length; index += 1) {
       photos.push(await optimisePropertyPhoto(files[index], index));
     }
-    const payload = Object.assign({ version: 1, photos: photos }, metadata);
+    const payload = Object.assign({ version: 2, photos: photos }, metadata);
     const payloadBody = JSON.stringify(payload);
     if (payloadBody.length > MAX_UPLOAD_REQUEST_CHARACTERS) {
-      throw new Error("Photo request is too large");
+      throw new Error("Workspace request is too large");
     }
     const controller = typeof AbortController === "function" ? new AbortController() : null;
     const timeout = window.setTimeout(function () {
@@ -2980,7 +2980,7 @@
         await Promise.race([
           request,
           new Promise(function (_, reject) {
-            window.setTimeout(function () { reject(new Error("Photo upload timed out")); }, PHOTO_UPLOAD_TIMEOUT_MS);
+            window.setTimeout(function () { reject(new Error("Workspace request timed out")); }, PHOTO_UPLOAD_TIMEOUT_MS);
           })
         ]);
       }
@@ -3016,8 +3016,8 @@
     const photosStatus = form.querySelector("#propertyPhotosStatus");
     const photoPreviews = form.querySelector("#propertyPhotoPreviews");
     const photoDropzone = form.querySelector("[data-photo-dropzone]");
-    const driveEndpoint = getDriveUploadEndpoint();
-    const driveUploadAvailable = Boolean(driveEndpoint);
+    const workspaceEndpoint = getGoogleAppsScriptEndpoint();
+    const driveUploadAvailable = Boolean(workspaceEndpoint);
 
     function setPhotoStatus(message, kind) {
       photosStatus.textContent = message;
@@ -3240,12 +3240,12 @@
       const labels = locale.form.emailBody;
       const selectedPhotos = touristRental.value === "no" ? selectedPropertyPhotos.slice() : [];
       const photosLink = String(data.get("photosUrl") || "").trim();
-      const shouldUploadPhotos = selectedPhotos.length > 0 && Boolean(driveEndpoint) && !photosLink;
+      const shouldSubmitToWorkspace = Boolean(workspaceEndpoint);
       const submissionId = createSubmissionId();
       let photoSubmissionReference = "";
       let messageWindow = null;
 
-      if (selectedPhotos.length && !driveEndpoint) {
+      if (selectedPhotos.length && !workspaceEndpoint) {
         setPhotoStatus(locale.form.driveNotConfigured, photosLink ? "warning" : "error");
         if (!photosLink) {
           status.textContent = locale.form.driveNotConfigured;
@@ -3255,20 +3255,23 @@
         }
       }
 
-      if (shouldUploadPhotos) {
+      if (shouldSubmitToWorkspace) {
         messageWindow = window.open("about:blank", "_blank");
         if (messageWindow) messageWindow.opener = null;
         const submitButtons = Array.from(form.querySelectorAll("button[type='submit']"));
         submitButtons.forEach(function (button) { button.disabled = true; });
-        status.textContent = locale.form.driveUploading;
-        status.dataset.kind = "uploading";
-        setPhotoStatus(locale.form.driveUploading, "uploading");
+        if (selectedPhotos.length) {
+          status.textContent = locale.form.driveUploading;
+          status.dataset.kind = "uploading";
+          setPhotoStatus(locale.form.driveUploading, "uploading");
+        }
         try {
-          await uploadPropertyPhotos(driveEndpoint, selectedPhotos, {
+          await submitWorkspaceRequest(workspaceEndpoint, selectedPhotos, {
             submissionId: submissionId,
             submittedAt: new Date().toISOString(),
             language: activeLanguage,
             sourceUrl: window.location.href.split(/[?#]/, 1)[0],
+            deliveryMethod: deliveryMethod,
             website: String(data.get("website") || ""),
             consent: {
               accepted: Boolean(data.get("privacyConsent")),
@@ -3296,18 +3299,25 @@
               comments: String(data.get("message") || "").trim()
             }
           });
-          photoSubmissionReference = `${selectedPhotos.length} · ${submissionId}`;
-          setPhotoStatus(
-            formatFormMessage(locale.form.driveUploaded, { count: selectedPhotos.length }),
-            "submitted"
-          );
+          if (selectedPhotos.length) {
+            photoSubmissionReference = `${selectedPhotos.length} · ${submissionId}`;
+            setPhotoStatus(
+              formatFormMessage(locale.form.driveUploaded, { count: selectedPhotos.length }),
+              "submitted"
+            );
+          }
         } catch (error) {
-          if (messageWindow) messageWindow.close();
-          status.textContent = locale.form.driveUploadError;
-          status.dataset.kind = "validation";
-          setPhotoStatus(locale.form.driveUploadError, "error");
-          submitButtons.forEach(function (button) { button.disabled = false; });
-          return;
+          console.error(error);
+          if (selectedPhotos.length) {
+            setPhotoStatus(locale.form.driveUploadError, photosLink ? "warning" : "error");
+            if (!photosLink) {
+              if (messageWindow) messageWindow.close();
+              status.textContent = locale.form.driveUploadError;
+              status.dataset.kind = "validation";
+              submitButtons.forEach(function (button) { button.disabled = false; });
+              return;
+            }
+          }
         }
         submitButtons.forEach(function (button) { button.disabled = false; });
       }

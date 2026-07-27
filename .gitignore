@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+
+# Never commit Google OAuth or service-account credentials.
+client_secret*.json
+credentials*.json
+service-account*.json
+token*.json
+.clasp.json

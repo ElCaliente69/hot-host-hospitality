@@ -25,6 +25,11 @@ jobs:
         uses: actions/checkout@v4
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
+      - name: Configurar integracion publica de Google
+        shell: pwsh
+        env:
+          GOOGLE_APPS_SCRIPT_WEB_APP_URL: ${{ vars.GOOGLE_APPS_SCRIPT_WEB_APP_URL }}
+        run: ./generate-google-config.ps1
       - name: Preparar archivos
         uses: actions/upload-pages-artifact@v3
         with:

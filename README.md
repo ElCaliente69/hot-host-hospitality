@@ -22,4 +22,4 @@ Abre `index.html` en un navegador o publica la carpeta completa en Netlify, Verc
 
 El sitio no incorpora analitica, publicidad ni perfiles de seguimiento. Solo conserva en el navegador las preferencias de idioma, tema y aviso informativo. Las consultas y fotografias compartidas se conservan durante un maximo de un ano, conforme a la politica publicada.
 
-El formulario abre Gmail o WhatsApp con la consulta preparada. La subida opcional de fotografias utiliza Google Apps Script; mientras `assets/config.js` no tenga un endpoint valido, el formulario solicita un enlace compartido en su lugar. Consulta `google-apps-script/README.md` antes de desplegarla.
+El formulario abre Gmail o WhatsApp con la consulta preparada. La integracion opcional de Google Workspace utiliza Apps Script para registrar solicitudes en Sheets, crear seguimientos en Calendar, guardar fotografias en Drive y enviar avisos internos por Gmail. Mientras `assets/config.js` no tenga un endpoint valido, el formulario solicita un enlace compartido para las fotografias y mantiene el funcionamiento manual. Consulta `google-apps-script/README.md` antes de desplegar la integracion.
