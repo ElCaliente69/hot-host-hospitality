@@ -275,6 +275,7 @@ window.HOT_HOST_LOCALES.de = {
       review: "Überprüfe die markierten Felder, bevor du deine Anfrage sendest."
     },
     status: {
+      submissionError: "Die Anfrage konnte nicht registriert werden. Lade die Seite neu und versuche es erneut; falls das Problem weiterhin besteht, schreibe an direccion@hhosthospitality.com.",
       emailOpened: "Gmail wurde mit deiner vorbereiteten Anfrage geöffnet. Prüfe sie und klicke auf Senden.",
       whatsappOpened: "WhatsApp wurde mit deiner vorbereiteten Anfrage geöffnet. Prüfe sie und klicke auf Senden.",
       blockedBefore: "Der Browser hat das Fenster blockiert. ",

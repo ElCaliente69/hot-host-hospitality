@@ -275,6 +275,7 @@ window.HOT_HOST_LOCALES.pt = {
       review: "Verifique os campos assinalados antes de enviar o pedido."
     },
     status: {
+      submissionError: "Não foi possível registar o pedido. Recarregue a página e tente novamente; se o problema persistir, escreva para direccion@hhosthospitality.com.",
       emailOpened: "O Gmail foi aberto com o pedido preparado. Reveja-o e clique em Enviar.",
       whatsappOpened: "O WhatsApp foi aberto com o pedido preparado. Reveja-o e clique em Enviar.",
       blockedBefore: "O navegador bloqueou a janela. ",

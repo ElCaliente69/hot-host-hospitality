@@ -128,7 +128,7 @@ La URL publica puede permanecer en `assets/config.js`. Si quieres sustituirla si
 6. Si Gmail esta activo, comprueba el aviso interno y su campo de respuesta.
 7. Comprueba que el visitante sigue viendo Gmail o WhatsApp con su consulta preparada.
 
-La peticion usa `no-cors`, una limitacion de GitHub Pages y Apps Script. El navegador confirma que envio la solicitud, pero no puede leer la respuesta. Durante las primeras pruebas revisa **Ejecuciones** en Apps Script y usa `submissionId` para localizar cada registro.
+La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHub Pages y Apps Script no comparten origen. El navegador puede iniciar el envio, pero no leer la respuesta. Durante las primeras pruebas revisa **Ejecuciones** en Apps Script y usa `submissionId` para localizar cada registro.
 
 ## Seguridad y limites
 

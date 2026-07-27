@@ -275,6 +275,7 @@ window.HOT_HOST_LOCALES.pl = {
       review: "Przed wysłaniem zapytania sprawdź wskazane pola."
     },
     status: {
+      submissionError: "Nie udało się zarejestrować zapytania. Odśwież stronę i spróbuj ponownie; jeśli problem nie ustąpi, napisz na direccion@hhosthospitality.com.",
       emailOpened: "W Gmailu otworzyła się gotowa wiadomość z zapytaniem. Sprawdź ją i kliknij Wyślij.",
       whatsappOpened: "W WhatsApp otworzyła się gotowa wiadomość z zapytaniem. Sprawdź ją i kliknij Wyślij.",
       blockedBefore: "Przeglądarka zablokowała okno. ",

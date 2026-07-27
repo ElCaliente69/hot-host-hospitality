@@ -678,6 +678,7 @@
           review: "Revisa los campos indicados antes de enviar la consulta."
         },
         status: {
+          submissionError: "No se pudo registrar la solicitud. Recarga la página e inténtalo de nuevo; si continúa, escribe a direccion@hhosthospitality.com.",
           emailOpened: "Se ha abierto Gmail con la consulta preparada. Revísala y pulsa Enviar.",
           whatsappOpened: "Se ha abierto WhatsApp con la consulta preparada. Revísala y pulsa Enviar.",
           blockedBefore: "El navegador bloqueó la ventana. ",
@@ -1098,6 +1099,7 @@
           review: "Check the indicated fields before sending your enquiry."
         },
         status: {
+          submissionError: "The enquiry could not be registered. Reload the page and try again; if the problem continues, email direccion@hhosthospitality.com.",
           emailOpened: "Gmail has opened with your enquiry ready. Review it and click Send.",
           whatsappOpened: "WhatsApp has opened with your enquiry ready. Review it and click Send.",
           blockedBefore: "The browser blocked the window. ",
@@ -1518,6 +1520,7 @@
           review: "Vérifiez les champs indiqués avant d’envoyer votre demande."
         },
         status: {
+          submissionError: "La demande n’a pas pu être enregistrée. Rechargez la page et réessayez ; si le problème persiste, écrivez à direccion@hhosthospitality.com.",
           emailOpened: "Gmail s’est ouvert avec votre demande prête. Vérifiez-la puis cliquez sur Envoyer.",
           whatsappOpened: "WhatsApp s’est ouvert avec votre demande prête. Vérifiez-la puis cliquez sur Envoyer.",
           blockedBefore: "Le navigateur a bloqué la fenêtre. ",
@@ -1938,6 +1941,7 @@
           review: "Controlla i campi indicati prima di inviare la richiesta."
         },
         status: {
+          submissionError: "Non è stato possibile registrare la richiesta. Ricarica la pagina e riprova; se il problema persiste, scrivi a direccion@hhosthospitality.com.",
           emailOpened: "Gmail si è aperto con la richiesta pronta. Controllala e premi Invia.",
           whatsappOpened: "WhatsApp si è aperto con la richiesta pronta. Controllala e premi Invia.",
           blockedBefore: "Il browser ha bloccato la finestra. ",
@@ -2960,33 +2964,54 @@
     if (payloadBody.length > MAX_UPLOAD_REQUEST_CHARACTERS) {
       throw new Error("Workspace request is too large");
     }
-    const controller = typeof AbortController === "function" ? new AbortController() : null;
-    const timeout = window.setTimeout(function () {
-      if (controller) controller.abort();
-    }, PHOTO_UPLOAD_TIMEOUT_MS);
-    try {
-      const request = window.fetch(endpoint, {
-        method: "POST",
-        mode: "no-cors",
-        credentials: "omit",
-        cache: "no-store",
-        redirect: "follow",
-        headers: { "Content-Type": "text/plain;charset=UTF-8" },
-        body: payloadBody,
-        signal: controller ? controller.signal : undefined
-      });
-      if (controller) await request;
-      else {
-        await Promise.race([
-          request,
-          new Promise(function (_, reject) {
-            window.setTimeout(function () { reject(new Error("Workspace request timed out")); }, PHOTO_UPLOAD_TIMEOUT_MS);
-          })
-        ]);
+    // A native form POST reaches Apps Script without requiring a CORS response.
+    await new Promise(function (resolve, reject) {
+      const targetName = `workspace-submit-${payload.submissionId}`;
+      const targetFrame = document.createElement("iframe");
+      const requestForm = document.createElement("form");
+      const payloadInput = document.createElement("input");
+      let settled = false;
+
+      function settle() {
+        if (settled) return;
+        settled = true;
+        resolve();
       }
-    } finally {
-      window.clearTimeout(timeout);
-    }
+
+      targetFrame.name = targetName;
+      targetFrame.title = "";
+      targetFrame.hidden = true;
+      targetFrame.setAttribute("aria-hidden", "true");
+      targetFrame.addEventListener("load", settle);
+
+      requestForm.method = "POST";
+      requestForm.action = endpoint;
+      requestForm.target = targetName;
+      requestForm.enctype = "application/x-www-form-urlencoded";
+      requestForm.acceptCharset = "UTF-8";
+      requestForm.hidden = true;
+
+      payloadInput.type = "hidden";
+      payloadInput.name = "payload";
+      payloadInput.value = payloadBody;
+      requestForm.appendChild(payloadInput);
+      document.body.append(targetFrame, requestForm);
+
+      try {
+        requestForm.submit();
+      } catch (error) {
+        targetFrame.remove();
+        requestForm.remove();
+        reject(error);
+        return;
+      }
+
+      window.setTimeout(settle, 1500);
+      window.setTimeout(function () {
+        targetFrame.remove();
+        requestForm.remove();
+      }, PHOTO_UPLOAD_TIMEOUT_MS);
+    });
   }
 
   function setConditionalField(field, control, visible) {
@@ -3245,14 +3270,10 @@
       let photoSubmissionReference = "";
       let messageWindow = null;
 
-      if (selectedPhotos.length && !workspaceEndpoint) {
-        setPhotoStatus(locale.form.driveNotConfigured, photosLink ? "warning" : "error");
-        if (!photosLink) {
-          status.textContent = locale.form.driveNotConfigured;
-          status.dataset.kind = "validation";
-          propertyPhotos.focus();
-          return;
-        }
+      if (!shouldSubmitToWorkspace) {
+        status.textContent = locale.form.status.submissionError;
+        status.dataset.kind = "validation";
+        return;
       }
 
       if (shouldSubmitToWorkspace) {
@@ -3309,15 +3330,13 @@
         } catch (error) {
           console.error(error);
           if (selectedPhotos.length) {
-            setPhotoStatus(locale.form.driveUploadError, photosLink ? "warning" : "error");
-            if (!photosLink) {
-              if (messageWindow) messageWindow.close();
-              status.textContent = locale.form.driveUploadError;
-              status.dataset.kind = "validation";
-              submitButtons.forEach(function (button) { button.disabled = false; });
-              return;
-            }
+            setPhotoStatus(locale.form.driveUploadError, "error");
           }
+          if (messageWindow) messageWindow.close();
+          status.textContent = locale.form.status.submissionError;
+          status.dataset.kind = "validation";
+          submitButtons.forEach(function (button) { button.disabled = false; });
+          return;
         }
         submitButtons.forEach(function (button) { button.disabled = false; });
       }

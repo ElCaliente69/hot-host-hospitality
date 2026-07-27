@@ -275,6 +275,7 @@ window.HOT_HOST_LOCALES.nl = {
       review: "Controleer de gemarkeerde velden voordat u uw aanvraag verzendt."
     },
     status: {
+      submissionError: "De aanvraag kon niet worden geregistreerd. Laad de pagina opnieuw en probeer het nogmaals; blijft het probleem bestaan, mail dan naar direccion@hhosthospitality.com.",
       emailOpened: "Gmail is geopend met uw aanvraag klaar voor verzending. Controleer het bericht en klik op Verzenden.",
       whatsappOpened: "WhatsApp is geopend met uw aanvraag klaar voor verzending. Controleer het bericht en klik op Verzenden.",
       blockedBefore: "De browser heeft het venster geblokkeerd. ",
