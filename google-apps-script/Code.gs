@@ -1,5 +1,5 @@
 const INTEGRATION_DEFAULTS = Object.freeze({
-  version: "2026-07-27-2",
+  version: "2026-07-27-3",
   publicSiteUrl: "https://elcaliente69.github.io/hot-host-hospitality/",
   rootFolderName: "Solicitudes_Web_Hot_Host",
   leadsSheetName: "Solicitudes web",
@@ -14,6 +14,12 @@ const INTEGRATION_DEFAULTS = Object.freeze({
   retentionDays: 365,
   followupDelayHours: 24,
   eventDurationMinutes: 30,
+  bookingDaysAhead: 14,
+  bookingMinLeadHours: 24,
+  bookingStartHour: 11,
+  bookingEndHour: 14,
+  bookingBufferMinutes: 30,
+  bookingWeekdays: [1, 2, 3, 4],
   allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"]
 });
 
@@ -49,9 +55,16 @@ const LEAD_HEADERS = Object.freeze([
   "calendarEventId",
   "status",
   "verificationTokenHash",
+  "bookingTokenHash",
+  "adminTokenHash",
   "verificationEmailSentAt",
   "emailVerifiedAt",
   "internalNotificationSentAt",
+  "adminDecisionAt",
+  "adminDecisionEmailSentAt",
+  "visitorDecisionAt",
+  "visitorConfirmationSentAt",
+  "finalNotificationSentAt",
   "statusUpdatedAt",
   "appointmentAt"
 ]);
@@ -59,8 +72,10 @@ const LEAD_HEADERS = Object.freeze([
 const REQUEST_STATUSES = Object.freeze({
   pendingVerification: "Pendiente de verificación",
   processing: "En proceso",
+  scheduling: "Pendiente de cita",
   confirmed: "Confirmada",
-  denied: "Denegada"
+  denied: "Denegada",
+  declined: "Cita rechazada por el solicitante"
 });
 
 const SCRIPT_PROPERTY_KEYS = Object.freeze([
@@ -72,6 +87,11 @@ const SCRIPT_PROPERTY_KEYS = Object.freeze([
   "GOOGLE_CALENDAR_FOLLOWUP_ENABLED",
   "GOOGLE_CALENDAR_FOLLOWUP_DELAY_HOURS",
   "GOOGLE_CALENDAR_EVENT_DURATION_MINUTES",
+  "GOOGLE_CALENDAR_BOOKING_DAYS_AHEAD",
+  "GOOGLE_CALENDAR_BOOKING_MIN_LEAD_HOURS",
+  "GOOGLE_CALENDAR_BOOKING_START_HOUR",
+  "GOOGLE_CALENDAR_BOOKING_END_HOUR",
+  "GOOGLE_CALENDAR_BOOKING_BUFFER_MINUTES",
   "GOOGLE_GMAIL_NOTIFICATION_ENABLED",
   "GOOGLE_GMAIL_NOTIFICATION_TO",
   "GOOGLE_APPS_SCRIPT_WEB_APP_URL",
@@ -79,6 +99,11 @@ const SCRIPT_PROPERTY_KEYS = Object.freeze([
 ]);
 
 function doGet(event) {
+  const adminToken = event && event.parameter
+    ? String(event.parameter.admin || "").trim()
+    : "";
+  if (adminToken) return renderAdminReview_(adminToken);
+
   const requestToken = event && event.parameter
     ? String(event.parameter.request || "").trim()
     : "";
@@ -101,6 +126,11 @@ function doGet(event) {
 }
 
 function doPost(event) {
+  const workflowAction = event && event.parameter
+    ? String(event.parameter.action || "").trim()
+    : "";
+  if (workflowAction) return handleWorkflowPost_(event, workflowAction);
+
   let requestFolder = null;
   let reservationCreated = false;
   let leadStored = false;
@@ -205,13 +235,6 @@ function getConfiguration_() {
     leadsSheetName: getStringProperty_(properties, "GOOGLE_SHEETS_LEADS_SHEET", INTEGRATION_DEFAULTS.leadsSheetName),
     calendarId: getStringProperty_(properties, "GOOGLE_CALENDAR_ID", ""),
     calendarFollowupEnabled: getBooleanProperty_(properties, "GOOGLE_CALENDAR_FOLLOWUP_ENABLED", false),
-    followupDelayHours: getIntegerProperty_(
-      properties,
-      "GOOGLE_CALENDAR_FOLLOWUP_DELAY_HOURS",
-      INTEGRATION_DEFAULTS.followupDelayHours,
-      0,
-      720
-    ),
     eventDurationMinutes: getIntegerProperty_(
       properties,
       "GOOGLE_CALENDAR_EVENT_DURATION_MINUTES",
@@ -219,6 +242,48 @@ function getConfiguration_() {
       5,
       480
     ),
+    bookingDaysAhead: getIntegerProperty_(
+      properties,
+      "GOOGLE_CALENDAR_BOOKING_DAYS_AHEAD",
+      INTEGRATION_DEFAULTS.bookingDaysAhead,
+      1,
+      90
+    ),
+    bookingMinLeadHours: getIntegerProperty_(
+      properties,
+      "GOOGLE_CALENDAR_BOOKING_MIN_LEAD_HOURS",
+      getIntegerProperty_(
+        properties,
+        "GOOGLE_CALENDAR_FOLLOWUP_DELAY_HOURS",
+        INTEGRATION_DEFAULTS.bookingMinLeadHours,
+        0,
+        720
+      ),
+      0,
+      720
+    ),
+    bookingStartHour: getIntegerProperty_(
+      properties,
+      "GOOGLE_CALENDAR_BOOKING_START_HOUR",
+      INTEGRATION_DEFAULTS.bookingStartHour,
+      0,
+      23
+    ),
+    bookingEndHour: getIntegerProperty_(
+      properties,
+      "GOOGLE_CALENDAR_BOOKING_END_HOUR",
+      INTEGRATION_DEFAULTS.bookingEndHour,
+      1,
+      24
+    ),
+    bookingBufferMinutes: getIntegerProperty_(
+      properties,
+      "GOOGLE_CALENDAR_BOOKING_BUFFER_MINUTES",
+      INTEGRATION_DEFAULTS.bookingBufferMinutes,
+      0,
+      240
+    ),
+    bookingWeekdays: INTEGRATION_DEFAULTS.bookingWeekdays.slice(),
     gmailNotificationEnabled: getBooleanProperty_(properties, "GOOGLE_GMAIL_NOTIFICATION_ENABLED", false),
     notificationEmail: getStringProperty_(properties, "GOOGLE_GMAIL_NOTIFICATION_TO", ""),
     webAppUrl: getStringProperty_(
@@ -419,16 +484,25 @@ function ensureLeadHeaders_(sheet) {
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight("bold");
   sheet.setFrozenRows(1);
   const statusColumn = headers.indexOf("status") + 1;
-  if (statusColumn && !sheet.getRange(2, statusColumn).getDataValidation()) {
+  if (statusColumn) {
     const allowedStatuses = Object.keys(REQUEST_STATUSES).map(function (key) {
       return REQUEST_STATUSES[key];
     });
-    const statusRule = SpreadsheetApp.newDataValidation()
-      .requireValueInList(allowedStatuses, true)
-      .setAllowInvalid(true)
-      .build();
-    sheet.getRange(2, statusColumn, Math.max(1, sheet.getMaxRows() - 1), 1)
-      .setDataValidation(statusRule);
+    const currentRule = sheet.getRange(2, statusColumn).getDataValidation();
+    const currentStatuses = currentRule &&
+      currentRule.getCriteriaType() === SpreadsheetApp.DataValidationCriteria.VALUE_IN_LIST
+      ? currentRule.getCriteriaValues()[0].map(String)
+      : [];
+    const validationIsCurrent = currentStatuses.length === allowedStatuses.length &&
+      allowedStatuses.every(function (status, index) { return currentStatuses[index] === status; });
+    if (!validationIsCurrent) {
+      const statusRule = SpreadsheetApp.newDataValidation()
+        .requireValueInList(allowedStatuses, true)
+        .setAllowInvalid(true)
+        .build();
+      sheet.getRange(2, statusColumn, Math.max(1, sheet.getMaxRows() - 1), 1)
+        .setDataValidation(statusRule);
+    }
   }
   return headers;
 }
@@ -476,8 +550,21 @@ function updateLeadFields_(sheet, row, updates) {
 }
 
 function findVerificationRow_(sheet, tokenHash) {
+  return findTokenRow_(sheet, "verificationTokenHash", tokenHash);
+}
+
+function findRequestTokenRow_(sheet, tokenHash) {
+  return findTokenRow_(sheet, "verificationTokenHash", tokenHash) ||
+    findTokenRow_(sheet, "bookingTokenHash", tokenHash);
+}
+
+function findAdminTokenRow_(sheet, tokenHash) {
+  return findTokenRow_(sheet, "adminTokenHash", tokenHash);
+}
+
+function findTokenRow_(sheet, header, tokenHash) {
   const headers = ensureLeadHeaders_(sheet);
-  const tokenColumn = headers.indexOf("verificationTokenHash") + 1;
+  const tokenColumn = headers.indexOf(header) + 1;
   if (!tokenColumn || sheet.getLastRow() < 2) return 0;
   const match = sheet
     .getRange(2, tokenColumn, sheet.getLastRow() - 1, 1)
@@ -589,9 +676,16 @@ function buildLeadRecord_(payload, receivedAt, storedPhotos, requestFolder, cale
     calendarEventId: calendarEvent ? calendarEvent.getId() : "",
     status: REQUEST_STATUSES.pendingVerification,
     verificationTokenHash: verificationTokenHash,
+    bookingTokenHash: "",
+    adminTokenHash: "",
     verificationEmailSentAt: "",
     emailVerifiedAt: "",
     internalNotificationSentAt: "",
+    adminDecisionAt: "",
+    adminDecisionEmailSentAt: "",
+    visitorDecisionAt: "",
+    visitorConfirmationSentAt: "",
+    finalNotificationSentAt: "",
     statusUpdatedAt: receivedAt,
     appointmentAt: ""
   };
@@ -612,11 +706,20 @@ function hashVerificationToken_(token) {
 }
 
 function buildVerificationUrl_(token, config) {
+  const webAppUrl = getWebAppUrl_(config);
+  return webAppUrl + "?request=" + encodeURIComponent(token);
+}
+
+function buildAdminReviewUrl_(token, config) {
+  return getWebAppUrl_(config) + "?admin=" + encodeURIComponent(token);
+}
+
+function getWebAppUrl_(config) {
   const webAppUrl = String(config.webAppUrl || "").trim().replace(/[?#].*$/, "");
   if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(webAppUrl)) {
-    throw new Error("Google Apps Script web app URL is not configured for verification");
+    throw new Error("Google Apps Script web app URL is not configured");
   }
-  return webAppUrl + "?request=" + encodeURIComponent(token);
+  return webAppUrl;
 }
 
 function getVerificationCopy_(language) {
@@ -628,14 +731,42 @@ function getVerificationCopy_(language) {
       verifyButton: "Verify email",
       emailNote: "This private button will continue to show the current status of your request. Do not share it.",
       emailFooter: "If you did not send this request, you can ignore this message.",
+      schedulingEmailSubject: "Choose your appointment - Hot Host Hospitality",
+      schedulingEmailTitle: "Your request has been approved",
+      schedulingEmailIntro: "Choose one of the available appointment times to continue with your property audit.",
+      schedulingButton: "Choose appointment",
+      schedulingEmailNote: "Appointments are available Monday to Thursday from 11:00 to 14:00 (Madrid time). Each appointment lasts 30 minutes, with a 30-minute interval between appointments.",
+      denialEmailSubject: "Update on your request - Hot Host Hospitality",
+      denialEmailTitle: "Request declined",
+      denialEmailText: "After reviewing the information, we cannot continue with this request at this time.",
+      confirmationEmailSubject: "Appointment confirmed - Hot Host Hospitality",
+      confirmationEmailTitle: "Your appointment is confirmed",
+      confirmationEmailText: "We have reserved the following appointment for your property audit.",
+      declineEmailSubject: "Appointment declined - Hot Host Hospitality",
+      declineEmailTitle: "Decision recorded",
+      declineEmailText: "We have recorded that you do not wish to continue with the appointment.",
       pageTitle: "Request status - Hot Host Hospitality",
       verifiedLabel: "Email verified",
       verifiedTitle: "Email verified",
       verifiedText: "You can close this window and use the private button in your email whenever you want to check the status of your request.",
       statusTitle: "Current status",
       reference: "Reference",
-      appointment: "Audit or appointment date",
+      appointment: "Audit or appointment date (Madrid time)",
       appointmentPending: "The date has not been assigned yet.",
+      scheduleTitle: "Choose your appointment",
+      scheduleIntro: "Your request has been approved. Select an available date and time below.",
+      scheduleWindow: "Monday to Thursday, 11:00-14:00 (Madrid time). 30-minute appointments with a 30-minute interval.",
+      selectSlot: "Available appointments",
+      confirmAppointment: "Confirm appointment",
+      declineAppointment: "Decline and close request",
+      noSlots: "There are no available appointments in the next 14 days. Please try again later or contact us by email.",
+      slotUnavailable: "That appointment is no longer available. Choose another time from the updated list.",
+      appointmentConfirmedTitle: "Appointment confirmed",
+      appointmentConfirmedText: "Your appointment has been reserved. You can return to this private page to check the date and time.",
+      requestDeniedTitle: "Request declined",
+      requestDeniedText: "This request has been closed after our team's review.",
+      appointmentDeclinedTitle: "Appointment declined",
+      appointmentDeclinedText: "We have recorded your decision and notified our team.",
       close: "Close window",
       invalidTitle: "Invalid private link",
       invalidText: "This verification link is invalid or no longer matches a request.",
@@ -644,8 +775,10 @@ function getVerificationCopy_(language) {
       statuses: {
         pending: "Pending verification",
         processing: "In progress",
+        scheduling: "Appointment pending",
         confirmed: "Confirmed",
-        denied: "Declined"
+        denied: "Declined",
+        declined: "Declined by applicant"
       }
     };
   }
@@ -656,14 +789,42 @@ function getVerificationCopy_(language) {
     verifyButton: "Verificar email",
     emailNote: "Este botón privado seguirá mostrando el estado actualizado de tu solicitud. No lo compartas.",
     emailFooter: "Si no enviaste esta solicitud, puedes ignorar este mensaje.",
+    schedulingEmailSubject: "Elige tu cita - Hot Host Hospitality",
+    schedulingEmailTitle: "Tu solicitud ha sido aprobada",
+    schedulingEmailIntro: "Elige uno de los horarios disponibles para continuar con la auditoría de tu propiedad.",
+    schedulingButton: "Elegir cita",
+    schedulingEmailNote: "Las citas están disponibles de lunes a jueves, de 11:00 a 14:00 (hora de Madrid). Cada cita dura 30 minutos y dejamos 30 minutos entre citas.",
+    denialEmailSubject: "Actualización de tu solicitud - Hot Host Hospitality",
+    denialEmailTitle: "Solicitud denegada",
+    denialEmailText: "Después de revisar la información, en este momento no podemos continuar con esta solicitud.",
+    confirmationEmailSubject: "Cita confirmada - Hot Host Hospitality",
+    confirmationEmailTitle: "Tu cita está confirmada",
+    confirmationEmailText: "Hemos reservado la siguiente cita para la auditoría de tu propiedad.",
+    declineEmailSubject: "Cita rechazada - Hot Host Hospitality",
+    declineEmailTitle: "Decisión registrada",
+    declineEmailText: "Hemos registrado que no deseas continuar con la cita.",
     pageTitle: "Estado de solicitud - Hot Host Hospitality",
     verifiedLabel: "Email verificado",
     verifiedTitle: "Mail verificado",
     verifiedText: "Puedes cerrar esta ventana y usar el botón privado de tu email cuando quieras consultar el estado de tu solicitud.",
     statusTitle: "Estado actual",
     reference: "Referencia",
-    appointment: "Fecha de cita o auditoría",
+    appointment: "Fecha de cita o auditoría (hora de Madrid)",
     appointmentPending: "La fecha todavía no ha sido asignada.",
+    scheduleTitle: "Elige tu cita",
+    scheduleIntro: "Tu solicitud ha sido aprobada. Selecciona una fecha y una hora disponibles.",
+    scheduleWindow: "De lunes a jueves, de 11:00 a 14:00 (hora de Madrid). Citas de 30 minutos con 30 minutos de separación.",
+    selectSlot: "Citas disponibles",
+    confirmAppointment: "Confirmar cita",
+    declineAppointment: "Rechazar y cerrar solicitud",
+    noSlots: "No quedan citas disponibles durante los próximos 14 días. Inténtalo de nuevo más tarde o escríbenos por email.",
+    slotUnavailable: "Esa cita ya no está disponible. Elige otra hora de la lista actualizada.",
+    appointmentConfirmedTitle: "Cita confirmada",
+    appointmentConfirmedText: "Tu cita ha quedado reservada. Puedes volver a esta página privada para consultar la fecha y la hora.",
+    requestDeniedTitle: "Solicitud denegada",
+    requestDeniedText: "La solicitud ha sido cerrada después de la revisión de nuestro equipo.",
+    appointmentDeclinedTitle: "Cita rechazada",
+    appointmentDeclinedText: "Hemos registrado tu decisión y avisado a nuestro equipo.",
     close: "Cerrar ventana",
     invalidTitle: "Enlace privado no válido",
     invalidText: "Este enlace de verificación no es válido o ya no corresponde a una solicitud.",
@@ -672,8 +833,10 @@ function getVerificationCopy_(language) {
     statuses: {
       pending: REQUEST_STATUSES.pendingVerification,
       processing: REQUEST_STATUSES.processing,
+      scheduling: REQUEST_STATUSES.scheduling,
       confirmed: REQUEST_STATUSES.confirmed,
-      denied: REQUEST_STATUSES.denied
+      denied: REQUEST_STATUSES.denied,
+      declined: "Cita rechazada"
     }
   };
 }
@@ -725,7 +888,7 @@ function renderRequestStatus_(token) {
   try {
     const config = getConfiguration_();
     const sheet = getLeadsSheet_(config);
-    const row = findVerificationRow_(sheet, hashVerificationToken_(cleanToken));
+    const row = findRequestTokenRow_(sheet, hashVerificationToken_(cleanToken));
     if (!row) return buildRequestMessagePage_(getVerificationCopy_("es"), "invalid");
 
     const lock = LockService.getScriptLock();
@@ -749,34 +912,31 @@ function renderRequestStatus_(token) {
       }
 
       const payload = buildPayloadFromLeadRecord_(record);
-      if (config.calendarFollowupEnabled && !record.calendarEventId) {
+      if (
+        config.gmailNotificationEnabled &&
+        getRequestStatusKey_(record.status) === "processing" &&
+        (!record.internalNotificationSentAt || !record.adminTokenHash)
+      ) {
+        const adminToken = createVerificationToken_();
         try {
-          const calendarEvent = createCalendarFollowup_(payload, config);
-          if (calendarEvent) {
-            record.calendarEventId = calendarEvent.getId();
-            updateLeadFields_(sheet, row, { calendarEventId: record.calendarEventId });
-          }
-        } catch (calendarError) {
-          console.error(calendarError);
-        }
-      }
-
-      if (config.gmailNotificationEnabled && !record.internalNotificationSentAt) {
-        try {
-          if (sendLeadNotification_(payload, record, config)) {
+          record.adminTokenHash = hashVerificationToken_(adminToken);
+          updateLeadFields_(sheet, row, { adminTokenHash: record.adminTokenHash });
+          if (sendLeadNotification_(payload, record, adminToken, config)) {
             record.internalNotificationSentAt = new Date().toISOString();
             updateLeadFields_(sheet, row, {
               internalNotificationSentAt: record.internalNotificationSentAt
             });
           }
         } catch (notificationError) {
+          record.adminTokenHash = "";
+          updateLeadFields_(sheet, row, { adminTokenHash: "" });
           console.error(notificationError);
         }
       }
     } finally {
       lock.releaseLock();
     }
-    return buildRequestStatusPage_(record);
+    return buildRequestStatusPage_(record, cleanToken, config);
   } catch (error) {
     console.error(error);
     return buildRequestMessagePage_(getVerificationCopy_("es"), "error");
@@ -824,6 +984,12 @@ function getRequestStatusKey_(status) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase();
+  if (normalized === "pendiente de cita" || normalized.indexOf("appointment pending") !== -1) {
+    return "scheduling";
+  }
+  if (normalized.indexOf("rechaz") !== -1 || normalized.indexOf("applicant") !== -1) {
+    return "declined";
+  }
   if (normalized.indexOf("deneg") !== -1 || normalized.indexOf("declin") !== -1) return "denied";
   if (normalized.indexOf("confirm") !== -1) return "confirmed";
   if (normalized.indexOf("pend") !== -1 || normalized.indexOf("verific") !== -1) return "pending";
@@ -852,27 +1018,99 @@ function formatAppointment_(value) {
   return Utilities.formatDate(date, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm");
 }
 
-function buildRequestStatusPage_(record) {
+function buildRequestStatusPage_(record, token, config, notice) {
   const copy = getVerificationCopy_(record.language);
   const statusKey = getRequestStatusKey_(record.status);
-  const statusLabel = copy.statuses[statusKey];
+  const statusLabel = copy.statuses[statusKey] || String(record.status || "");
   const appointment = statusKey === "confirmed" ? formatAppointment_(record.appointmentAt) : "";
   const appointmentHtml = statusKey === "confirmed"
     ? '<div class="appointment"><span>' + escapeHtml_(copy.appointment) + '</span><strong>' +
       escapeHtml_(appointment || copy.appointmentPending) + '</strong></div>'
     : "";
+  let heading = copy.verifiedTitle;
+  let lead = copy.verifiedText;
+  if (statusKey === "scheduling") {
+    heading = copy.scheduleTitle;
+    lead = copy.scheduleIntro;
+  } else if (statusKey === "confirmed") {
+    heading = copy.appointmentConfirmedTitle;
+    lead = copy.appointmentConfirmedText;
+  } else if (statusKey === "denied") {
+    heading = copy.requestDeniedTitle;
+    lead = copy.requestDeniedText;
+  } else if (statusKey === "declined") {
+    heading = copy.appointmentDeclinedTitle;
+    lead = copy.appointmentDeclinedText;
+  }
+  const schedulingHtml = statusKey === "scheduling"
+    ? buildSchedulingFormHtml_(record, token, config, copy)
+    : "";
+  const noticeHtml = notice
+    ? '<p class="notice warning">' + escapeHtml_(notice) + '</p>'
+    : "";
   const html = '<!doctype html><html lang="' + escapeHtml_(record.language || "es") + '"><head>' +
     '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<meta name="robots" content="noindex,nofollow"><title>' + escapeHtml_(copy.pageTitle) + '</title>' +
-    requestPageStyles_() + '</head><body><main class="card">' +
+    requestPageStyles_() + workflowPageStyles_() + '</head><body><main class="card">' +
     '<div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div>' +
     '<div class="verified">&#10003; ' + escapeHtml_(copy.verifiedLabel) + '</div>' +
-    '<h1>' + escapeHtml_(copy.verifiedTitle) + '</h1><p class="lead">' + escapeHtml_(copy.verifiedText) + '</p>' +
+    '<h1>' + escapeHtml_(heading) + '</h1><p class="lead">' + escapeHtml_(lead) + '</p>' +
     '<section class="status"><span>' + escapeHtml_(copy.statusTitle) + '</span><strong class="pill ' + statusKey + '">' + escapeHtml_(statusLabel) + '</strong></section>' +
-    appointmentHtml + '<p class="reference">' + escapeHtml_(copy.reference) + ': <strong>' + escapeHtml_(record.submissionId) + '</strong></p>' +
+    appointmentHtml + noticeHtml + schedulingHtml + '<p class="reference">' + escapeHtml_(copy.reference) + ': <strong>' + escapeHtml_(record.submissionId) + '</strong></p>' +
     '<button type="button" onclick="window.close()">' + escapeHtml_(copy.close) + '</button>' +
     '</main></body></html>';
   return HtmlService.createHtmlOutput(html).setTitle(copy.pageTitle);
+}
+
+function buildSchedulingFormHtml_(record, token, config, copy) {
+  let slots = [];
+  try {
+    slots = getAvailableBookingSlots_(config);
+  } catch (error) {
+    console.error(error);
+  }
+  const actionUrl = getWebAppUrl_(config);
+  const cleanToken = String(token || "");
+  const slotsHtml = slots.map(function (slot) {
+    const formatted = formatBookingSlot_(slot, record.language, config.eventDurationMinutes);
+    return '<label class="slot"><input type="radio" name="slot" value="' +
+      escapeHtml_(slot.toISOString()) + '" required><span><strong>' +
+      escapeHtml_(formatted.day) + '</strong><small>' + escapeHtml_(formatted.time) + '</small></span></label>';
+  }).join("");
+  const bookingForm = slots.length
+    ? '<form class="booking-form" method="post" target="_top" action="' + escapeHtml_(actionUrl) + '">' +
+      '<input type="hidden" name="action" value="book"><input type="hidden" name="request" value="' +
+      escapeHtml_(cleanToken) + '"><fieldset><legend>' + escapeHtml_(copy.selectSlot) +
+      '</legend><div class="slots">' + slotsHtml + '</div></fieldset><button type="submit">' +
+      escapeHtml_(copy.confirmAppointment) + '</button></form>'
+    : '<p class="no-slots">' + escapeHtml_(copy.noSlots) + '</p>';
+  return '<section class="scheduler"><p class="schedule-window">' + escapeHtml_(copy.scheduleWindow) +
+    '</p>' + bookingForm + '<form class="decline-form" method="post" target="_top" action="' + escapeHtml_(actionUrl) +
+    '"><input type="hidden" name="action" value="decline"><input type="hidden" name="request" value="' +
+    escapeHtml_(cleanToken) + '"><button class="danger" type="submit">' +
+    escapeHtml_(copy.declineAppointment) + '</button></form></section>';
+}
+
+function formatBookingSlot_(start, language, durationMinutes) {
+  const isSpanish = String(language || "").toLowerCase() === "es";
+  const weekdays = isSpanish
+    ? ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"]
+    : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months = isSpanish
+    ? ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+    : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const timeZone = Session.getScriptTimeZone();
+  const localDate = Utilities.formatDate(start, timeZone, "yyyy-MM-dd").split("-").map(Number);
+  const localDay = new Date(Date.UTC(localDate[0], localDate[1] - 1, localDate[2]));
+  const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
+  const day = isSpanish
+    ? weekdays[localDay.getUTCDay()] + ", " + localDate[2] + " de " + months[localDate[1] - 1]
+    : weekdays[localDay.getUTCDay()] + ", " + months[localDate[1] - 1] + " " + localDate[2];
+  return {
+    day: day.charAt(0).toUpperCase() + day.slice(1),
+    time: Utilities.formatDate(start, timeZone, "HH:mm") + " - " +
+      Utilities.formatDate(end, timeZone, "HH:mm")
+  };
 }
 
 function buildRequestMessagePage_(copy, kind) {
@@ -887,8 +1125,325 @@ function buildRequestMessagePage_(copy, kind) {
   return HtmlService.createHtmlOutput(html).setTitle(title);
 }
 
+function handleWorkflowPost_(event, workflowAction) {
+  try {
+    if (workflowAction === "admin-approve") {
+      return handleAdminDecision_(event.parameter.admin, "approve");
+    }
+    if (workflowAction === "admin-deny") {
+      return handleAdminDecision_(event.parameter.admin, "deny");
+    }
+    if (workflowAction === "book" || workflowAction === "decline") {
+      return handleVisitorDecision_(
+        event.parameter.request,
+        workflowAction,
+        event.parameter.slot || ""
+      );
+    }
+    throw new Error("Unknown workflow action");
+  } catch (error) {
+    console.error(error);
+    return buildWorkflowMessagePage_(
+      "No pudimos completar la acción",
+      "El enlace puede no ser válido o el estado de la solicitud ha cambiado. Vuelve a abrir el último correo recibido o escribe a direccion@hhosthospitality.com."
+    );
+  }
+}
+
+function renderAdminReview_(token) {
+  const cleanToken = String(token || "").trim();
+  if (!/^[a-f0-9]{64}$/i.test(cleanToken)) {
+    return buildWorkflowMessagePage_("Enlace privado no válido", "Abre el enlace incluido en el último correo de revisión.");
+  }
+  try {
+    const config = getConfiguration_();
+    const sheet = getLeadsSheet_(config);
+    const row = findAdminTokenRow_(sheet, hashVerificationToken_(cleanToken));
+    if (!row) {
+      return buildWorkflowMessagePage_("Enlace privado no válido", "La revisión no corresponde a una solicitud activa.");
+    }
+    return buildAdminReviewPage_(getLeadRecord_(sheet, row), cleanToken, config, null);
+  } catch (error) {
+    console.error(error);
+    return buildWorkflowMessagePage_("No pudimos cargar la solicitud", "Inténtalo de nuevo en unos minutos.");
+  }
+}
+
+function handleAdminDecision_(token, decision) {
+  const cleanToken = requirePrivateToken_(token);
+  const config = getConfiguration_();
+  const sheet = getLeadsSheet_(config);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const row = findAdminTokenRow_(sheet, hashVerificationToken_(cleanToken));
+    if (!row) throw new Error("Invalid admin token");
+    const record = getLeadRecord_(sheet, row);
+    if (!record.emailVerifiedAt) throw new Error("Email has not been verified");
+    let statusKey = getRequestStatusKey_(record.status);
+    let notice = null;
+
+    if (decision === "approve") {
+      if (!config.calendarFollowupEnabled || !config.calendarId) {
+        throw new Error("Google Calendar is not enabled for booking");
+      }
+      if (statusKey === "processing") {
+        deleteLegacyFollowup_(record, config);
+        const decidedAt = new Date().toISOString();
+        applyLeadUpdates_(sheet, row, record, {
+          status: REQUEST_STATUSES.scheduling,
+          calendarEventId: "",
+          appointmentAt: "",
+          adminDecisionAt: decidedAt,
+          adminDecisionEmailSentAt: "",
+          statusUpdatedAt: decidedAt
+        });
+        statusKey = "scheduling";
+      }
+      if (statusKey !== "scheduling") {
+        notice = { text: "La solicitud ya tiene una decisión final y no se ha modificado.", type: "warning" };
+      } else if (record.adminDecisionEmailSentAt) {
+        notice = { text: "La solicitud ya está aprobada y el correo de horarios ya fue enviado.", type: "success" };
+      } else {
+        const bookingToken = createVerificationToken_();
+        applyLeadUpdates_(sheet, row, record, {
+          bookingTokenHash: hashVerificationToken_(bookingToken)
+        });
+        try {
+          sendSchedulingEmail_(record, bookingToken, config);
+          const sentAt = new Date().toISOString();
+          applyLeadUpdates_(sheet, row, record, { adminDecisionEmailSentAt: sentAt });
+          notice = { text: "Solicitud aprobada. El visitante ha recibido el correo para elegir una cita.", type: "success" };
+        } catch (emailError) {
+          console.error(emailError);
+          notice = { text: "La solicitud quedó aprobada, pero el correo no pudo enviarse. Usa Reenviar horarios para intentarlo de nuevo.", type: "warning" };
+        }
+      }
+    } else if (decision === "deny") {
+      if (statusKey === "processing" || statusKey === "scheduling") {
+        if (statusKey === "processing") deleteLegacyFollowup_(record, config);
+        const decidedAt = new Date().toISOString();
+        applyLeadUpdates_(sheet, row, record, {
+          status: REQUEST_STATUSES.denied,
+          calendarEventId: "",
+          appointmentAt: "",
+          adminDecisionAt: decidedAt,
+          adminDecisionEmailSentAt: "",
+          statusUpdatedAt: decidedAt
+        });
+        statusKey = "denied";
+      }
+      if (statusKey !== "denied") {
+        notice = { text: "La solicitud ya tiene una decisión final y no se ha modificado.", type: "warning" };
+      } else if (record.adminDecisionEmailSentAt) {
+        notice = { text: "La denegación ya fue comunicada al visitante.", type: "success" };
+      } else {
+        try {
+          sendVisitorDenialEmail_(record, config);
+          const sentAt = new Date().toISOString();
+          applyLeadUpdates_(sheet, row, record, { adminDecisionEmailSentAt: sentAt });
+          notice = { text: "Solicitud denegada. El visitante ha recibido la notificación.", type: "success" };
+        } catch (emailError) {
+          console.error(emailError);
+          notice = { text: "La solicitud quedó denegada, pero el correo no pudo enviarse. Puedes reintentar desde esta página.", type: "warning" };
+        }
+      }
+    } else {
+      throw new Error("Invalid admin decision");
+    }
+    return buildAdminReviewPage_(record, cleanToken, config, notice);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleVisitorDecision_(token, action, slotValue) {
+  const cleanToken = requirePrivateToken_(token);
+  const config = getConfiguration_();
+  const sheet = getLeadsSheet_(config);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const row = findRequestTokenRow_(sheet, hashVerificationToken_(cleanToken));
+    if (!row) throw new Error("Invalid request token");
+    const record = getLeadRecord_(sheet, row);
+    let statusKey = getRequestStatusKey_(record.status);
+
+    if (action === "book") {
+      if (statusKey !== "scheduling" && statusKey !== "confirmed") {
+        return buildRequestStatusPage_(record, cleanToken, config);
+      }
+      if (statusKey === "scheduling") {
+        if (!config.calendarFollowupEnabled || !config.calendarId) {
+          throw new Error("Google Calendar is not enabled for booking");
+        }
+        const requestedStart = new Date(String(slotValue || ""));
+        if (Number.isNaN(requestedStart.getTime())) throw new Error("Invalid booking date");
+        const availableSlot = getAvailableBookingSlots_(config).some(function (slot) {
+          return slot.getTime() === requestedStart.getTime();
+        });
+        if (!availableSlot) {
+          return buildRequestStatusPage_(
+            record,
+            cleanToken,
+            config,
+            getVerificationCopy_(record.language).slotUnavailable
+          );
+        }
+
+        const event = createBookingEvent_(record, requestedStart, config);
+        const decidedAt = new Date().toISOString();
+        try {
+          applyLeadUpdates_(sheet, row, record, {
+            calendarEventId: event.getId(),
+            status: REQUEST_STATUSES.confirmed,
+            appointmentAt: requestedStart.toISOString(),
+            visitorDecisionAt: decidedAt,
+            visitorConfirmationSentAt: "",
+            finalNotificationSentAt: "",
+            statusUpdatedAt: decidedAt
+          });
+        } catch (sheetError) {
+          event.deleteEvent();
+          throw sheetError;
+        }
+        statusKey = "confirmed";
+      }
+      deliverFinalNotifications_(sheet, row, record, "confirmed", config);
+    } else if (action === "decline") {
+      if (statusKey !== "scheduling" && statusKey !== "declined") {
+        return buildRequestStatusPage_(record, cleanToken, config);
+      }
+      if (statusKey === "scheduling") {
+        const decidedAt = new Date().toISOString();
+        applyLeadUpdates_(sheet, row, record, {
+          status: REQUEST_STATUSES.declined,
+          appointmentAt: "",
+          visitorDecisionAt: decidedAt,
+          visitorConfirmationSentAt: "",
+          finalNotificationSentAt: "",
+          statusUpdatedAt: decidedAt
+        });
+        statusKey = "declined";
+      }
+      deliverFinalNotifications_(sheet, row, record, "declined", config);
+    } else {
+      throw new Error("Invalid visitor decision");
+    }
+    return buildRequestStatusPage_(record, cleanToken, config);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function deliverFinalNotifications_(sheet, row, record, outcome, config) {
+  if (!record.visitorConfirmationSentAt) {
+    try {
+      if (outcome === "confirmed") {
+        sendVisitorBookingConfirmation_(record, config);
+      } else {
+        sendVisitorDeclineAcknowledgement_(record, config);
+      }
+      const sentAt = new Date().toISOString();
+      applyLeadUpdates_(sheet, row, record, { visitorConfirmationSentAt: sentAt });
+    } catch (visitorEmailError) {
+      console.error(visitorEmailError);
+    }
+  }
+  if (!record.finalNotificationSentAt) {
+    try {
+      if (sendFinalAdminNotification_(record, outcome, config)) {
+        const sentAt = new Date().toISOString();
+        applyLeadUpdates_(sheet, row, record, { finalNotificationSentAt: sentAt });
+      }
+    } catch (adminEmailError) {
+      console.error(adminEmailError);
+    }
+  }
+}
+
+function applyLeadUpdates_(sheet, row, record, updates) {
+  updateLeadFields_(sheet, row, updates);
+  Object.keys(updates).forEach(function (key) {
+    record[key] = updates[key];
+  });
+}
+
+function requirePrivateToken_(token) {
+  const cleanToken = String(token || "").trim();
+  if (!/^[a-f0-9]{64}$/i.test(cleanToken)) throw new Error("Invalid private token");
+  return cleanToken;
+}
+
+function buildAdminReviewPage_(record, token, config, notice) {
+  const actionUrl = getWebAppUrl_(config);
+  const statusKey = getRequestStatusKey_(record.status);
+  const canApprove = statusKey === "processing" ||
+    (statusKey === "scheduling" && !record.adminDecisionEmailSentAt);
+  const canDeny = statusKey === "processing" || statusKey === "scheduling" ||
+    (statusKey === "denied" && !record.adminDecisionEmailSentAt);
+  const approveLabel = statusKey === "scheduling" ? "Reenviar horarios" : "Aprobar y enviar horarios";
+  const denyLabel = statusKey === "denied" ? "Reenviar denegación" : "Denegar solicitud";
+  const appointment = statusKey === "confirmed" ? formatAppointment_(record.appointmentAt) : "";
+  const details = [
+    { label: "Referencia", value: record.submissionId, wide: false },
+    { label: "Estado", value: record.status, wide: false },
+    { label: "Nombre", value: record.name, wide: false },
+    { label: "Email", value: record.email, wide: false },
+    { label: "Teléfono", value: record.phone, wide: false },
+    { label: "Relación", value: record.relationship, wide: false },
+    { label: "Propiedad", value: record.propertyType, wide: false },
+    { label: "Ubicación", value: [record.street, record.postalCode, record.city, record.country].filter(Boolean).join(", "), wide: true },
+    { label: "Anuncio", value: record.listingUrl, wide: true },
+    { label: "Fotos", value: record.photosUrl || record.driveFolderUrl, wide: true },
+    { label: "Comentarios", value: record.comments, wide: true },
+    { label: "Cita", value: appointment, wide: true }
+  ];
+  const detailsHtml = details.filter(function (detail) {
+    return detail.value !== undefined && detail.value !== null && String(detail.value).trim();
+  }).map(function (detail) {
+    return '<div class="detail' + (detail.wide ? ' wide' : '') + '"><span>' +
+      escapeHtml_(detail.label) + '</span><strong>' + escapeHtml_(detail.value) + '</strong></div>';
+  }).join("");
+  const approveForm = canApprove
+    ? buildAdminActionForm_(actionUrl, token, "admin-approve", approveLabel, "")
+    : "";
+  const denyForm = canDeny
+    ? buildAdminActionForm_(actionUrl, token, "admin-deny", denyLabel, "danger")
+    : "";
+  const noticeHtml = notice
+    ? '<p class="notice' + (notice.type === "warning" ? ' warning' : '') + '">' + escapeHtml_(notice.text) + '</p>'
+    : "";
+  const actionsHtml = approveForm || denyForm
+    ? '<div class="admin-actions">' + approveForm + denyForm + '</div>'
+    : '<p class="notice">La solicitud ya tiene una decisión final. No hay acciones pendientes.</p>';
+  const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Revisar solicitud - Hot Host Hospitality</title>' +
+    requestPageStyles_() + workflowPageStyles_() + '</head><body><main class="card"><div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div><div class="verified">Revisión privada</div><h1>Revisar solicitud</h1><p class="lead">Aprueba la solicitud para enviar los horarios libres o deniégala para cerrar el proceso.</p><section class="status"><span>Estado actual</span><strong class="pill ' +
+    escapeHtml_(statusKey) + '">' + escapeHtml_(record.status) + '</strong></section>' + noticeHtml +
+    '<section class="admin-details">' + detailsHtml + '</section>' + actionsHtml +
+    '<p class="reference">Este enlace es privado. No lo compartas.</p></main></body></html>';
+  return HtmlService.createHtmlOutput(html).setTitle("Revisar solicitud - Hot Host Hospitality");
+}
+
+function buildAdminActionForm_(actionUrl, token, action, label, buttonClass) {
+  return '<form method="post" target="_top" action="' + escapeHtml_(actionUrl) + '"><input type="hidden" name="action" value="' +
+    escapeHtml_(action) + '"><input type="hidden" name="admin" value="' + escapeHtml_(token) +
+    '"><button class="' + escapeHtml_(buttonClass) + '" type="submit">' + escapeHtml_(label) + '</button></form>';
+}
+
+function buildWorkflowMessagePage_(title, text) {
+  const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>' +
+    escapeHtml_(title) + '</title>' + requestPageStyles_() + workflowPageStyles_() + '</head><body><main class="card"><div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div><h1>' +
+    escapeHtml_(title) + '</h1><p class="lead">' + escapeHtml_(text) + '</p></main></body></html>';
+  return HtmlService.createHtmlOutput(html).setTitle(title);
+}
+
 function requestPageStyles_() {
   return '<style>:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;background:radial-gradient(circle at top,#fff8e7,#eee4d2 70%);color:#241d14;font-family:Arial,sans-serif}.card{width:min(680px,calc(100vw - 32px));padding:38px;border:1px solid #dfd0b6;border-radius:26px;background:#fffdf9;box-shadow:0 24px 70px rgba(62,43,17,.16)}.brand{margin:-38px -38px 32px;padding:25px 38px;border-radius:26px 26px 0 0;background:#131313;color:#fff}.brand strong{display:block;font-size:22px;letter-spacing:.14em}.brand span{display:block;margin-top:4px;color:#e1aa3f;font-size:11px;font-weight:800;letter-spacing:.24em}.verified{display:inline-flex;gap:8px;align-items:center;padding:8px 13px;border-radius:999px;background:#e6f5eb;color:#126c3e;font-size:13px;font-weight:800}h1{margin:18px 0 12px;font:700 clamp(32px,7vw,52px)/1.05 Georgia,serif}.lead{margin:0;color:#685c49;font-size:17px;line-height:1.65}.status,.appointment{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:28px;padding:18px 20px;border:1px solid #eadfcf;border-radius:16px;background:#faf6ed}.status>span,.appointment span{color:#776a57;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.pill{padding:8px 13px;border-radius:999px;font-size:14px}.pill.pending{background:#fff2c7;color:#725200}.pill.processing{background:#e8f0ff;color:#254d91}.pill.confirmed{background:#e6f5eb;color:#126c3e}.pill.denied{background:#fbe8e8;color:#963535}.appointment strong{text-align:right}.reference{margin:22px 0 0;color:#817563;font-size:13px;overflow-wrap:anywhere}button{margin-top:28px;padding:13px 21px;border:0;border-radius:999px;background:#198754;color:#fff;font-size:15px;font-weight:800;cursor:pointer}@media(max-width:520px){.card{padding:26px}.brand{margin:-26px -26px 26px;padding:22px 26px}.status,.appointment{align-items:flex-start;flex-direction:column}.appointment strong{text-align:left}}</style>';
+}
+
+function workflowPageStyles_() {
+  return '<style>.pill.scheduling{background:#fff2c7;color:#725200}.pill.declined{background:#fbe8e8;color:#963535}.scheduler{margin-top:24px;padding-top:4px}.schedule-window,.no-slots{padding:15px 17px;border-left:4px solid #e1aa3f;border-radius:8px;background:#faf5e9;color:#665943;line-height:1.55}.booking-form fieldset{margin:24px 0 0;padding:0;border:0}.booking-form legend{margin-bottom:12px;font-weight:800}.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.slot{display:block;cursor:pointer}.slot input{position:absolute;opacity:0;pointer-events:none}.slot span{display:flex;min-height:74px;flex-direction:column;justify-content:center;padding:13px 15px;border:1px solid #dfd3bd;border-radius:13px;background:#fff;transition:.15s ease}.slot strong{font-size:14px}.slot small{margin-top:5px;color:#776a57;font-size:13px}.slot input:checked+span{border-color:#198754;background:#eaf7ef;box-shadow:0 0 0 2px rgba(25,135,84,.15)}.slot input:focus-visible+span{outline:3px solid rgba(25,135,84,.25);outline-offset:2px}.decline-form{margin-top:14px;border-top:1px solid #eadfcf}.decline-form .danger{margin-top:18px;background:#fff;color:#963535;box-shadow:inset 0 0 0 1px #debaba}.no-slots{margin-top:22px;border-left-color:#963535;background:#fbeeee}.admin-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:24px}.detail{padding:14px 16px;border:1px solid #eadfcf;border-radius:13px;background:#faf6ed}.detail.wide{grid-column:1/-1}.detail span{display:block;color:#776a57;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.detail strong,.detail a{display:block;margin-top:6px;color:#241d14;overflow-wrap:anywhere}.admin-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.admin-actions form{flex:1}.admin-actions button{width:100%;margin-top:0}.admin-actions .danger{background:#a13d3d}.notice{margin-top:22px;padding:14px 16px;border-radius:12px;background:#eaf7ef;color:#126c3e;font-weight:700}.notice.warning{background:#fff2c7;color:#725200}@media(max-width:520px){.slots,.admin-details{grid-template-columns:1fr}.admin-actions{flex-direction:column}}</style>';
 }
 
 function escapeHtml_(value) {
@@ -900,37 +1455,105 @@ function escapeHtml_(value) {
     .replace(/'/g, "&#39;");
 }
 
-function createCalendarFollowup_(payload, config) {
-  if (!config.calendarFollowupEnabled) return null;
+function getAvailableBookingSlots_(config) {
+  if (!config.calendarFollowupEnabled || !config.calendarId) return [];
+  if (config.bookingEndHour <= config.bookingStartHour) {
+    throw new Error("The booking hours are not valid");
+  }
   const calendar = getCalendar_(config);
-  const start = new Date(Date.now() + config.followupDelayHours * 60 * 60 * 1000);
+  const now = new Date();
+  const timeZone = Session.getScriptTimeZone();
+  const earliest = new Date(now.getTime() + config.bookingMinLeadHours * 60 * 60 * 1000);
+  const today = Utilities.formatDate(now, timeZone, "yyyy-MM-dd").split("-").map(Number);
+  const dayAnchor = new Date(Date.UTC(today[0], today[1] - 1, today[2]));
+  const horizonDay = new Date(dayAnchor.getTime() + config.bookingDaysAhead * 24 * 60 * 60 * 1000);
+  const horizonDate = Utilities.formatDate(horizonDay, "UTC", "yyyy-MM-dd");
+  const horizon = Utilities.parseDate(
+    horizonDate + " " + formatClockMinutes_(config.bookingEndHour * 60),
+    timeZone,
+    "yyyy-MM-dd HH:mm"
+  );
+  const intervalMinutes = config.eventDurationMinutes + config.bookingBufferMinutes;
+  const firstMinute = config.bookingStartHour * 60;
+  const lastMinute = config.bookingEndHour * 60;
+  const slots = [];
+  const bufferMilliseconds = config.bookingBufferMinutes * 60 * 1000;
+  const events = calendar.getEvents(
+    new Date(now.getTime() - bufferMilliseconds),
+    new Date(horizon.getTime() + bufferMilliseconds)
+  );
+
+  for (let dayOffset = 0; dayOffset <= config.bookingDaysAhead; dayOffset += 1) {
+    const day = new Date(dayAnchor.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+    if (config.bookingWeekdays.indexOf(day.getUTCDay()) === -1) continue;
+    const localDate = Utilities.formatDate(day, "UTC", "yyyy-MM-dd");
+
+    for (
+      let minute = firstMinute;
+      minute + config.eventDurationMinutes <= lastMinute;
+      minute += intervalMinutes
+    ) {
+      const start = Utilities.parseDate(
+        localDate + " " + formatClockMinutes_(minute),
+        timeZone,
+        "yyyy-MM-dd HH:mm"
+      );
+      const end = new Date(start.getTime() + config.eventDurationMinutes * 60 * 1000);
+      if (start < earliest || end > horizon) continue;
+      if (isBookingWindowFree_(events, start, end, config.bookingBufferMinutes)) {
+        slots.push(start);
+      }
+    }
+  }
+  return slots;
+}
+
+function isBookingWindowFree_(events, start, end, bufferMinutes) {
+  const bufferMilliseconds = bufferMinutes * 60 * 1000;
+  const windowStart = start.getTime() - bufferMilliseconds;
+  const windowEnd = end.getTime() + bufferMilliseconds;
+  return !events.some(function (event) {
+    return event.getStartTime().getTime() < windowEnd && event.getEndTime().getTime() > windowStart;
+  });
+}
+
+function formatClockMinutes_(minutes) {
+  const hour = Math.floor(minutes / 60);
+  const minute = minutes % 60;
+  return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
+}
+
+function createBookingEvent_(record, start, config) {
+  const calendar = getCalendar_(config);
   const end = new Date(start.getTime() + config.eventDurationMinutes * 60 * 1000);
-  const title = "Nueva solicitud web - " + sanitiseText_(payload.contact.name, "Contacto", 60);
+  const title = "Cita Hot Host - " + sanitiseText_(record.name, "Contacto", 60);
   const description = [
-    "Referencia: " + payload.submissionId,
-    "Contacto: " + payload.contact.name,
-    "Email: " + payload.contact.email,
-    "Telefono: " + payload.contact.phone,
-    "Alojamiento: " + payload.property.type,
-    "Ubicacion: " + payload.property.city + ", " + payload.property.country,
-    "Canal: " + payload.deliveryMethod
+    "Referencia: " + record.submissionId,
+    "Contacto: " + record.name,
+    "Email: " + record.email,
+    "Telefono: " + record.phone,
+    "Alojamiento: " + record.propertyType,
+    "Direccion: " + [record.street, record.postalCode, record.city, record.country].filter(Boolean).join(", ")
   ].join("\n");
-  const location = [
-    payload.property.street,
-    payload.property.postalCode,
-    payload.property.city,
-    payload.property.country
-  ].filter(Boolean).join(", ");
   const event = calendar.createEvent(title, start, end, {
-    description: description,
-    location: location
+    description: description
   });
   try {
-    event.setTag("hotHostSubmissionId", payload.submissionId);
+    event.setTag("hotHostSubmissionId", String(record.submissionId || ""));
   } catch (tagError) {
     console.error(tagError);
   }
   return event;
+}
+
+function deleteLegacyFollowup_(record, config) {
+  if (!record.calendarEventId || record.appointmentAt || !config.calendarId) return;
+  try {
+    const event = getCalendar_(config).getEventById(String(record.calendarEventId));
+    if (event) event.deleteEvent();
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function getCalendar_(config) {
@@ -942,10 +1565,11 @@ function getCalendar_(config) {
   return calendar;
 }
 
-function sendLeadNotification_(payload, record, config) {
+function sendLeadNotification_(payload, record, adminToken, config) {
   if (!config.gmailNotificationEnabled) return false;
   if (!config.notificationEmail) throw new Error("Gmail notification address is not configured");
 
+  const reviewUrl = buildAdminReviewUrl_(adminToken, config);
   const subject = "Nueva solicitud web verificada - " +
     sanitiseText_(payload.contact.name, "Contacto", 60) + " - " +
     sanitiseText_(payload.property.city, "Sin ciudad", 40);
@@ -971,17 +1595,205 @@ function sendLeadNotification_(payload, record, config) {
     payload.property.listingUrl ? "Anuncio: " + payload.property.listingUrl : "",
     payload.property.photosUrl ? "Fotos: " + payload.property.photosUrl : "",
     record.driveFolderUrl ? "Carpeta Drive: " + record.driveFolderUrl : "",
-    payload.property.comments ? "Comentarios: " + payload.property.comments : ""
+    payload.property.comments ? "Comentarios: " + payload.property.comments : "",
+    "",
+    "Revisar y decidir: " + reviewUrl
   ].filter(function (line) { return line !== ""; }).join("\n");
+  const htmlBody = buildBrandedEmailHtml_(
+    "Solicitud verificada",
+    "Revisa los datos y decide si el visitante puede elegir una cita.",
+    [
+      { label: "Referencia", value: payload.submissionId },
+      { label: "Nombre", value: payload.contact.name },
+      { label: "Email", value: payload.contact.email },
+      { label: "Teléfono", value: payload.contact.phone },
+      { label: "Propiedad", value: [payload.property.type, payload.property.city, payload.property.country].filter(Boolean).join(" · ") },
+      { label: "Comentarios", value: payload.property.comments }
+    ],
+    "Revisar y decidir",
+    reviewUrl,
+    "El enlace solo abre la revisión. Aprobar o denegar requiere una segunda pulsación explícita."
+  );
 
   MailApp.sendEmail({
     to: config.notificationEmail,
     subject: subject,
     body: body,
+    htmlBody: htmlBody,
     replyTo: payload.contact.email,
     name: "Hot Host Web"
   });
   return true;
+}
+
+function sendSchedulingEmail_(record, bookingToken, config) {
+  const copy = getVerificationCopy_(record.language);
+  const schedulingUrl = buildVerificationUrl_(bookingToken, config);
+  const name = sanitiseText_(record.name, "", 80);
+  const greeting = name ? copy.greeting + " " + name + "," : copy.greeting + ",";
+  const body = [
+    greeting,
+    "",
+    copy.schedulingEmailIntro,
+    "",
+    copy.schedulingButton + ": " + schedulingUrl,
+    "",
+    copy.schedulingEmailNote,
+    copy.emailNote
+  ].join("\n");
+  const message = {
+    to: String(record.email || ""),
+    subject: copy.schedulingEmailSubject,
+    body: body,
+    htmlBody: buildBrandedEmailHtml_(
+      copy.schedulingEmailTitle,
+      greeting + " " + copy.schedulingEmailIntro,
+      [{ label: copy.reference, value: record.submissionId }],
+      copy.schedulingButton,
+      schedulingUrl,
+      copy.schedulingEmailNote + " " + copy.emailNote
+    ),
+    name: "Hot Host Hospitality"
+  };
+  if (config.notificationEmail) message.replyTo = config.notificationEmail;
+  MailApp.sendEmail(message);
+  return true;
+}
+
+function sendVisitorDenialEmail_(record, config) {
+  const copy = getVerificationCopy_(record.language);
+  const name = sanitiseText_(record.name, "", 80);
+  const greeting = name ? copy.greeting + " " + name + "," : copy.greeting + ",";
+  const body = [
+    greeting,
+    "",
+    copy.denialEmailText,
+    "",
+    copy.reference + ": " + record.submissionId
+  ].join("\n");
+  const message = {
+    to: String(record.email || ""),
+    subject: copy.denialEmailSubject,
+    body: body,
+    htmlBody: buildBrandedEmailHtml_(
+      copy.denialEmailTitle,
+      copy.denialEmailText,
+      [{ label: copy.reference, value: record.submissionId }],
+      "",
+      "",
+      ""
+    ),
+    name: "Hot Host Hospitality"
+  };
+  if (config.notificationEmail) message.replyTo = config.notificationEmail;
+  MailApp.sendEmail(message);
+  return true;
+}
+
+function sendVisitorBookingConfirmation_(record, config) {
+  const copy = getVerificationCopy_(record.language);
+  const appointment = formatAppointment_(record.appointmentAt);
+  const body = [
+    copy.confirmationEmailText,
+    "",
+    copy.appointment + ": " + appointment,
+    copy.reference + ": " + record.submissionId
+  ].join("\n");
+  const message = {
+    to: String(record.email || ""),
+    subject: copy.confirmationEmailSubject,
+    body: body,
+    htmlBody: buildBrandedEmailHtml_(
+      copy.confirmationEmailTitle,
+      copy.confirmationEmailText,
+      [
+        { label: copy.appointment, value: appointment },
+        { label: copy.reference, value: record.submissionId }
+      ],
+      "",
+      "",
+      ""
+    ),
+    name: "Hot Host Hospitality"
+  };
+  if (config.notificationEmail) message.replyTo = config.notificationEmail;
+  MailApp.sendEmail(message);
+  return true;
+}
+
+function sendVisitorDeclineAcknowledgement_(record, config) {
+  const copy = getVerificationCopy_(record.language);
+  const message = {
+    to: String(record.email || ""),
+    subject: copy.declineEmailSubject,
+    body: copy.declineEmailText + "\n\n" + copy.reference + ": " + record.submissionId,
+    htmlBody: buildBrandedEmailHtml_(
+      copy.declineEmailTitle,
+      copy.declineEmailText,
+      [{ label: copy.reference, value: record.submissionId }],
+      "",
+      "",
+      ""
+    ),
+    name: "Hot Host Hospitality"
+  };
+  if (config.notificationEmail) message.replyTo = config.notificationEmail;
+  MailApp.sendEmail(message);
+  return true;
+}
+
+function sendFinalAdminNotification_(record, outcome, config) {
+  if (!config.gmailNotificationEnabled || !config.notificationEmail) return false;
+  const confirmed = outcome === "confirmed";
+  const appointment = confirmed ? formatAppointment_(record.appointmentAt) : "";
+  const subject = confirmed
+    ? "Cita confirmada - " + sanitiseText_(record.name, "Contacto", 60)
+    : "Cita rechazada por el solicitante - " + sanitiseText_(record.name, "Contacto", 60);
+  const intro = confirmed
+    ? "El visitante ha elegido y confirmado una cita."
+    : "El visitante ha rechazado continuar con la cita.";
+  const details = [
+    { label: "Referencia", value: record.submissionId },
+    { label: "Nombre", value: record.name },
+    { label: "Email", value: record.email },
+    { label: "Teléfono", value: record.phone },
+    { label: "Cita", value: appointment }
+  ];
+  const body = details.filter(function (item) { return item.value; }).map(function (item) {
+    return item.label + ": " + item.value;
+  });
+  body.unshift(intro, "");
+  MailApp.sendEmail({
+    to: config.notificationEmail,
+    subject: subject,
+    body: body.join("\n"),
+    htmlBody: buildBrandedEmailHtml_(subject, intro, details, "", "", ""),
+    replyTo: String(record.email || ""),
+    name: "Hot Host Web"
+  });
+  return true;
+}
+
+function buildBrandedEmailHtml_(title, intro, details, buttonLabel, buttonUrl, note) {
+  const detailsHtml = (details || []).filter(function (item) {
+    return item && item.value !== undefined && item.value !== null && String(item.value).trim();
+  }).map(function (item) {
+    return '<div style="padding:12px 0;border-bottom:1px solid #eee5d6"><div style="color:#8a7e6c;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">' +
+      escapeHtml_(item.label) + '</div><div style="margin-top:5px;color:#201a12;font-size:15px;line-height:1.45">' +
+      escapeHtml_(item.value) + '</div></div>';
+  }).join("");
+  const buttonHtml = buttonLabel && buttonUrl
+    ? '<p style="margin:28px 0;text-align:center"><a href="' + escapeHtml_(buttonUrl) +
+      '" style="display:inline-block;padding:15px 26px;border-radius:999px;background:#198754;color:#fff;font-size:16px;font-weight:800;text-decoration:none">' +
+      escapeHtml_(buttonLabel) + '</a></p>'
+    : "";
+  const noteHtml = note
+    ? '<div style="margin-top:22px;padding:15px 17px;border-left:4px solid #e1aa3f;border-radius:8px;background:#faf5e9;color:#665943;font-size:13px;line-height:1.55">' +
+      escapeHtml_(note) + '</div>'
+    : "";
+  return '<div style="margin:0;padding:32px 16px;background:#f5f1e8;color:#201a12;font-family:Arial,sans-serif"><div style="max-width:620px;margin:0 auto;overflow:hidden;border:1px solid #dfd3bd;border-radius:20px;background:#fffdf9"><div style="padding:24px 30px;background:#131313;color:#fff"><div style="font-size:22px;font-weight:800;letter-spacing:.14em">HOT HOST</div><div style="margin-top:4px;color:#e1aa3f;font-size:11px;font-weight:700;letter-spacing:.24em">HOSPITALITY</div></div><div style="padding:34px 30px 30px"><h1 style="margin:0 0 14px;font-family:Georgia,serif;font-size:30px;line-height:1.15">' +
+    escapeHtml_(title) + '</h1><p style="margin:0 0 20px;color:#645846;font-size:16px;line-height:1.65">' +
+    escapeHtml_(intro) + '</p>' + detailsHtml + buttonHtml + noteHtml + '</div></div></div>';
 }
 
 function buildFolderName_(payload) {
@@ -1082,8 +1894,14 @@ function recoverWorkspaceConfiguration() {
 
   setIfMissing("PUBLIC_SITE_URL", INTEGRATION_DEFAULTS.publicSiteUrl);
   setIfMissing("GOOGLE_SHEETS_LEADS_SHEET", INTEGRATION_DEFAULTS.leadsSheetName);
+  setIfMissing("GOOGLE_CALENDAR_FOLLOWUP_ENABLED", "true");
   setIfMissing("GOOGLE_CALENDAR_FOLLOWUP_DELAY_HOURS", INTEGRATION_DEFAULTS.followupDelayHours);
   setIfMissing("GOOGLE_CALENDAR_EVENT_DURATION_MINUTES", INTEGRATION_DEFAULTS.eventDurationMinutes);
+  setIfMissing("GOOGLE_CALENDAR_BOOKING_DAYS_AHEAD", INTEGRATION_DEFAULTS.bookingDaysAhead);
+  setIfMissing("GOOGLE_CALENDAR_BOOKING_MIN_LEAD_HOURS", INTEGRATION_DEFAULTS.bookingMinLeadHours);
+  setIfMissing("GOOGLE_CALENDAR_BOOKING_START_HOUR", INTEGRATION_DEFAULTS.bookingStartHour);
+  setIfMissing("GOOGLE_CALENDAR_BOOKING_END_HOUR", INTEGRATION_DEFAULTS.bookingEndHour);
+  setIfMissing("GOOGLE_CALENDAR_BOOKING_BUFFER_MINUTES", INTEGRATION_DEFAULTS.bookingBufferMinutes);
   setIfMissing("GOOGLE_GMAIL_NOTIFICATION_ENABLED", "true");
   setIfMissing("GOOGLE_GMAIL_NOTIFICATION_TO", Session.getEffectiveUser().getEmail());
   setIfMissing("GOOGLE_DATA_RETENTION_DAYS", INTEGRATION_DEFAULTS.retentionDays);
@@ -1124,7 +1942,6 @@ function recoverWorkspaceConfiguration() {
     const calendars = CalendarApp.getCalendarsByName("Hot Host - Seguimiento web");
     if (calendars.length) {
       updates.GOOGLE_CALENDAR_ID = calendars[0].getId();
-      setIfMissing("GOOGLE_CALENDAR_FOLLOWUP_ENABLED", "true");
     }
   }
 
@@ -1156,6 +1973,15 @@ function testConfiguration() {
     webAppUrl: config.webAppUrl,
     drive: null,
     calendar: null,
+    booking: {
+      weekdays: "1,2,3,4",
+      hours: formatClockMinutes_(config.bookingStartHour * 60) + "-" +
+        formatClockMinutes_(config.bookingEndHour * 60),
+      durationMinutes: config.eventDurationMinutes,
+      bufferMinutes: config.bookingBufferMinutes,
+      daysAhead: config.bookingDaysAhead,
+      minLeadHours: config.bookingMinLeadHours
+    },
     gmail: null,
     timeZone: Session.getScriptTimeZone()
   };
@@ -1167,6 +1993,9 @@ function testConfiguration() {
   if (config.calendarFollowupEnabled) {
     const calendar = getCalendar_(config);
     result.calendar = { name: calendar.getName(), id: calendar.getId() };
+    const slots = getAvailableBookingSlots_(config);
+    result.booking.availableSlots = slots.length;
+    result.booking.nextAvailableAt = slots.length ? slots[0].toISOString() : null;
   }
   if (config.gmailNotificationEnabled) {
     if (!config.notificationEmail) throw new Error("Gmail notification address is not configured");
@@ -1174,6 +2003,49 @@ function testConfiguration() {
       recipient: config.notificationEmail,
       remainingDailyQuota: MailApp.getRemainingDailyQuota()
     };
+  }
+  console.log(JSON.stringify(result));
+  return result;
+}
+
+function sendPendingAdminReviewEmails() {
+  ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL);
+  const config = getConfiguration_();
+  if (!config.gmailNotificationEnabled || !config.notificationEmail) {
+    throw new Error("Gmail notifications are not configured");
+  }
+  const sheet = getLeadsSheet_(config);
+  const result = { reviewed: 0, sent: 0, errors: 0 };
+  if (sheet.getLastRow() < 2) return result;
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    for (let row = 2; row <= sheet.getLastRow(); row += 1) {
+      const record = getLeadRecord_(sheet, row);
+      if (!record.emailVerifiedAt || getRequestStatusKey_(record.status) !== "processing") continue;
+      result.reviewed += 1;
+      if (record.adminTokenHash) continue;
+
+      const adminToken = createVerificationToken_();
+      try {
+        applyLeadUpdates_(sheet, row, record, {
+          adminTokenHash: hashVerificationToken_(adminToken)
+        });
+        if (sendLeadNotification_(buildPayloadFromLeadRecord_(record), record, adminToken, config)) {
+          applyLeadUpdates_(sheet, row, record, {
+            internalNotificationSentAt: new Date().toISOString()
+          });
+          result.sent += 1;
+        }
+      } catch (error) {
+        applyLeadUpdates_(sheet, row, record, { adminTokenHash: "" });
+        result.errors += 1;
+        console.error(error);
+      }
+    }
+  } finally {
+    lock.releaseLock();
   }
   console.log(JSON.stringify(result));
   return result;
