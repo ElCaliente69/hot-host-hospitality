@@ -17,12 +17,13 @@
   const FALLBACK_RATES_PER_EUR = { EUR: 1, USD: 1.1418, GBP: 0.85205, CHF: 0.9259, PLN: 4.3305 };
   const MAX_EARNINGS_SCALE = 100;
   const CONTACT_EMAIL = "direccion@hhosthospitality.com";
-  const MAX_PROPERTY_PHOTOS = 12;
+  const MIN_PROPERTY_PHOTOS = 10;
+  const MAX_PROPERTY_PHOTOS = 60;
   const MAX_PROPERTY_PHOTO_BYTES = 20 * 1024 * 1024;
   const MAX_OPTIMISED_PHOTO_BYTES = 4 * 1024 * 1024;
   const MAX_UPLOAD_REQUEST_CHARACTERS = 30 * 1024 * 1024;
   const MAX_PROPERTY_PHOTO_DIMENSION = 1920;
-  const PHOTO_PROCESS_TIMEOUT_MS = 20000;
+  const PHOTO_PROCESS_TIMEOUT_MS = 30000;
   const PHOTO_UPLOAD_TIMEOUT_MS = 120000;
   const AUDIT_OFFER_END = Date.parse("2026-09-30T23:59:59+02:00");
   const MARKET_OCCUPANCY = 63;
@@ -644,11 +645,11 @@
         photosPlaceholder: "Enlace de Google Drive o Dropbox",
         photosHelp: "Asegúrate de que el enlace permita ver las fotografías.",
         photosUpload: "Subir fotografías de la propiedad",
-        photosUploadHelp: "Hasta 12 imágenes JPG, PNG o WebP, de menos de 20 MB cada una. Se optimizarán antes de enviarse.",
+        photosUploadHelp: "Entre 10 y 60 imágenes JPG, PNG o WebP, de menos de 20 MB cada una. Se optimizarán antes de enviarse.",
         photosSelected: "Fotografías seleccionadas: {count}",
         removePhoto: "Eliminar {name}",
-        photosRequired: "Sube al menos una fotografía o añade un enlace donde podamos verlas.",
-        photosTooMany: "Puedes subir un máximo de 12 fotografías.",
+        photosRequired: "Sube un mínimo de 10 fotografías o añade un enlace donde podamos verlas.",
+        photosTooMany: "Puedes subir un máximo de 60 fotografías.",
         photosTooLarge: "Cada fotografía debe pesar menos de 20 MB.",
         photosInvalidType: "Solo se admiten imágenes JPG, PNG o WebP.",
         driveUploading: "Optimizando y enviando las fotografías a Google Drive…",
@@ -1067,11 +1068,11 @@
         photosPlaceholder: "Google Drive or Dropbox link",
         photosHelp: "Make sure the link allows the photographs to be viewed.",
         photosUpload: "Upload property photographs",
-        photosUploadHelp: "Up to 12 JPG, PNG or WebP images, each smaller than 20 MB. They will be optimised before sending.",
+        photosUploadHelp: "Between 10 and 60 JPG, PNG or WebP images, each smaller than 20 MB. They will be optimised before sending.",
         photosSelected: "Photographs selected: {count}",
         removePhoto: "Remove {name}",
-        photosRequired: "Upload at least one photograph or add a link where we can view them.",
-        photosTooMany: "You can upload a maximum of 12 photographs.",
+        photosRequired: "Upload at least 10 photographs or add a link where we can view them.",
+        photosTooMany: "You can upload a maximum of 60 photographs.",
         photosTooLarge: "Each photograph must be smaller than 20 MB.",
         photosInvalidType: "Only JPG, PNG or WebP images are accepted.",
         driveUploading: "Optimising and sending photographs to Google Drive…",
@@ -1490,11 +1491,11 @@
         photosPlaceholder: "Lien Google Drive ou Dropbox",
         photosHelp: "Vérifiez que le lien permet de consulter les photographies.",
         photosUpload: "Importer des photographies du bien",
-        photosUploadHelp: "Jusqu’à 12 images JPG, PNG ou WebP de moins de 20 Mo chacune. Elles seront optimisées avant l’envoi.",
+        photosUploadHelp: "Entre 10 et 60 images JPG, PNG ou WebP de moins de 20 Mo chacune. Elles seront optimisées avant l’envoi.",
         photosSelected: "Photographies sélectionnées : {count}",
         removePhoto: "Supprimer {name}",
-        photosRequired: "Importez au moins une photographie ou ajoutez un lien permettant de les consulter.",
-        photosTooMany: "Vous pouvez importer jusqu’à 12 photographies.",
+        photosRequired: "Importez au moins 10 photographies ou ajoutez un lien permettant de les consulter.",
+        photosTooMany: "Vous pouvez importer jusqu’à 60 photographies.",
         photosTooLarge: "Chaque photographie doit peser moins de 20 Mo.",
         photosInvalidType: "Seules les images JPG, PNG ou WebP sont acceptées.",
         driveUploading: "Optimisation et envoi des photographies vers Google Drive…",
@@ -1913,11 +1914,11 @@
         photosPlaceholder: "Link Google Drive o Dropbox",
         photosHelp: "Assicurati che il link consenta di visualizzare le fotografie.",
         photosUpload: "Carica le fotografie della proprietà",
-        photosUploadHelp: "Fino a 12 immagini JPG, PNG o WebP, ciascuna inferiore a 20 MB. Verranno ottimizzate prima dell’invio.",
+        photosUploadHelp: "Da 10 a 60 immagini JPG, PNG o WebP, ciascuna inferiore a 20 MB. Verranno ottimizzate prima dell’invio.",
         photosSelected: "Fotografie selezionate: {count}",
         removePhoto: "Rimuovi {name}",
-        photosRequired: "Carica almeno una fotografia oppure aggiungi un link da cui possiamo visualizzarle.",
-        photosTooMany: "Puoi caricare un massimo di 12 fotografie.",
+        photosRequired: "Carica almeno 10 fotografie oppure aggiungi un link da cui possiamo visualizzarle.",
+        photosTooMany: "Puoi caricare un massimo di 60 fotografie.",
         photosTooLarge: "Ogni fotografia deve pesare meno di 20 MB.",
         photosInvalidType: "Sono ammesse solo immagini JPG, PNG o WebP.",
         driveUploading: "Ottimizzazione e invio delle fotografie a Google Drive…",
@@ -3035,10 +3036,14 @@
     }
   }
 
-  function optimisePropertyPhoto(file, index) {
+  function optimisePropertyPhoto(file, index, targetBytes) {
     return new Promise(function (resolve, reject) {
       const sourceUrl = URL.createObjectURL(file);
       const image = new Image();
+      const safeTargetBytes = Math.max(
+        220 * 1024,
+        Math.min(MAX_OPTIMISED_PHOTO_BYTES, Number(targetBytes) || MAX_OPTIMISED_PHOTO_BYTES)
+      );
       let settled = false;
       let sourceRevoked = false;
       const timeout = window.setTimeout(function () {
@@ -3062,36 +3067,24 @@
       image.onload = function () {
         revokeSource();
         const scale = Math.min(1, MAX_PROPERTY_PHOTO_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight));
-        const width = Math.max(1, Math.round(image.naturalWidth * scale));
-        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        let width = Math.max(1, Math.round(image.naturalWidth * scale));
+        let height = Math.max(1, Math.round(image.naturalHeight * scale));
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
         if (!context) {
           finish(reject, new Error("Canvas is unavailable"));
           return;
         }
-        canvas.width = width;
-        canvas.height = height;
-        context.fillStyle = "#fff";
-        context.fillRect(0, 0, width, height);
-        context.drawImage(image, 0, 0, width, height);
-        canvas.toBlob(function (blob) {
-          if (settled) return;
-          if (!blob) {
-            finish(reject, new Error("Image optimisation failed"));
-            return;
-          }
-          if (blob.size > MAX_OPTIMISED_PHOTO_BYTES) {
-            finish(reject, new Error("Optimised image is too large"));
-            return;
-          }
+
+        const baseName = file.name
+          .replace(/\.[^.]+$/, "")
+          .replace(/[^a-z0-9_-]+/gi, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 60) || `photo-${index + 1}`;
+
+        function readOptimisedPhoto(blob) {
           const reader = new FileReader();
           reader.onload = function () {
-            const baseName = file.name
-              .replace(/\.[^.]+$/, "")
-              .replace(/[^a-z0-9_-]+/gi, "-")
-              .replace(/^-+|-+$/g, "")
-              .slice(0, 60) || `photo-${index + 1}`;
             finish(resolve, {
               name: `${String(index + 1).padStart(2, "0")}-${baseName}.jpg`,
               mimeType: "image/jpeg",
@@ -3101,7 +3094,43 @@
           };
           reader.onerror = function () { finish(reject, new Error("Image could not be read")); };
           reader.readAsDataURL(blob);
-        }, "image/jpeg", .82);
+        }
+
+        function encodePhoto(quality) {
+          if (settled) return;
+          canvas.width = width;
+          canvas.height = height;
+          context.fillStyle = "#fff";
+          context.fillRect(0, 0, width, height);
+          context.drawImage(image, 0, 0, width, height);
+          canvas.toBlob(function (blob) {
+            if (settled) return;
+            if (!blob) {
+              finish(reject, new Error("Image optimisation failed"));
+              return;
+            }
+            if (blob.size <= safeTargetBytes) {
+              readOptimisedPhoto(blob);
+              return;
+            }
+            if (quality > .52) {
+              encodePhoto(Math.max(.52, quality - .1));
+              return;
+            }
+
+            const longestSide = Math.max(width, height);
+            if (longestSide <= 900) {
+              finish(reject, new Error("Optimised image is too large"));
+              return;
+            }
+            const resizeScale = Math.max(900 / longestSide, .82);
+            width = Math.max(1, Math.round(width * resizeScale));
+            height = Math.max(1, Math.round(height * resizeScale));
+            encodePhoto(.78);
+          }, "image/jpeg", quality);
+        }
+
+        encodePhoto(.82);
       };
       image.onerror = function () {
         finish(reject, new Error("Image could not be decoded"));
@@ -3112,8 +3141,14 @@
 
   async function submitWorkspaceRequest(endpoint, files, metadata) {
     const photos = [];
+    // Reserve space for base64, form encoding and request metadata when a batch approaches 60 files.
+    const availablePhotoBytes = Math.floor((MAX_UPLOAD_REQUEST_CHARACTERS - 512 * 1024) * .66);
+    const targetPhotoBytes = Math.min(
+      MAX_OPTIMISED_PHOTO_BYTES,
+      Math.floor(availablePhotoBytes / Math.max(files.length, 1))
+    );
     for (let index = 0; index < files.length; index += 1) {
-      photos.push(await optimisePropertyPhoto(files[index], index));
+      photos.push(await optimisePropertyPhoto(files[index], index, targetPhotoBytes));
     }
     const payload = Object.assign({ version: 2, photos: photos }, metadata);
     const payloadBody = JSON.stringify(payload);
@@ -3235,10 +3270,19 @@
 
     function validatePhotoRequirement() {
       const requiresPhotos = touristRental.value === "no";
-      const hasPhotos = selectedPropertyPhotos.length > 0 || String(photosUrl.value || "").trim();
+      const photosLink = String(photosUrl.value || "").trim();
+      const hasPhotos = selectedPropertyPhotos.length >= MIN_PROPERTY_PHOTOS || photosLink;
       const validationMessage = requiresPhotos && !hasPhotos ? locale.form.photosRequired : "";
       propertyPhotos.setCustomValidity(driveUploadAvailable ? validationMessage : "");
       photosUrl.setCustomValidity(driveUploadAvailable ? "" : validationMessage);
+      if (validationMessage && selectedPropertyPhotos.length) {
+        setPhotoStatus(validationMessage, "error");
+      } else if (!validationMessage && selectedPropertyPhotos.length && photosStatus.dataset.kind === "error") {
+        setPhotoStatus(
+          formatFormMessage(locale.form.photosSelected, { count: selectedPropertyPhotos.length }),
+          "selected"
+        );
+      }
       if (driveUploadAvailable && propertyPhotos.validationMessage) {
         propertyPhotos.setAttribute("aria-invalid", "true");
         photoDropzone.classList.add("invalid");
@@ -3252,6 +3296,9 @@
     }
 
     function renderPhotoPreviews() {
+      photoPreviews.querySelectorAll("img[data-object-url]").forEach(function (image) {
+        URL.revokeObjectURL(image.dataset.objectUrl);
+      });
       photoPreviews.replaceChildren();
       selectedPropertyPhotos.forEach(function (file, index) {
         const preview = document.createElement("figure");
@@ -3260,8 +3307,15 @@
         const imageUrl = URL.createObjectURL(file);
         image.src = imageUrl;
         image.alt = "";
-        image.onload = function () { URL.revokeObjectURL(imageUrl); };
-        image.onerror = function () { URL.revokeObjectURL(imageUrl); };
+        image.loading = "lazy";
+        image.decoding = "async";
+        image.dataset.objectUrl = imageUrl;
+        const revokePreviewUrl = function () {
+          URL.revokeObjectURL(imageUrl);
+          delete image.dataset.objectUrl;
+        };
+        image.onload = revokePreviewUrl;
+        image.onerror = revokePreviewUrl;
         const caption = document.createElement("figcaption");
         caption.textContent = file.name;
         const removeButton = document.createElement("button");

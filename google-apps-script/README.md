@@ -92,6 +92,8 @@ Abre **Configuracion del proyecto > Propiedades del script** y copia las variabl
 
 La disponibilidad acordada esta fijada de lunes a jueves. Dentro de 11:00-14:00 se ofrecen citas de 30 minutos a las 11:00, 12:00 y 13:00, dejando 30 minutos entre ellas. Los valores horarios, margen, duracion y horizonte se pueden cambiar mediante propiedades; para cambiar los dias hay que actualizar `bookingWeekdays` en `Code.gs`.
 
+La aprobacion automatica nunca asigna una fecha ni escribe `appointmentAt`. Solo habilita la agenda; el visitante debe escoger una fecha y una hora disponibles y esa seleccion sigue pendiente de la confirmacion administrativa final.
+
 ## 4. Autorizar y probar
 
 Ejecuta en este orden desde el editor:
@@ -142,11 +144,11 @@ La URL publica puede permanecer en `assets/config.js`. Si quieres sustituirla si
 3. Comprueba que Sheets contiene una fila con estado `Pendiente de verificación`.
 4. Si adjuntaste fotos, comprueba la carpeta privada de Drive y `solicitud.json`.
 5. Abre el correo del visitante y pulsa el boton verde **Verificar email**.
-6. Con una solicitud que no tenga enlace ni mas de 10 fotos, comprueba que la pagina privada muestra `En proceso` y que la empresa recibe el correo **Revisar y decidir**. Verificar el email no crea un evento de Calendar.
+6. Con una solicitud que no tenga enlace y tenga menos de 10 fotos, comprueba que la pagina privada muestra `En proceso` y que la empresa recibe el correo **Revisar y decidir**. Verificar el email no crea un evento de Calendar.
 7. Abre el enlace interno. La pagina privada del administrador debe mostrar **Aprobar y enviar horarios** y **Denegar solicitud**.
 8. Prueba **Denegar**: el visitante recibe el aviso y la fila pasa a `Denegada`.
 9. Con otra solicitud, prueba **Aprobar**: el visitante recibe **Elegir cita** y la fila pasa a `Pendiente de cita`.
-10. Crea una solicitud con 11 o 12 fotos, un enlace compartido de fotos o una URL de anuncio. Al verificar el email debe pasar directamente a `Pendiente de cita` y enviar la agenda al visitante sin la primera revision administrativa.
+10. Crea una solicitud con entre 10 y 60 fotos, un enlace compartido de fotos o una URL de anuncio. Al verificar el email debe pasar directamente a `Pendiente de cita` y enviar la agenda al visitante sin la primera revision administrativa, pero sin asignar fecha ni hora.
 11. Abre el enlace del visitante. Los desplegables de fecha y hora solo deben ofrecer huecos libres de lunes a jueves, 11:00-14:00, durante los proximos 14 dias.
 12. Selecciona una hora. La fila pasa a `Cita pendiente de confirmación`, Sheets guarda `appointmentAt`, Calendar sigue vacio y el administrador recibe un segundo correo.
 13. Abre ese correo y pulsa **Confirmar cita definitivamente**. Calendar crea el evento con Google Meet, la fila pasa a `Confirmada` y el cliente recibe el correo final con **Añadir a Google Calendar** y **Unirse a Google Meet**.
@@ -157,7 +159,7 @@ La URL publica puede permanecer en `assets/config.js`. Si quieres sustituirla si
 
 - `Pendiente de verificación`: datos y fotografias guardados; falta validar el correo del visitante.
 - `En proceso`: correo validado y solicitud sin evidencia suficiente notificada al negocio para la primera revision.
-- `Pendiente de cita`: el administrador aprobo la solicitud o se detectaron 11 o mas fotos, un enlace de fotos o un anuncio; el visitante puede elegir un hueco libre.
+- `Pendiente de cita`: el administrador aprobo la solicitud o se detectaron 10 o mas fotos, un enlace de fotos o un anuncio; el visitante debe elegir un hueco libre.
 - `Cita pendiente de confirmación`: el visitante eligio una hora, que queda retenida en Sheets hasta la decision final del administrador.
 - `Confirmada`: el administrador confirmo la hora; Calendar contiene el evento con Meet y `appointmentAt` contiene la cita.
 - `Denegada`: la pagina privada conserva y muestra la denegacion; cambiar el estado no elimina la fila ni sus archivos.
@@ -172,7 +174,8 @@ La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHu
 - `.env` esta ignorado por Git y no se publica.
 - No pegues secretos ni JSON de credenciales en `assets/config.js`.
 - El endpoint valida consentimiento, origen declarado, tipos de imagen, firmas de archivo, tamanos, referencias duplicadas y limites por correo y globales.
-- Maximo de 12 fotografias JPG, PNG o WebP, 20 MB antes de optimizar y 4 MB despues de optimizar.
+- Entre 10 y 60 fotografias JPG, PNG o WebP, o un enlace que permita consultarlas. Cada original puede pesar hasta 20 MB.
+- La web adapta la compresion de las copias al numero de fotos para mantener la peticion completa por debajo de 30 MB; el limite tecnico del backend sigue siendo 4 MB por copia optimizada.
 - Maximo aproximado de 30 MB por peticion.
 - Maximo de 5 solicitudes por correo cada 6 horas y 30 solicitudes globales por hora.
 - La Web App es publica y sus limites son una proteccion basica. Antes de recibir trafico elevado, anade un desafio anti-bot validado en el backend y actualiza la politica de privacidad correspondiente.

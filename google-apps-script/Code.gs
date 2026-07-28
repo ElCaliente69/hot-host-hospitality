@@ -1,11 +1,12 @@
 const INTEGRATION_DEFAULTS = Object.freeze({
-  version: "2026-07-28-1",
+  version: "2026-07-28-2",
   publicSiteUrl: "https://elcaliente69.github.io/hot-host-hospitality/",
   rootFolderName: "Solicitudes_Web_Hot_Host",
   leadsSheetName: "Solicitudes web",
   maxRequestCharacters: 30 * 1024 * 1024,
   maxMetadataCharacters: 64 * 1024,
-  maxFiles: 12,
+  minFiles: 10,
+  maxFiles: 60,
   maxFileBytes: 4 * 1024 * 1024,
   maxSubmissionsPerEmail: 5,
   rateLimitSeconds: 6 * 60 * 60,
@@ -368,6 +369,11 @@ function validatePayload_(payload, config) {
   validateSourceUrl_(payload.sourceUrl, config.publicSiteUrl);
   payload.photos = Array.isArray(payload.photos) ? payload.photos : [];
   if (payload.photos.length > INTEGRATION_DEFAULTS.maxFiles) throw new Error("Too many photos");
+  const hasEvidenceLink = isEvidenceUrl_(payload.property.photosUrl) ||
+    isEvidenceUrl_(payload.property.listingUrl);
+  if (payload.photos.length < INTEGRATION_DEFAULTS.minFiles && !hasEvidenceLink) {
+    throw new Error("At least " + INTEGRATION_DEFAULTS.minFiles + " photos or an evidence link are required");
+  }
 
   payload.photos.forEach(function (photo) {
     if (!photo || INTEGRATION_DEFAULTS.allowedMimeTypes.indexOf(photo.mimeType) === -1) {
@@ -986,7 +992,7 @@ function sendVerificationEmail_(payload, token, config) {
 
 function hasAutomaticSchedulingEvidence_(record) {
   const photoCount = Number.parseInt(String(record.photoCount || "0"), 10) || 0;
-  return photoCount > 10 ||
+  return photoCount >= INTEGRATION_DEFAULTS.minFiles ||
     isEvidenceUrl_(record.photosUrl) ||
     isEvidenceUrl_(record.listingUrl);
 }
