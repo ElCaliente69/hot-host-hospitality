@@ -17,7 +17,7 @@
   const FALLBACK_RATES_PER_EUR = { EUR: 1, USD: 1.1418, GBP: 0.85205, CHF: 0.9259, PLN: 4.3305 };
   const MAX_EARNINGS_SCALE = 100;
   const CONTACT_EMAIL = "direccion@hhosthospitality.com";
-  const MAX_PROPERTY_PHOTOS = 10;
+  const MAX_PROPERTY_PHOTOS = 12;
   const MAX_PROPERTY_PHOTO_BYTES = 20 * 1024 * 1024;
   const MAX_OPTIMISED_PHOTO_BYTES = 4 * 1024 * 1024;
   const MAX_UPLOAD_REQUEST_CHARACTERS = 30 * 1024 * 1024;
@@ -644,11 +644,11 @@
         photosPlaceholder: "Enlace de Google Drive o Dropbox",
         photosHelp: "Asegúrate de que el enlace permita ver las fotografías.",
         photosUpload: "Subir fotografías de la propiedad",
-        photosUploadHelp: "Hasta 10 imágenes JPG, PNG o WebP, de menos de 20 MB cada una. Se optimizarán antes de enviarse.",
+        photosUploadHelp: "Hasta 12 imágenes JPG, PNG o WebP, de menos de 20 MB cada una. Se optimizarán antes de enviarse.",
         photosSelected: "Fotografías seleccionadas: {count}",
         removePhoto: "Eliminar {name}",
         photosRequired: "Sube al menos una fotografía o añade un enlace donde podamos verlas.",
-        photosTooMany: "Puedes subir un máximo de 10 fotografías.",
+        photosTooMany: "Puedes subir un máximo de 12 fotografías.",
         photosTooLarge: "Cada fotografía debe pesar menos de 20 MB.",
         photosInvalidType: "Solo se admiten imágenes JPG, PNG o WebP.",
         driveUploading: "Optimizando y enviando las fotografías a Google Drive…",
@@ -1067,11 +1067,11 @@
         photosPlaceholder: "Google Drive or Dropbox link",
         photosHelp: "Make sure the link allows the photographs to be viewed.",
         photosUpload: "Upload property photographs",
-        photosUploadHelp: "Up to 10 JPG, PNG or WebP images, each smaller than 20 MB. They will be optimised before sending.",
+        photosUploadHelp: "Up to 12 JPG, PNG or WebP images, each smaller than 20 MB. They will be optimised before sending.",
         photosSelected: "Photographs selected: {count}",
         removePhoto: "Remove {name}",
         photosRequired: "Upload at least one photograph or add a link where we can view them.",
-        photosTooMany: "You can upload a maximum of 10 photographs.",
+        photosTooMany: "You can upload a maximum of 12 photographs.",
         photosTooLarge: "Each photograph must be smaller than 20 MB.",
         photosInvalidType: "Only JPG, PNG or WebP images are accepted.",
         driveUploading: "Optimising and sending photographs to Google Drive…",
@@ -1490,11 +1490,11 @@
         photosPlaceholder: "Lien Google Drive ou Dropbox",
         photosHelp: "Vérifiez que le lien permet de consulter les photographies.",
         photosUpload: "Importer des photographies du bien",
-        photosUploadHelp: "Jusqu’à 10 images JPG, PNG ou WebP de moins de 20 Mo chacune. Elles seront optimisées avant l’envoi.",
+        photosUploadHelp: "Jusqu’à 12 images JPG, PNG ou WebP de moins de 20 Mo chacune. Elles seront optimisées avant l’envoi.",
         photosSelected: "Photographies sélectionnées : {count}",
         removePhoto: "Supprimer {name}",
         photosRequired: "Importez au moins une photographie ou ajoutez un lien permettant de les consulter.",
-        photosTooMany: "Vous pouvez importer jusqu’à 10 photographies.",
+        photosTooMany: "Vous pouvez importer jusqu’à 12 photographies.",
         photosTooLarge: "Chaque photographie doit peser moins de 20 Mo.",
         photosInvalidType: "Seules les images JPG, PNG ou WebP sont acceptées.",
         driveUploading: "Optimisation et envoi des photographies vers Google Drive…",
@@ -1913,11 +1913,11 @@
         photosPlaceholder: "Link Google Drive o Dropbox",
         photosHelp: "Assicurati che il link consenta di visualizzare le fotografie.",
         photosUpload: "Carica le fotografie della proprietà",
-        photosUploadHelp: "Fino a 10 immagini JPG, PNG o WebP, ciascuna inferiore a 20 MB. Verranno ottimizzate prima dell’invio.",
+        photosUploadHelp: "Fino a 12 immagini JPG, PNG o WebP, ciascuna inferiore a 20 MB. Verranno ottimizzate prima dell’invio.",
         photosSelected: "Fotografie selezionate: {count}",
         removePhoto: "Rimuovi {name}",
         photosRequired: "Carica almeno una fotografia oppure aggiungi un link da cui possiamo visualizzarle.",
-        photosTooMany: "Puoi caricare un massimo di 10 fotografie.",
+        photosTooMany: "Puoi caricare un massimo di 12 fotografie.",
         photosTooLarge: "Ogni fotografia deve pesare meno di 20 MB.",
         photosInvalidType: "Sono ammesse solo immagini JPG, PNG o WebP.",
         driveUploading: "Ottimizzazione e invio delle fotografie a Google Drive…",
@@ -2150,6 +2150,138 @@
     return labels[activeLanguage] || labels.es;
   }
 
+  function getGuaranteeContent() {
+    const content = {
+      es: {
+        eyebrow: "Garantía de rendimiento",
+        title: "Más ingresos. Responsabilidad por escrito.",
+        lead: "Para propiedades elegibles bajo gestión integral, definimos antes de empezar una base anual comparable y el plan necesario para mejorarla.",
+        promiseLabel: "Nuestro compromiso",
+        promise: "Si la propiedad no mejora sus ingresos brutos anuales comparables tras aplicar el plan acordado, activamos el periodo sin honorarios de gestión definido en la propuesta y ejecutamos el plan correctivo.",
+        details: [
+          ["Propiedad elegible", "La auditoría inicial confirma la viabilidad y la propuesta deja por escrito el alcance de la garantía."],
+          ["Comparación equivalente", "Comparamos 12 meses completos con los 12 meses anteriores o con una base anual acordada antes de iniciar la gestión."],
+          ["Plan ejecutable", "La disponibilidad, el mantenimiento, los datos, los precios y las recomendaciones aprobadas deben permitir aplicar la estrategia."]
+        ],
+        note: "Sujeta al contrato y a la propuesta aceptada. No garantiza una cifra concreta y excluye impuestos, costes de terceros, cierres, obras, fuerza mayor y decisiones del propietario contrarias al plan.",
+        cta: "Comprobar si mi propiedad es elegible →"
+      },
+      en: {
+        eyebrow: "Performance guarantee",
+        title: "More revenue. Accountability in writing.",
+        lead: "For eligible properties under full management, we agree a comparable annual baseline and the plan needed to improve it before work begins.",
+        promiseLabel: "Our commitment",
+        promise: "If the property does not improve its comparable annual gross revenue after the agreed plan is applied, we activate the management-fee-free period set out in the proposal and carry out the corrective plan.",
+        details: [
+          ["Eligible property", "The initial audit confirms viability and the proposal records the scope of the guarantee in writing."],
+          ["Like-for-like comparison", "We compare 12 complete months with the previous 12 months or with an annual baseline agreed before management begins."],
+          ["Executable plan", "Availability, maintenance, data, pricing and approved recommendations must allow the strategy to be implemented."]
+        ],
+        note: "Subject to the signed contract and accepted proposal. It does not guarantee a specific figure and excludes taxes, third-party costs, closures, building works, force majeure and owner decisions contrary to the plan.",
+        cta: "Check whether my property is eligible →"
+      },
+      fr: {
+        eyebrow: "Garantie de performance",
+        title: "Plus de revenus. Un engagement écrit.",
+        lead: "Pour les biens éligibles en gestion intégrale, nous fixons avant le démarrage une base annuelle comparable et le plan nécessaire pour l’améliorer.",
+        promiseLabel: "Notre engagement",
+        promise: "Si le bien n’améliore pas ses revenus bruts annuels comparables après application du plan convenu, nous activons la période sans honoraires de gestion prévue dans la proposition et exécutons le plan correctif.",
+        details: [
+          ["Bien éligible", "L’audit initial confirme la viabilité et la proposition précise par écrit la portée de la garantie."],
+          ["Comparaison équivalente", "Nous comparons 12 mois complets aux 12 mois précédents ou à une base annuelle convenue avant le début de la gestion."],
+          ["Plan exécutable", "La disponibilité, l’entretien, les données, les tarifs et les recommandations approuvées doivent permettre d’appliquer la stratégie."]
+        ],
+        note: "Sous réserve du contrat signé et de la proposition acceptée. Aucune somme précise n’est garantie. Sont exclus les impôts, frais de tiers, fermetures, travaux, cas de force majeure et décisions du propriétaire contraires au plan.",
+        cta: "Vérifier l’éligibilité de mon bien →"
+      },
+      it: {
+        eyebrow: "Garanzia di rendimento",
+        title: "Più ricavi. Responsabilità per iscritto.",
+        lead: "Per le proprietà idonee in gestione completa, definiamo prima dell’inizio una base annua comparabile e il piano necessario per migliorarla.",
+        promiseLabel: "Il nostro impegno",
+        promise: "Se la proprietà non migliora i ricavi lordi annui comparabili dopo l’applicazione del piano concordato, attiviamo il periodo senza commissioni di gestione previsto nella proposta ed eseguiamo il piano correttivo.",
+        details: [
+          ["Proprietà idonea", "L’audit iniziale conferma la fattibilità e la proposta definisce per iscritto l’ambito della garanzia."],
+          ["Confronto equivalente", "Confrontiamo 12 mesi completi con i 12 mesi precedenti o con una base annua concordata prima dell’avvio della gestione."],
+          ["Piano attuabile", "Disponibilità, manutenzione, dati, prezzi e raccomandazioni approvate devono consentire l’applicazione della strategia."]
+        ],
+        note: "Soggetta al contratto firmato e alla proposta accettata. Non garantisce un importo specifico ed esclude imposte, costi di terzi, chiusure, lavori, forza maggiore e decisioni del proprietario contrarie al piano.",
+        cta: "Verifica se la mia proprietà è idonea →"
+      },
+      de: {
+        eyebrow: "Leistungsgarantie",
+        title: "Mehr Ertrag. Klare Zusage.",
+        lead: "Für geeignete Objekte in der Komplettverwaltung vereinbaren wir vor Beginn eine vergleichbare Jahresbasis und den Plan zu ihrer Verbesserung.",
+        promiseLabel: "Unser Versprechen",
+        promise: "Steigen die vergleichbaren jährlichen Bruttoeinnahmen nach Umsetzung des vereinbarten Plans nicht, aktivieren wir den im Angebot festgelegten Zeitraum ohne Managementhonorar und setzen den Korrekturplan um.",
+        details: [
+          ["Geeignetes Objekt", "Das Erstaudit bestätigt die Eignung; der Umfang der Garantie wird im Angebot schriftlich festgehalten."],
+          ["Vergleichbare Grundlage", "Wir vergleichen 12 vollständige Monate mit den vorherigen 12 Monaten oder mit einer vor Verwaltungsbeginn vereinbarten Jahresbasis."],
+          ["Umsetzbarer Plan", "Verfügbarkeit, Instandhaltung, Daten, Preisgestaltung und freigegebene Empfehlungen müssen die Umsetzung der Strategie ermöglichen."]
+        ],
+        note: "Es gelten der unterzeichnete Vertrag und das angenommene Angebot. Keine bestimmte Einnahmensumme wird garantiert. Ausgenommen sind Steuern, Drittkosten, Schließungen, Bauarbeiten, höhere Gewalt und Entscheidungen entgegen dem Plan.",
+        cta: "Eignung meiner Unterkunft prüfen →"
+      },
+      pl: {
+        eyebrow: "Gwarancja wyników",
+        title: "Wyższe przychody. Jasne zobowiązanie.",
+        lead: "Dla kwalifikujących się nieruchomości objętych pełnym zarządzaniem przed rozpoczęciem ustalamy porównywalną bazę roczną i plan jej poprawy.",
+        promiseLabel: "Nasze zobowiązanie",
+        promise: "Jeśli po wdrożeniu uzgodnionego planu nieruchomość nie poprawi porównywalnych rocznych przychodów brutto, uruchamiamy określony w ofercie okres bez opłat za zarządzanie i realizujemy plan naprawczy.",
+        details: [
+          ["Kwalifikująca się nieruchomość", "Audyt początkowy potwierdza wykonalność, a zakres gwarancji zostaje zapisany w ofercie."],
+          ["Równoważne porównanie", "Porównujemy pełne 12 miesięcy z poprzednimi 12 miesiącami lub z roczną bazą uzgodnioną przed rozpoczęciem zarządzania."],
+          ["Plan możliwy do wdrożenia", "Dostępność, utrzymanie, dane, ceny i zatwierdzone zalecenia muszą umożliwiać realizację strategii."]
+        ],
+        note: "Obowiązują podpisana umowa i przyjęta oferta. Gwarancja nie określa konkretnej kwoty i nie obejmuje podatków, kosztów zewnętrznych, zamknięć, remontów, siły wyższej ani decyzji właściciela sprzecznych z planem.",
+        cta: "Sprawdź, czy nieruchomość się kwalifikuje →"
+      },
+      nl: {
+        eyebrow: "Prestatiegarantie",
+        title: "Meer omzet. Duidelijke afspraken.",
+        lead: "Voor geschikte accommodaties in volledig beheer leggen we vooraf een vergelijkbare jaarbasis en het benodigde verbeterplan vast.",
+        promiseLabel: "Onze toezegging",
+        promise: "Als de vergelijkbare jaarlijkse bruto-omzet na uitvoering van het afgesproken plan niet verbetert, activeren we de in het voorstel vastgelegde periode zonder beheervergoeding en voeren we het herstelplan uit.",
+        details: [
+          ["Geschikte accommodatie", "De eerste audit bevestigt de haalbaarheid en het voorstel legt de reikwijdte van de garantie schriftelijk vast."],
+          ["Gelijkwaardige vergelijking", "We vergelijken 12 volledige maanden met de voorgaande 12 maanden of met een jaarbasis die vóór de start van het beheer is afgesproken."],
+          ["Uitvoerbaar plan", "Beschikbaarheid, onderhoud, gegevens, prijsbeleid en goedgekeurde aanbevelingen moeten uitvoering van de strategie mogelijk maken."]
+        ],
+        note: "Onder voorbehoud van de ondertekende overeenkomst en het geaccepteerde voorstel. Er wordt geen specifiek bedrag gegarandeerd. Belastingen, externe kosten, sluitingen, werkzaamheden, overmacht en afwijkende beslissingen van de eigenaar zijn uitgesloten.",
+        cta: "Controleer of mijn accommodatie geschikt is →"
+      },
+      pt: {
+        eyebrow: "Garantia de desempenho",
+        title: "Mais receita. Compromisso por escrito.",
+        lead: "Para propriedades elegíveis em gestão integral, definimos antes do início uma base anual comparável e o plano necessário para a melhorar.",
+        promiseLabel: "O nosso compromisso",
+        promise: "Se a propriedade não melhorar a receita bruta anual comparável após a aplicação do plano acordado, ativamos o período sem honorários de gestão definido na proposta e executamos o plano corretivo.",
+        details: [
+          ["Propriedade elegível", "A auditoria inicial confirma a viabilidade e a proposta regista por escrito o âmbito da garantia."],
+          ["Comparação equivalente", "Comparamos 12 meses completos com os 12 meses anteriores ou com uma base anual acordada antes do início da gestão."],
+          ["Plano executável", "A disponibilidade, manutenção, dados, preços e recomendações aprovadas devem permitir a aplicação da estratégia."]
+        ],
+        note: "Sujeita ao contrato assinado e à proposta aceite. Não garante um valor específico e exclui impostos, custos de terceiros, encerramentos, obras, força maior e decisões do proprietário contrárias ao plano.",
+        cta: "Verificar se a minha propriedade é elegível →"
+      },
+      el: {
+        eyebrow: "Εγγύηση απόδοσης",
+        title: "Περισσότερα έσοδα. Σαφής δέσμευση.",
+        lead: "Για επιλέξιμα ακίνητα με πλήρη διαχείριση, συμφωνούμε πριν από την έναρξη μια συγκρίσιμη ετήσια βάση και το σχέδιο βελτίωσής της.",
+        promiseLabel: "Η δέσμευσή μας",
+        promise: "Αν τα συγκρίσιμα ετήσια ακαθάριστα έσοδα δεν βελτιωθούν μετά την εφαρμογή του συμφωνημένου σχεδίου, ενεργοποιούμε την περίοδο χωρίς αμοιβή διαχείρισης που ορίζεται στην πρόταση και εφαρμόζουμε το διορθωτικό σχέδιο.",
+        details: [
+          ["Επιλέξιμο ακίνητο", "Ο αρχικός έλεγχος επιβεβαιώνει τη βιωσιμότητα και η πρόταση καταγράφει γραπτώς το εύρος της εγγύησης."],
+          ["Ισοδύναμη σύγκριση", "Συγκρίνουμε 12 πλήρεις μήνες με τους προηγούμενους 12 ή με ετήσια βάση που συμφωνήθηκε πριν από την έναρξη της διαχείρισης."],
+          ["Εφαρμόσιμο σχέδιο", "Η διαθεσιμότητα, η συντήρηση, τα δεδομένα, οι τιμές και οι εγκεκριμένες συστάσεις πρέπει να επιτρέπουν την εφαρμογή της στρατηγικής."]
+        ],
+        note: "Ισχύουν η υπογεγραμμένη σύμβαση και η αποδεκτή πρόταση. Δεν διασφαλίζεται συγκεκριμένο ποσό. Εξαιρούνται φόροι, έξοδα τρίτων, κλείσιμο, εργασίες, ανωτέρα βία και αποφάσεις του ιδιοκτήτη αντίθετες με το σχέδιο.",
+        cta: "Έλεγχος επιλεξιμότητας ακινήτου →"
+      }
+    };
+    return content[activeLanguage] || content.es;
+  }
+
   function getCurrentPageFile() {
     const path = window.location.pathname.split("/").pop();
     return path && path.endsWith(".html") ? path : "index.html";
@@ -2339,6 +2471,14 @@
     return `<section class="section"><div class="wrap"><div class="cta"><div class="cta-copy">${offer}<div class="eyebrow">${escapeHtml(locale.common.ctaEyebrow)}</div><h2>${escapeHtml(locale.common.ctaTitle)}</h2></div><a class="btn primary" style="background:#e7c46a;color:#171717;border-color:#e7c46a" href="contacto.html">${escapeHtml(locale.common.ctaButton)}</a></div></div></section>`;
   }
 
+  function renderGuarantee(context) {
+    const guarantee = getGuaranteeContent();
+    const details = guarantee.details.map(function (detail, index) {
+      return `<li><span>${String(index + 1).padStart(2, "0")}</span><div><strong>${escapeHtml(detail[0])}</strong><p>${escapeHtml(detail[1])}</p></div></li>`;
+    }).join("");
+    return `<section class="section guarantee-section guarantee-${escapeHtml(context)}" aria-labelledby="guaranteeTitle"><div class="wrap"><div class="guarantee-shell"><div class="guarantee-copy"><div class="guarantee-brand"><img src="assets/logo-mark.svg" alt="" width="72" height="72"><span>${escapeHtml(guarantee.eyebrow)}</span></div><h2 id="guaranteeTitle">${escapeHtml(guarantee.title)}</h2><p class="guarantee-lead">${escapeHtml(guarantee.lead)}</p><div class="guarantee-promise"><span>${escapeHtml(guarantee.promiseLabel)}</span><strong>${escapeHtml(guarantee.promise)}</strong></div></div><div class="guarantee-terms"><ol>${details}</ol><p class="guarantee-note">${escapeHtml(guarantee.note)}</p><a class="btn guarantee-cta" href="contacto.html">${escapeHtml(guarantee.cta)}</a></div></div></div></section>`;
+  }
+
   function renderEarningsComparison(locale) {
     const comparison = locale.home.comparison;
     const values = earningsCalculatorState;
@@ -2526,13 +2666,14 @@
     return `<main class="home-page">
       <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="sobre-hot-host.html#recorrido">${escapeHtml(home.discover)}</a><a class="btn ghost" href="rentabilidad.html#comparador">${escapeHtml(getProfitabilityCtaLabel())}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
       <section class="section home-services-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.servicesEyebrow)}</div><h2>${escapeHtml(home.servicesTitle)}</h2></div><p>${escapeHtml(home.servicesLead)}</p></div><div class="services-carousel" data-services-carousel role="region" aria-roledescription="${escapeHtml(locale.common.carouselRole)}" aria-label="${escapeHtml(home.servicesTitle)}" tabindex="0"><div class="services-carousel-viewport" data-services-viewport><div class="services-carousel-track">${serviceCards}</div></div><div class="carousel-controls services-carousel-controls"><button class="carousel-button" type="button" data-services-previous aria-label="${escapeHtml(locale.common.previousServices)}">←</button><span class="carousel-status" data-services-status aria-live="polite">${escapeHtml(renderServiceCounter(locale.common.serviceCounter, 1, initialVisibleServices, services.length))}</span><button class="carousel-button" type="button" data-services-next aria-label="${escapeHtml(locale.common.nextServices)}">→</button></div></div><div style="text-align:center;margin-top:26px"><a class="btn ghost" href="servicios.html">${escapeHtml(home.allServices)}</a></div></div></section>
+      ${renderGuarantee("home")}
       ${renderCta(locale)}
     </main>`;
   }
 
   function renderServices(locale, services) {
     const page = locale.servicesPage;
-    return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderCta(locale)}</main>`;
+    return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderGuarantee("services")}${renderCta(locale)}</main>`;
   }
 
   function renderFounderStory() {
@@ -2610,7 +2751,7 @@
     const directUploadLabel = driveUploadAvailable ? `<label for="propertyPhotos">${escapeHtml(form.photosUpload)}</label>` : "";
     const legal = getSupplementalContent(activeLanguage).legal;
     const privacyLink = legal ? ` <a href="privacidad.html">${escapeHtml(legal.nav.privacy)}</a>` : "";
-    const testTool = isContactTestMode() ? `<section class="contact-test-tool" aria-labelledby="contactTestTitle"><div class="wrap"><div><span>Pruebas internas</span><h2 id="contactTestTitle">Enviar solicitud numerada</h2><p>Genera una solicitud sin fotografías. El límite de seguridad sigue siendo 5 pruebas por email cada 6 horas.</p></div><div class="contact-test-controls"><label for="contactTestEmail">Email que recibirá la verificación</label><div><input id="contactTestEmail" type="email" autocomplete="email" required placeholder="cliente@gmail.com"><button class="btn" id="contactTestSend" type="button">Enviar Test - test 1</button></div><p id="contactTestStatus" aria-live="polite"></p></div></div></section>` : "";
+    const testTool = isContactTestMode() ? `<section class="contact-test-tool" aria-labelledby="contactTestTitle"><div class="wrap"><div><span>Pruebas internas</span><h2 id="contactTestTitle">Enviar solicitud numerada</h2><p>Genera una solicitud con enlace de anuncio para probar la aprobación automática. El límite sigue siendo 5 pruebas por email cada 6 horas.</p></div><div class="contact-test-controls"><label for="contactTestEmail">Email que recibirá la verificación</label><div><input id="contactTestEmail" type="email" autocomplete="email" required placeholder="cliente@gmail.com"><button class="btn" id="contactTestSend" type="button">Enviar Test - test 1</button></div><p id="contactTestStatus" aria-live="polite"></p></div></div></section>` : "";
     return `<main>${testTool}
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(contact.breadcrumb)}</div><div class="eyebrow">${escapeHtml(contact.eyebrow)}</div><h1>${escapeHtml(contact.title)}</h1></div></section>
       <section class="section"><div class="wrap contact-grid"><div><h2>${escapeHtml(contact.heading)}</h2><p class="lead">${escapeHtml(contact.lead)}</p><div class="contact-item"><small>${escapeHtml(contact.serviceAreaLabel)}</small><strong>${escapeHtml(contact.serviceArea)}</strong></div><div class="contact-item"><small>${escapeHtml(contact.emailLabel)}</small><strong>${escapeHtml(CONTACT_EMAIL)}</strong></div><div class="contact-item"><small>WhatsApp</small><strong>+34 600 907 716</strong></div><div class="contact-item"><small>${escapeHtml(contact.hoursLabel)}</small><strong>${escapeHtml(contact.hours)}</strong></div></div>

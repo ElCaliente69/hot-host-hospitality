@@ -142,21 +142,22 @@ La URL publica puede permanecer en `assets/config.js`. Si quieres sustituirla si
 3. Comprueba que Sheets contiene una fila con estado `Pendiente de verificación`.
 4. Si adjuntaste fotos, comprueba la carpeta privada de Drive y `solicitud.json`.
 5. Abre el correo del visitante y pulsa el boton verde **Verificar email**.
-6. Comprueba que la pagina privada muestra `En proceso` y que la empresa recibe el correo **Revisar y decidir**. Verificar el email ya no crea un evento de Calendar.
+6. Con una solicitud que no tenga enlace ni mas de 10 fotos, comprueba que la pagina privada muestra `En proceso` y que la empresa recibe el correo **Revisar y decidir**. Verificar el email no crea un evento de Calendar.
 7. Abre el enlace interno. La pagina privada del administrador debe mostrar **Aprobar y enviar horarios** y **Denegar solicitud**.
 8. Prueba **Denegar**: el visitante recibe el aviso y la fila pasa a `Denegada`.
 9. Con otra solicitud, prueba **Aprobar**: el visitante recibe **Elegir cita** y la fila pasa a `Pendiente de cita`.
-10. Abre el enlace del visitante. Solo deben aparecer huecos libres de lunes a jueves, 11:00-14:00, durante los proximos 14 dias.
-11. Selecciona una hora. La fila pasa a `Cita pendiente de confirmación`, Sheets guarda `appointmentAt`, Calendar sigue vacio y el administrador recibe un segundo correo.
-12. Abre ese correo y pulsa **Confirmar cita definitivamente**. Calendar crea el evento con Google Meet, la fila pasa a `Confirmada` y el cliente recibe el correo final con **Añadir a Google Calendar** y **Unirse a Google Meet**.
-13. Con otra cita seleccionada, prueba **Denegar cita**. No debe crearse ningun evento y el cliente recibe el aviso de denegacion.
-14. Con otra solicitud aprobada, prueba **Rechazar y cerrar solicitud** desde la pagina del visitante. La fila pasa a `Cita rechazada por el solicitante` y el administrador recibe el aviso.
+10. Crea una solicitud con 11 o 12 fotos, un enlace compartido de fotos o una URL de anuncio. Al verificar el email debe pasar directamente a `Pendiente de cita` y enviar la agenda al visitante sin la primera revision administrativa.
+11. Abre el enlace del visitante. Los desplegables de fecha y hora solo deben ofrecer huecos libres de lunes a jueves, 11:00-14:00, durante los proximos 14 dias.
+12. Selecciona una hora. La fila pasa a `Cita pendiente de confirmación`, Sheets guarda `appointmentAt`, Calendar sigue vacio y el administrador recibe un segundo correo.
+13. Abre ese correo y pulsa **Confirmar cita definitivamente**. Calendar crea el evento con Google Meet, la fila pasa a `Confirmada` y el cliente recibe el correo final con **Añadir a Google Calendar** y **Unirse a Google Meet**.
+14. Con otra cita seleccionada, prueba **Denegar cita**. No debe crearse ningun evento y el cliente recibe el aviso de denegacion.
+15. Con otra solicitud aprobada, prueba **Rechazar y cerrar solicitud** desde la pagina del visitante. La fila pasa a `Cita rechazada por el solicitante` y el administrador recibe el aviso.
 
 ## Estados de una solicitud
 
 - `Pendiente de verificación`: datos y fotografias guardados; falta validar el correo del visitante.
-- `En proceso`: correo validado y solicitud notificada al negocio.
-- `Pendiente de cita`: el administrador aprobo la solicitud y el visitante puede elegir un hueco libre.
+- `En proceso`: correo validado y solicitud sin evidencia suficiente notificada al negocio para la primera revision.
+- `Pendiente de cita`: el administrador aprobo la solicitud o se detectaron 11 o mas fotos, un enlace de fotos o un anuncio; el visitante puede elegir un hueco libre.
 - `Cita pendiente de confirmación`: el visitante eligio una hora, que queda retenida en Sheets hasta la decision final del administrador.
 - `Confirmada`: el administrador confirmo la hora; Calendar contiene el evento con Meet y `appointmentAt` contiene la cita.
 - `Denegada`: la pagina privada conserva y muestra la denegacion; cambiar el estado no elimina la fila ni sus archivos.
@@ -171,7 +172,7 @@ La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHu
 - `.env` esta ignorado por Git y no se publica.
 - No pegues secretos ni JSON de credenciales en `assets/config.js`.
 - El endpoint valida consentimiento, origen declarado, tipos de imagen, firmas de archivo, tamanos, referencias duplicadas y limites por correo y globales.
-- Maximo de 10 fotografias JPG, PNG o WebP, 20 MB antes de optimizar y 4 MB despues de optimizar.
+- Maximo de 12 fotografias JPG, PNG o WebP, 20 MB antes de optimizar y 4 MB despues de optimizar.
 - Maximo aproximado de 30 MB por peticion.
 - Maximo de 5 solicitudes por correo cada 6 horas y 30 solicitudes globales por hora.
 - La Web App es publica y sus limites son una proteccion basica. Antes de recibir trafico elevado, anade un desafio anti-bot validado en el backend y actualiza la politica de privacidad correspondiente.

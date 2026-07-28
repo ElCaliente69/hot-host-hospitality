@@ -1,11 +1,11 @@
 const INTEGRATION_DEFAULTS = Object.freeze({
-  version: "2026-07-27-6",
+  version: "2026-07-28-1",
   publicSiteUrl: "https://elcaliente69.github.io/hot-host-hospitality/",
   rootFolderName: "Solicitudes_Web_Hot_Host",
   leadsSheetName: "Solicitudes web",
   maxRequestCharacters: 30 * 1024 * 1024,
   maxMetadataCharacters: 64 * 1024,
-  maxFiles: 10,
+  maxFiles: 12,
   maxFileBytes: 4 * 1024 * 1024,
   maxSubmissionsPerEmail: 5,
   rateLimitSeconds: 6 * 60 * 60,
@@ -775,7 +775,11 @@ function getVerificationCopy_(language) {
       scheduleIntro: "Your request has been approved. Select an available date and time below.",
       scheduleWindow: "Monday to Thursday, 11:00-14:00 (Madrid time). 30-minute appointments with a 30-minute interval.",
       selectSlot: "Available appointments",
-      confirmAppointment: "Select appointment",
+      selectDate: "Available date",
+      selectDatePlaceholder: "Choose a date",
+      selectTime: "Available time",
+      selectTimePlaceholder: "Choose a time",
+      confirmAppointment: "Request this appointment",
       declineAppointment: "Decline and close request",
       noSlots: "There are no available appointments in the next 14 days. Please try again later or contact us by email.",
       slotUnavailable: "That appointment is no longer available. Choose another time from the updated list.",
@@ -842,7 +846,11 @@ function getVerificationCopy_(language) {
     scheduleIntro: "Tu solicitud ha sido aprobada. Selecciona una fecha y una hora disponibles.",
     scheduleWindow: "De lunes a jueves, de 11:00 a 14:00 (hora de Madrid). Citas de 30 minutos con 30 minutos de separación.",
     selectSlot: "Citas disponibles",
-    confirmAppointment: "Seleccionar fecha",
+    selectDate: "Fecha disponible",
+    selectDatePlaceholder: "Elige una fecha",
+    selectTime: "Hora disponible",
+    selectTimePlaceholder: "Elige una hora",
+    confirmAppointment: "Solicitar esta cita",
     declineAppointment: "Rechazar y cerrar solicitud",
     noSlots: "No quedan citas disponibles durante los próximos 14 días. Inténtalo de nuevo más tarde o escríbenos por email.",
     slotUnavailable: "Esa cita ya no está disponible. Elige otra hora de la lista actualizada.",
@@ -976,6 +984,69 @@ function sendVerificationEmail_(payload, token, config) {
   return true;
 }
 
+function hasAutomaticSchedulingEvidence_(record) {
+  const photoCount = Number.parseInt(String(record.photoCount || "0"), 10) || 0;
+  return photoCount > 10 ||
+    isEvidenceUrl_(record.photosUrl) ||
+    isEvidenceUrl_(record.listingUrl);
+}
+
+function isEvidenceUrl_(value) {
+  return /^https?:\/\/[^\s]+$/i.test(String(value || "").trim());
+}
+
+function canAutomaticallySchedule_(record, config) {
+  return hasAutomaticSchedulingEvidence_(record) &&
+    config.calendarFollowupEnabled &&
+    Boolean(config.calendarId) &&
+    config.gmailNotificationEnabled &&
+    Boolean(config.notificationEmail);
+}
+
+function ensureAutomaticScheduling_(sheet, row, record, config) {
+  let statusKey = getRequestStatusKey_(record.status);
+  if (statusKey === "processing") {
+    deleteLegacyFollowup_(record, config);
+    const decidedAt = new Date().toISOString();
+    applyLeadUpdates_(sheet, row, record, {
+      status: REQUEST_STATUSES.scheduling,
+      calendarEventId: "",
+      meetingUrl: "",
+      appointmentAt: "",
+      adminTokenHash: "",
+      adminDecisionAt: decidedAt,
+      adminDecisionEmailSentAt: "",
+      visitorDecisionAt: "",
+      appointmentReviewEmailSentAt: "",
+      visitorConfirmationSentAt: "",
+      finalNotificationSentAt: "",
+      statusUpdatedAt: decidedAt
+    });
+    statusKey = "scheduling";
+  }
+  if (statusKey !== "scheduling") return false;
+  if (record.adminDecisionEmailSentAt) return true;
+
+  const bookingToken = createVerificationToken_();
+  applyLeadUpdates_(sheet, row, record, {
+    bookingTokenHash: hashVerificationToken_(bookingToken)
+  });
+  try {
+    sendSchedulingEmail_(record, bookingToken, config);
+  } catch (emailError) {
+    console.error(emailError);
+    return false;
+  }
+  try {
+    applyLeadUpdates_(sheet, row, record, {
+      adminDecisionEmailSentAt: new Date().toISOString()
+    });
+  } catch (markerError) {
+    console.error(markerError);
+  }
+  return true;
+}
+
 function renderRequestStatus_(token) {
   const cleanToken = String(token || "").trim();
   if (!/^[a-f0-9]{64}$/i.test(cleanToken)) {
@@ -1008,10 +1079,19 @@ function renderRequestStatus_(token) {
         record.statusUpdatedAt = now;
       }
 
+      let statusKey = getRequestStatusKey_(record.status);
+      if (
+        canAutomaticallySchedule_(record, config) &&
+        (statusKey === "processing" || (statusKey === "scheduling" && !record.adminDecisionEmailSentAt))
+      ) {
+        ensureAutomaticScheduling_(sheet, row, record, config);
+        statusKey = getRequestStatusKey_(record.status);
+      }
+
       const payload = buildPayloadFromLeadRecord_(record);
       if (
         config.gmailNotificationEnabled &&
-        getRequestStatusKey_(record.status) === "processing" &&
+        statusKey === "processing" &&
         (!record.internalNotificationSentAt || !record.adminTokenHash)
       ) {
         const adminToken = createVerificationToken_();
@@ -1156,7 +1236,7 @@ function buildRequestStatusPage_(record, token, config, notice, sheet) {
   const html = '<!doctype html><html lang="' + escapeHtml_(record.language || "es") + '"><head>' +
     '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<meta name="robots" content="noindex,nofollow"><title>' + escapeHtml_(copy.pageTitle) + '</title>' +
-    requestPageStyles_() + workflowPageStyles_() + '</head><body><main class="card">' +
+    requestPageStyles_() + workflowPageStyles_() + schedulingSelectStyles_() + '</head><body><main class="card">' +
     '<div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div>' +
     '<div class="verified">&#10003; ' + escapeHtml_(copy.verifiedLabel) + '</div>' +
     '<h1>' + escapeHtml_(heading) + '</h1><p class="lead">' + escapeHtml_(lead) + '</p>' +
@@ -1176,18 +1256,52 @@ function buildSchedulingFormHtml_(record, token, config, copy, sheet) {
   }
   const actionUrl = getWebAppUrl_(config);
   const cleanToken = String(token || "");
-  const slotsHtml = slots.map(function (slot) {
+  const dateOptions = [];
+  const seenDates = {};
+  const slotData = slots.map(function (slot) {
     const formatted = formatBookingSlot_(slot, record.language, config.eventDurationMinutes);
-    return '<label class="slot"><input type="radio" name="slot" value="' +
-      escapeHtml_(slot.toISOString()) + '" required><span><strong>' +
-      escapeHtml_(formatted.day) + '</strong><small>' + escapeHtml_(formatted.time) + '</small></span></label>';
-  }).join("");
+    if (!seenDates[formatted.dateKey]) {
+      seenDates[formatted.dateKey] = true;
+      dateOptions.push('<option value="' + escapeHtml_(formatted.dateKey) + '">' +
+        escapeHtml_(formatted.day) + '</option>');
+    }
+    return {
+      date: formatted.dateKey,
+      time: formatted.time,
+      value: slot.toISOString()
+    };
+  });
+  const slotDataJson = JSON.stringify(slotData).replace(/</g, "\\u003c");
+  const schedulerScript = '<script>(function(){' +
+    'var slots=' + slotDataJson + ';' +
+    'var dateSelect=document.getElementById("bookingDate");' +
+    'var timeSelect=document.getElementById("bookingTime");' +
+    'var submitButton=document.getElementById("bookingSubmit");' +
+    'if(!dateSelect||!timeSelect||!submitButton)return;' +
+    'function updateTimes(){' +
+      'var selectedDate=dateSelect.value;' +
+      'timeSelect.innerHTML="";' +
+      'var placeholder=document.createElement("option");' +
+      'placeholder.value="";placeholder.textContent=' + JSON.stringify(copy.selectTimePlaceholder) + ';placeholder.disabled=true;placeholder.selected=true;' +
+      'timeSelect.appendChild(placeholder);' +
+      'slots.forEach(function(slot){if(slot.date!==selectedDate)return;var option=document.createElement("option");option.value=slot.value;option.textContent=slot.time;timeSelect.appendChild(option);});' +
+      'timeSelect.disabled=!selectedDate;submitButton.disabled=true;' +
+    '}' +
+    'dateSelect.addEventListener("change",updateTimes);' +
+    'timeSelect.addEventListener("change",function(){submitButton.disabled=!timeSelect.value;});' +
+    'updateTimes();' +
+    '})();</script>';
   const bookingForm = slots.length
     ? '<form class="booking-form" method="post" target="_top" action="' + escapeHtml_(actionUrl) + '">' +
       '<input type="hidden" name="action" value="book"><input type="hidden" name="request" value="' +
       escapeHtml_(cleanToken) + '"><fieldset><legend>' + escapeHtml_(copy.selectSlot) +
-      '</legend><div class="slots">' + slotsHtml + '</div></fieldset><button type="submit">' +
-      escapeHtml_(copy.confirmAppointment) + '</button></form>'
+      '</legend><div class="schedule-selects"><label class="schedule-field" for="bookingDate"><span>' +
+      escapeHtml_(copy.selectDate) + '</span><span class="schedule-control"><select id="bookingDate" required>' +
+      '<option value="" disabled selected>' + escapeHtml_(copy.selectDatePlaceholder) + '</option>' +
+      dateOptions.join("") + '</select></span></label><label class="schedule-field" for="bookingTime"><span>' +
+      escapeHtml_(copy.selectTime) + '</span><span class="schedule-control"><select id="bookingTime" name="slot" required disabled>' +
+      '<option value="" disabled selected>' + escapeHtml_(copy.selectTimePlaceholder) + '</option></select></span></label></div></fieldset>' +
+      '<button id="bookingSubmit" type="submit" disabled>' + escapeHtml_(copy.confirmAppointment) + '</button></form>' + schedulerScript
     : '<p class="no-slots">' + escapeHtml_(copy.noSlots) + '</p>';
   return '<section class="scheduler"><p class="schedule-window">' + escapeHtml_(copy.scheduleWindow) +
     '</p>' + bookingForm + '<form class="decline-form" method="post" target="_top" action="' + escapeHtml_(actionUrl) +
@@ -1212,6 +1326,7 @@ function formatBookingSlot_(start, language, durationMinutes) {
     ? weekdays[localDay.getUTCDay()] + ", " + localDate[2] + " de " + months[localDate[1] - 1]
     : weekdays[localDay.getUTCDay()] + ", " + months[localDate[1] - 1] + " " + localDate[2];
   return {
+    dateKey: Utilities.formatDate(start, timeZone, "yyyy-MM-dd"),
     day: day.charAt(0).toUpperCase() + day.slice(1),
     time: Utilities.formatDate(start, timeZone, "HH:mm") + " - " +
       Utilities.formatDate(end, timeZone, "HH:mm")
@@ -1673,6 +1788,10 @@ function requestPageStyles_() {
 
 function workflowPageStyles_() {
   return '<style>.pill.scheduling,.pill.awaiting{background:#fff2c7;color:#725200}.pill.declined{background:#fbe8e8;color:#963535}.scheduler{margin-top:24px;padding-top:4px}.schedule-window,.no-slots{padding:15px 17px;border-left:4px solid #e1aa3f;border-radius:8px;background:#faf5e9;color:#665943;line-height:1.55}.booking-form fieldset{margin:24px 0 0;padding:0;border:0}.booking-form legend{margin-bottom:12px;font-weight:800}.slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.slot{display:block;cursor:pointer}.slot input{position:absolute;opacity:0;pointer-events:none}.slot span{display:flex;min-height:74px;flex-direction:column;justify-content:center;padding:13px 15px;border:1px solid #dfd3bd;border-radius:13px;background:#fff;transition:.15s ease}.slot strong{font-size:14px}.slot small{margin-top:5px;color:#776a57;font-size:13px}.slot input:checked+span{border-color:#198754;background:#eaf7ef;box-shadow:0 0 0 2px rgba(25,135,84,.15)}.slot input:focus-visible+span{outline:3px solid rgba(25,135,84,.25);outline-offset:2px}.decline-form{margin-top:14px;border-top:1px solid #eadfcf}.decline-form .danger{margin-top:18px;background:#fff;color:#963535;box-shadow:inset 0 0 0 1px #debaba}.no-slots{margin-top:22px;border-left-color:#963535;background:#fbeeee}.admin-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:24px}.detail{padding:14px 16px;border:1px solid #eadfcf;border-radius:13px;background:#faf6ed}.detail.wide{grid-column:1/-1}.detail span{display:block;color:#776a57;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}.detail strong,.detail a{display:block;margin-top:6px;color:#241d14;overflow-wrap:anywhere}.admin-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}.admin-actions form{flex:1}.admin-actions button{width:100%;margin-top:0}.admin-actions .danger{background:#a13d3d}.notice{margin-top:22px;padding:14px 16px;border-radius:12px;background:#eaf7ef;color:#126c3e;font-weight:700}.notice.warning{background:#fff2c7;color:#725200}@media(max-width:520px){.slots,.admin-details{grid-template-columns:1fr}.admin-actions{flex-direction:column}}</style>';
+}
+
+function schedulingSelectStyles_() {
+  return '<style>.schedule-selects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.schedule-field{display:grid;gap:8px;color:#4f4433;font-size:13px;font-weight:800}.schedule-control{position:relative;display:block}.schedule-control:after{content:"⌄";position:absolute;right:14px;top:50%;color:#7a5a1f;transform:translateY(-56%);pointer-events:none}.schedule-control select{width:100%;min-height:52px;padding:0 42px 0 14px;color:#241d14;border:1px solid #d7c8ad;border-radius:13px;background:#fff;font:inherit;appearance:none;cursor:pointer}.schedule-control select:focus{outline:3px solid rgba(25,135,84,.18);border-color:#198754}.schedule-control select:disabled{color:#8b8171;background:#f2ede4;cursor:not-allowed}.booking-form button:disabled{opacity:.48;cursor:not-allowed}.booking-form button:disabled:hover{transform:none}@media(max-width:560px){.schedule-selects{grid-template-columns:1fr}}</style>';
 }
 
 function escapeHtml_(value) {
