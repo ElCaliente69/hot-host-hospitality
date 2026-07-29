@@ -176,6 +176,7 @@ La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHu
 - El endpoint valida consentimiento, origen declarado, tipos de imagen, firmas de archivo, tamanos, referencias duplicadas y limites por correo y globales.
 - Entre 10 y 60 fotografias JPG, PNG o WebP, o un enlace que permita consultarlas. Cada original puede pesar hasta 20 MB.
 - La web adapta la compresion de las copias al numero de fotos para mantener la peticion completa por debajo de 30 MB; el limite tecnico del backend sigue siendo 4 MB por copia optimizada.
+- El navegador espera hasta 6 minutos la respuesta de Apps Script. Una carga cercana a 60 fotos puede tardar varios minutos y no se debe cerrar la pagina mientras se procesa.
 - Maximo aproximado de 30 MB por peticion.
 - Maximo de 5 solicitudes por correo cada 6 horas y 30 solicitudes globales por hora.
 - La Web App es publica y sus limites son una proteccion basica. Antes de recibir trafico elevado, anade un desafio anti-bot validado en el backend y actualiza la politica de privacidad correspondiente.

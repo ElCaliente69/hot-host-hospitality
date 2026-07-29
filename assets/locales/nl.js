@@ -249,7 +249,7 @@ window.HOT_HOST_LOCALES.nl = {
     photosTooMany: "U kunt maximaal 60 foto's uploaden.",
     photosTooLarge: "Elke foto moet kleiner zijn dan 20 MB.",
     photosInvalidType: "Alleen JPG-, PNG- of WebP-afbeeldingen worden geaccepteerd.",
-    driveUploading: "Foto's worden geoptimaliseerd en naar Google Drive verzonden…",
+    driveUploading: "Foto's worden geoptimaliseerd en naar Google Drive verzonden… Sluit deze pagina niet; grote aantallen kunnen enkele minuten duren.",
     driveUploaded: "{count} foto's zijn ter verwerking naar Drive verzonden.",
     driveNotConfigured: "Het uploaden van foto's is momenteel niet beschikbaar. Voeg in plaats daarvan een link naar de foto's toe.",
     driveUploadError: "De foto's konden niet worden geüpload. Probeer het opnieuw of voeg een link naar de foto's toe.",

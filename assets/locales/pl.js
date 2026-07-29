@@ -249,7 +249,7 @@ window.HOT_HOST_LOCALES.pl = {
     photosTooMany: "Możesz przesłać maksymalnie 60 zdjęć.",
     photosTooLarge: "Każde zdjęcie musi mieć mniej niż 20 MB.",
     photosInvalidType: "Obsługiwane są tylko pliki graficzne JPG, PNG i WebP.",
-    driveUploading: "Przesyłanie zdjęć do Google Drive…",
+    driveUploading: "Optymalizowanie i przesyłanie zdjęć do Google Drive… Nie zamykaj tej strony; duża liczba plików może wymagać kilku minut.",
     driveUploaded: "Przesłano {count} zdjęć do Drive w celu przetworzenia.",
     driveNotConfigured: "Przesyłanie zdjęć do Google Drive nie jest skonfigurowane. Zamiast tego dodaj link do zdjęć.",
     driveUploadError: "Nie udało się przesłać zdjęć do Google Drive. Spróbuj ponownie lub dodaj link do zdjęć.",

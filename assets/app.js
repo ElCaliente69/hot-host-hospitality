@@ -24,7 +24,7 @@
   const MAX_UPLOAD_REQUEST_CHARACTERS = 30 * 1024 * 1024;
   const MAX_PROPERTY_PHOTO_DIMENSION = 1920;
   const PHOTO_PROCESS_TIMEOUT_MS = 30000;
-  const PHOTO_UPLOAD_TIMEOUT_MS = 120000;
+  const PHOTO_UPLOAD_TIMEOUT_MS = 6 * 60 * 1000;
   const AUDIT_OFFER_END = Date.parse("2026-09-30T23:59:59+02:00");
   const MARKET_OCCUPANCY = 63;
   const HOT_HOST_OCCUPANCY = 72;
@@ -652,7 +652,7 @@
         photosTooMany: "Puedes subir un máximo de 60 fotografías.",
         photosTooLarge: "Cada fotografía debe pesar menos de 20 MB.",
         photosInvalidType: "Solo se admiten imágenes JPG, PNG o WebP.",
-        driveUploading: "Optimizando y enviando las fotografías a Google Drive…",
+        driveUploading: "Optimizando y enviando las fotografías a Google Drive… No cierres esta página; con muchos archivos puede tardar varios minutos.",
         driveUploaded: "{count} fotografías enviadas a Drive para su procesamiento.",
         driveNotConfigured: "La subida directa no está disponible ahora. Añade un enlace compartido a las fotografías.",
         driveUploadError: "No se pudieron enviar las fotografías a Google Drive. Inténtalo de nuevo o añade un enlace.",
@@ -1075,7 +1075,7 @@
         photosTooMany: "You can upload a maximum of 60 photographs.",
         photosTooLarge: "Each photograph must be smaller than 20 MB.",
         photosInvalidType: "Only JPG, PNG or WebP images are accepted.",
-        driveUploading: "Optimising and sending photographs to Google Drive…",
+        driveUploading: "Optimising and sending photographs to Google Drive… Do not close this page; large batches may take several minutes.",
         driveUploaded: "{count} photographs sent to Drive for processing.",
         driveNotConfigured: "Direct upload is not available right now. Add a shared link to the photographs.",
         driveUploadError: "The photographs could not be sent to Google Drive. Try again or add a link.",
@@ -1498,7 +1498,7 @@
         photosTooMany: "Vous pouvez importer jusqu’à 60 photographies.",
         photosTooLarge: "Chaque photographie doit peser moins de 20 Mo.",
         photosInvalidType: "Seules les images JPG, PNG ou WebP sont acceptées.",
-        driveUploading: "Optimisation et envoi des photographies vers Google Drive…",
+        driveUploading: "Optimisation et envoi des photographies vers Google Drive… Ne fermez pas cette page ; un lot important peut prendre plusieurs minutes.",
         driveUploaded: "{count} photographies envoyées vers Drive pour traitement.",
         driveNotConfigured: "L’importation directe n’est pas disponible actuellement. Ajoutez un lien partagé vers les photographies.",
         driveUploadError: "Impossible d’envoyer les photographies vers Google Drive. Réessayez ou ajoutez un lien.",
@@ -1921,7 +1921,7 @@
         photosTooMany: "Puoi caricare un massimo di 60 fotografie.",
         photosTooLarge: "Ogni fotografia deve pesare meno di 20 MB.",
         photosInvalidType: "Sono ammesse solo immagini JPG, PNG o WebP.",
-        driveUploading: "Ottimizzazione e invio delle fotografie a Google Drive…",
+        driveUploading: "Ottimizzazione e invio delle fotografie a Google Drive… Non chiudere questa pagina; molti file possono richiedere alcuni minuti.",
         driveUploaded: "{count} fotografie inviate a Drive per l’elaborazione.",
         driveNotConfigured: "Il caricamento diretto non è disponibile al momento. Aggiungi un link condiviso alle fotografie.",
         driveUploadError: "Non è stato possibile inviare le fotografie a Google Drive. Riprova o aggiungi un link.",

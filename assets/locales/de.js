@@ -249,7 +249,7 @@ window.HOT_HOST_LOCALES.de = {
     photosTooMany: "Du kannst maximal 60 Fotos hochladen.",
     photosTooLarge: "Jedes Foto muss kleiner als 20 MB sein.",
     photosInvalidType: "Es werden nur JPG-, PNG- oder WebP-Bilder akzeptiert.",
-    driveUploading: "Fotos werden optimiert und an Google Drive gesendet …",
+    driveUploading: "Fotos werden optimiert und an Google Drive gesendet … Schließe diese Seite nicht; große Mengen können mehrere Minuten dauern.",
     driveUploaded: "{count} Fotos wurden zur Verarbeitung an Drive gesendet.",
     driveNotConfigured: "Der Foto-Upload ist derzeit nicht verfügbar. Füge stattdessen einen Link zu den Fotos ein.",
     driveUploadError: "Die Fotos konnten nicht hochgeladen werden. Versuche es erneut oder füge einen Link zu den Fotos ein.",

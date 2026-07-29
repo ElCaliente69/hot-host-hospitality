@@ -1,5 +1,5 @@
 const INTEGRATION_DEFAULTS = Object.freeze({
-  version: "2026-07-28-2",
+  version: "2026-07-28-3",
   publicSiteUrl: "https://elcaliente69.github.io/hot-host-hospitality/",
   rootFolderName: "Solicitudes_Web_Hot_Host",
   leadsSheetName: "Solicitudes web",
@@ -1273,10 +1273,15 @@ function buildSchedulingFormHtml_(record, token, config, copy, sheet) {
     }
     return {
       date: formatted.dateKey,
+      day: formatted.day,
       time: formatted.time,
       value: slot.toISOString()
     };
   });
+  const fallbackTimeOptions = slotData.map(function (slot) {
+    return '<option value="' + escapeHtml_(slot.value) + '">' +
+      escapeHtml_(slot.day + " · " + slot.time) + '</option>';
+  }).join("");
   const slotDataJson = JSON.stringify(slotData).replace(/</g, "\\u003c");
   const schedulerScript = '<script>(function(){' +
     'var slots=' + slotDataJson + ';' +
@@ -1294,20 +1299,22 @@ function buildSchedulingFormHtml_(record, token, config, copy, sheet) {
       'timeSelect.disabled=!selectedDate;submitButton.disabled=true;' +
     '}' +
     'dateSelect.addEventListener("change",updateTimes);' +
-    'timeSelect.addEventListener("change",function(){submitButton.disabled=!timeSelect.value;});' +
-    'updateTimes();' +
+    'timeSelect.addEventListener("change",function(){submitButton.disabled=!(dateSelect.value&&timeSelect.value);});' +
+    'submitButton.disabled=true;' +
+    'if(dateSelect.value)updateTimes();' +
     '})();</script>';
   const bookingForm = slots.length
     ? '<form class="booking-form" method="post" target="_top" action="' + escapeHtml_(actionUrl) + '">' +
       '<input type="hidden" name="action" value="book"><input type="hidden" name="request" value="' +
       escapeHtml_(cleanToken) + '"><fieldset><legend>' + escapeHtml_(copy.selectSlot) +
-      '</legend><div class="schedule-selects"><label class="schedule-field" for="bookingDate"><span>' +
-      escapeHtml_(copy.selectDate) + '</span><span class="schedule-control"><select id="bookingDate" required>' +
+      '</legend><div class="schedule-selects"><div class="schedule-field"><label for="bookingDate">' +
+      escapeHtml_(copy.selectDate) + '</label><span class="schedule-control"><select id="bookingDate" name="bookingDate" required>' +
       '<option value="" disabled selected>' + escapeHtml_(copy.selectDatePlaceholder) + '</option>' +
-      dateOptions.join("") + '</select></span></label><label class="schedule-field" for="bookingTime"><span>' +
-      escapeHtml_(copy.selectTime) + '</span><span class="schedule-control"><select id="bookingTime" name="slot" required disabled>' +
-      '<option value="" disabled selected>' + escapeHtml_(copy.selectTimePlaceholder) + '</option></select></span></label></div></fieldset>' +
-      '<button id="bookingSubmit" type="submit" disabled>' + escapeHtml_(copy.confirmAppointment) + '</button></form>' + schedulerScript
+      dateOptions.join("") + '</select></span></div><div class="schedule-field"><label for="bookingTime">' +
+      escapeHtml_(copy.selectTime) + '</label><span class="schedule-control"><select id="bookingTime" name="slot" required>' +
+      '<option value="" disabled selected>' + escapeHtml_(copy.selectTimePlaceholder) + '</option>' +
+      fallbackTimeOptions + '</select></span></div></div></fieldset>' +
+      '<button id="bookingSubmit" type="submit">' + escapeHtml_(copy.confirmAppointment) + '</button></form>' + schedulerScript
     : '<p class="no-slots">' + escapeHtml_(copy.noSlots) + '</p>';
   return '<section class="scheduler"><p class="schedule-window">' + escapeHtml_(copy.scheduleWindow) +
     '</p>' + bookingForm + '<form class="decline-form" method="post" target="_top" action="' + escapeHtml_(actionUrl) +

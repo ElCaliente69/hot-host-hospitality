@@ -249,7 +249,7 @@ window.HOT_HOST_LOCALES.pt = {
     photosTooMany: "Pode carregar no máximo 60 fotografias.",
     photosTooLarge: "Cada fotografia deve ter menos de 20 MB.",
     photosInvalidType: "Selecione apenas ficheiros de imagem JPG, PNG ou WebP.",
-    driveUploading: "A carregar as fotografias...",
+    driveUploading: "A otimizar e enviar as fotografias para o Google Drive… Não feche esta página; muitos ficheiros podem demorar vários minutos.",
     driveUploaded: "{count} fotografias enviadas para o Drive para processamento.",
     driveNotConfigured: "O carregamento de fotografias não está configurado. Utilize uma ligação partilhada.",
     driveUploadError: "Não foi possível carregar as fotografias. Tente novamente ou utilize uma ligação partilhada.",
