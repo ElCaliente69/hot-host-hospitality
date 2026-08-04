@@ -1,6 +1,6 @@
 const INTEGRATION_DEFAULTS = Object.freeze({
-  version: "2026-07-28-3",
-  publicSiteUrl: "https://elcaliente69.github.io/hot-host-hospitality/",
+  version: "2026-08-04-1",
+  publicSiteUrl: "https://hhosthospitality.com/",
   rootFolderName: "Solicitudes_Web_Hot_Host",
   leadsSheetName: "Solicitudes web",
   maxRequestCharacters: 30 * 1024 * 1024,
@@ -56,6 +56,7 @@ const LEAD_HEADERS = Object.freeze([
   "calendarEventId",
   "meetingUrl",
   "status",
+  "preferredAppointmentAt",
   "verificationTokenHash",
   "bookingTokenHash",
   "adminTokenHash",
@@ -63,9 +64,11 @@ const LEAD_HEADERS = Object.freeze([
   "emailVerifiedAt",
   "internalNotificationSentAt",
   "adminDecisionAt",
+  "adminDecisionReason",
   "adminDecisionEmailSentAt",
   "visitorDecisionAt",
   "appointmentReviewEmailSentAt",
+  "appointmentChangeRequestedAt",
   "visitorConfirmationSentAt",
   "finalNotificationSentAt",
   "statusUpdatedAt",
@@ -365,6 +368,18 @@ function validatePayload_(payload, config) {
   if (!String(payload.property.street || "").trim() || !String(payload.property.city || "").trim()) {
     throw new Error("Missing property address");
   }
+  const payloadVersion = Number(payload.version) || 1;
+  if (payload.appointment && typeof payload.appointment === "object") {
+    const preferredAppointment = parseAppointmentPreference_(payload.appointment);
+    if (!isAppointmentWithinBookingRules_(preferredAppointment, config)) {
+      throw new Error("Invalid appointment preference");
+    }
+    payload.appointment.preferredAt = preferredAppointment.toISOString();
+  } else if (payloadVersion >= 3) {
+    throw new Error("Missing appointment preference");
+  } else {
+    payload.appointment = { preferredAt: "" };
+  }
 
   validateSourceUrl_(payload.sourceUrl, config.publicSiteUrl);
   payload.photos = Array.isArray(payload.photos) ? payload.photos : [];
@@ -390,11 +405,65 @@ function validatePayload_(payload, config) {
     deliveryMethod: payload.deliveryMethod,
     consent: payload.consent,
     contact: payload.contact,
-    property: payload.property
+    property: payload.property,
+    appointment: payload.appointment
   }).length;
   if (metadataLength > INTEGRATION_DEFAULTS.maxMetadataCharacters) {
     throw new Error("Request metadata is too large");
   }
+}
+
+function parseAppointmentPreference_(appointment) {
+  if (!appointment || typeof appointment !== "object") return new Date(NaN);
+  const dateValue = String(appointment.date || "").trim();
+  const timeValue = String(appointment.time || "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue) && /^\d{2}:\d{2}$/.test(timeValue)) {
+    try {
+      return Utilities.parseDate(
+        dateValue + " " + timeValue,
+        Session.getScriptTimeZone(),
+        "yyyy-MM-dd HH:mm"
+      );
+    } catch (error) {
+      return new Date(NaN);
+    }
+  }
+  const preferredAt = new Date(String(appointment.preferredAt || ""));
+  return preferredAt;
+}
+
+function isAppointmentWithinBookingRules_(start, config) {
+  if (!(start instanceof Date) || Number.isNaN(start.getTime())) return false;
+  if (config.bookingEndHour <= config.bookingStartHour) return false;
+
+  const now = new Date();
+  const timeZone = Session.getScriptTimeZone();
+  const earliest = new Date(now.getTime() + config.bookingMinLeadHours * 60 * 60 * 1000);
+  const today = Utilities.formatDate(now, timeZone, "yyyy-MM-dd").split("-").map(Number);
+  const horizonDay = new Date(
+    Date.UTC(today[0], today[1] - 1, today[2]) + config.bookingDaysAhead * 24 * 60 * 60 * 1000
+  );
+  const horizon = Utilities.parseDate(
+    Utilities.formatDate(horizonDay, "UTC", "yyyy-MM-dd") + " " +
+      formatClockMinutes_(config.bookingEndHour * 60),
+    timeZone,
+    "yyyy-MM-dd HH:mm"
+  );
+  const end = new Date(start.getTime() + config.eventDurationMinutes * 60 * 1000);
+  if (start < earliest || end > horizon) return false;
+
+  const localDate = Utilities.formatDate(start, timeZone, "yyyy-MM-dd").split("-").map(Number);
+  const weekday = new Date(Date.UTC(localDate[0], localDate[1] - 1, localDate[2])).getUTCDay();
+  if (config.bookingWeekdays.indexOf(weekday) === -1) return false;
+
+  const localTime = Utilities.formatDate(start, timeZone, "HH:mm").split(":").map(Number);
+  const minute = localTime[0] * 60 + localTime[1];
+  const firstMinute = config.bookingStartHour * 60;
+  const lastMinute = config.bookingEndHour * 60;
+  const intervalMinutes = config.eventDurationMinutes + config.bookingBufferMinutes;
+  return minute >= firstMinute &&
+    minute + config.eventDurationMinutes <= lastMinute &&
+    (minute - firstMinute) % intervalMinutes === 0;
 }
 
 function validateSourceUrl_(sourceUrl, publicSiteUrl) {
@@ -642,6 +711,7 @@ function storeRequestMetadata_(requestFolder, payload, storedPhotos) {
     consent: payload.consent,
     contact: payload.contact,
     property: payload.property,
+    appointment: payload.appointment,
     photos: storedPhotos
   };
   requestFolder.createFile(
@@ -685,6 +755,7 @@ function buildLeadRecord_(payload, receivedAt, storedPhotos, requestFolder, cale
     calendarEventId: calendarEvent ? calendarEvent.getId() : "",
     meetingUrl: "",
     status: REQUEST_STATUSES.pendingVerification,
+    preferredAppointmentAt: payload.appointment.preferredAt,
     verificationTokenHash: verificationTokenHash,
     bookingTokenHash: "",
     adminTokenHash: "",
@@ -692,9 +763,11 @@ function buildLeadRecord_(payload, receivedAt, storedPhotos, requestFolder, cale
     emailVerifiedAt: "",
     internalNotificationSentAt: "",
     adminDecisionAt: "",
+    adminDecisionReason: "",
     adminDecisionEmailSentAt: "",
     visitorDecisionAt: "",
     appointmentReviewEmailSentAt: "",
+    appointmentChangeRequestedAt: "",
     visitorConfirmationSentAt: "",
     finalNotificationSentAt: "",
     statusUpdatedAt: receivedAt,
@@ -776,7 +849,10 @@ function getVerificationCopy_(language) {
       statusTitle: "Current status",
       reference: "Reference",
       appointment: "Audit or appointment date (Madrid time)",
+      appointmentPreference: "Preferred appointment (Madrid time)",
       appointmentPending: "The date has not been assigned yet.",
+      preferenceAwaitingTitle: "Appointment preference received",
+      preferenceAwaitingText: "Your preferred time has been sent to our team. It is not reserved yet; Calendar and Google Meet will only be created after final confirmation.",
       scheduleTitle: "Choose your appointment",
       scheduleIntro: "Your request has been approved. Select an available date and time below.",
       scheduleWindow: "Monday to Thursday, 11:00-14:00 (Madrid time). 30-minute appointments with a 30-minute interval.",
@@ -796,6 +872,13 @@ function getVerificationCopy_(language) {
       appointmentDeniedEmailSubject: "Appointment not confirmed - Hot Host Hospitality",
       appointmentDeniedEmailTitle: "Appointment not confirmed",
       appointmentDeniedEmailText: "Our team could not confirm the selected appointment. This request has been closed.",
+      denialReason: "Reason",
+      changeReason: "Message from our team",
+      changeEmailSubject: "Choose another appointment - Hot Host Hospitality",
+      changeEmailTitle: "Please choose another appointment",
+      changeEmailIntro: "We cannot confirm the previous preference. Choose another available date and time to continue with your property audit.",
+      changeEmailButton: "Choose another appointment",
+      changeEmailNote: "Your new selection will remain pending until our team confirms it.",
       requestDeniedTitle: "Request declined",
       requestDeniedText: "This request has been closed after our team's review.",
       appointmentDeclinedTitle: "Appointment declined",
@@ -847,7 +930,10 @@ function getVerificationCopy_(language) {
     statusTitle: "Estado actual",
     reference: "Referencia",
     appointment: "Fecha de cita o auditoría (hora de Madrid)",
+    appointmentPreference: "Preferencia de cita (hora de Madrid)",
     appointmentPending: "La fecha todavía no ha sido asignada.",
+    preferenceAwaitingTitle: "Preferencia de cita recibida",
+    preferenceAwaitingText: "Hemos enviado tu horario preferido a nuestro equipo. Todavía no está reservado; Calendar y Google Meet solo se crearán después de la confirmación final.",
     scheduleTitle: "Elige tu cita",
     scheduleIntro: "Tu solicitud ha sido aprobada. Selecciona una fecha y una hora disponibles.",
     scheduleWindow: "De lunes a jueves, de 11:00 a 14:00 (hora de Madrid). Citas de 30 minutos con 30 minutos de separación.",
@@ -867,6 +953,13 @@ function getVerificationCopy_(language) {
     appointmentDeniedEmailSubject: "Cita no confirmada - Hot Host Hospitality",
     appointmentDeniedEmailTitle: "Cita no confirmada",
     appointmentDeniedEmailText: "Nuestro equipo no ha podido confirmar la cita seleccionada. La solicitud ha quedado cerrada.",
+    denialReason: "Motivo",
+    changeReason: "Mensaje de nuestro equipo",
+    changeEmailSubject: "Elige otra cita - Hot Host Hospitality",
+    changeEmailTitle: "Elige otra cita",
+    changeEmailIntro: "No podemos confirmar la preferencia anterior. Elige otra fecha y hora disponibles para continuar con la auditoría de tu propiedad.",
+    changeEmailButton: "Elegir otra cita",
+    changeEmailNote: "La nueva selección quedará pendiente hasta que nuestro equipo la confirme.",
     requestDeniedTitle: "Solicitud denegada",
     requestDeniedText: "La solicitud ha sido cerrada después de la revisión de nuestro equipo.",
     appointmentDeclinedTitle: "Cita rechazada",
@@ -957,10 +1050,14 @@ function sendVerificationEmail_(payload, token, config) {
   const verificationUrl = buildVerificationUrl_(token, config);
   const contactName = sanitiseText_(payload.contact.name, "", 80);
   const greeting = contactName ? copy.greeting + " " + contactName + "," : copy.greeting + ",";
+  const preferredAppointment = payload.appointment && payload.appointment.preferredAt
+    ? formatAppointment_(payload.appointment.preferredAt)
+    : "";
   const body = [
     greeting,
     "",
     copy.emailIntro,
+    preferredAppointment ? copy.appointmentPreference + ": " + preferredAppointment : "",
     "",
     copy.verifyButton + ": " + verificationUrl,
     "",
@@ -974,6 +1071,7 @@ function sendVerificationEmail_(payload, token, config) {
     '<div style="padding:34px 30px 30px"><p style="margin:0 0 18px;font-size:17px">' + escapeHtml_(greeting) + '</p>',
     '<h1 style="margin:0 0 14px;color:#201a12;font-family:Georgia,serif;font-size:30px;line-height:1.15">' + escapeHtml_(copy.verifyButton) + '</h1>',
     '<p style="margin:0 0 26px;color:#645846;font-size:16px;line-height:1.65">' + escapeHtml_(copy.emailIntro) + '</p>',
+    preferredAppointment ? '<div style="margin:0 0 24px;padding:14px 16px;border:1px solid #eadfcf;border-radius:12px;background:#faf6ed"><div style="color:#8a7e6c;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase">' + escapeHtml_(copy.appointmentPreference) + '</div><div style="margin-top:5px;font-weight:800">' + escapeHtml_(preferredAppointment) + '</div></div>' : '',
     '<p style="margin:0 0 28px;text-align:center"><a href="' + escapeHtml_(verificationUrl) + '" style="display:inline-block;padding:15px 26px;border-radius:999px;background:#198754;color:#fff;font-size:16px;font-weight:800;text-decoration:none">' + escapeHtml_(copy.verifyButton) + '</a></p>',
     '<div style="padding:16px 18px;border-left:4px solid #e1aa3f;border-radius:8px;background:#faf5e9;color:#665943;font-size:14px;line-height:1.55">' + escapeHtml_(copy.emailNote) + '</div>',
     '<p style="margin:24px 0 0;color:#8a7e6c;font-size:12px;line-height:1.5">' + escapeHtml_(copy.emailFooter) + '</p></div></div></div>'
@@ -1014,22 +1112,48 @@ function ensureAutomaticScheduling_(sheet, row, record, config) {
   if (statusKey === "processing") {
     deleteLegacyFollowup_(record, config);
     const decidedAt = new Date().toISOString();
+    const hasPreference = Boolean(record.preferredAppointmentAt);
     applyLeadUpdates_(sheet, row, record, {
-      status: REQUEST_STATUSES.scheduling,
+      status: hasPreference ? REQUEST_STATUSES.awaitingConfirmation : REQUEST_STATUSES.scheduling,
       calendarEventId: "",
       meetingUrl: "",
-      appointmentAt: "",
+      appointmentAt: hasPreference ? String(record.preferredAppointmentAt) : "",
       adminTokenHash: "",
       adminDecisionAt: decidedAt,
+      adminDecisionReason: "",
       adminDecisionEmailSentAt: "",
       visitorDecisionAt: "",
       appointmentReviewEmailSentAt: "",
+      appointmentChangeRequestedAt: "",
       visitorConfirmationSentAt: "",
       finalNotificationSentAt: "",
       statusUpdatedAt: decidedAt
     });
-    statusKey = "scheduling";
+    statusKey = hasPreference ? "awaiting" : "scheduling";
   }
+
+  if (statusKey === "awaiting" && record.preferredAppointmentAt && !record.visitorDecisionAt) {
+    if (record.appointmentReviewEmailSentAt) return true;
+    const adminToken = createVerificationToken_();
+    applyLeadUpdates_(sheet, row, record, {
+      adminTokenHash: hashVerificationToken_(adminToken)
+    });
+    try {
+      sendAppointmentReviewEmail_(record, adminToken, config);
+    } catch (emailError) {
+      console.error(emailError);
+      return false;
+    }
+    try {
+      applyLeadUpdates_(sheet, row, record, {
+        appointmentReviewEmailSentAt: new Date().toISOString()
+      });
+    } catch (markerError) {
+      console.error(markerError);
+    }
+    return true;
+  }
+
   if (statusKey !== "scheduling") return false;
   if (record.adminDecisionEmailSentAt) return true;
 
@@ -1088,7 +1212,16 @@ function renderRequestStatus_(token) {
       let statusKey = getRequestStatusKey_(record.status);
       if (
         canAutomaticallySchedule_(record, config) &&
-        (statusKey === "processing" || (statusKey === "scheduling" && !record.adminDecisionEmailSentAt))
+        (
+          statusKey === "processing" ||
+          (statusKey === "scheduling" && !record.adminDecisionEmailSentAt) ||
+          (
+            statusKey === "awaiting" &&
+            record.preferredAppointmentAt &&
+            !record.visitorDecisionAt &&
+            !record.appointmentReviewEmailSentAt
+          )
+        )
       ) {
         ensureAutomaticScheduling_(sheet, row, record, config);
         statusKey = getRequestStatusKey_(record.status);
@@ -1157,6 +1290,9 @@ function buildPayloadFromLeadRecord_(record) {
       listingUrl: String(record.listingUrl || ""),
       photosUrl: String(record.photosUrl || ""),
       comments: String(record.comments || "")
+    },
+    appointment: {
+      preferredAt: String(record.preferredAppointmentAt || "")
     }
   };
 }
@@ -1208,27 +1344,33 @@ function buildRequestStatusPage_(record, token, config, notice, sheet) {
   const copy = getVerificationCopy_(record.language);
   const statusKey = getRequestStatusKey_(record.status);
   const statusLabel = copy.statuses[statusKey] || String(record.status || "");
+  const isUnheldPreference = statusKey === "awaiting" &&
+    Boolean(record.preferredAppointmentAt) && !record.visitorDecisionAt;
   const showsAppointment = statusKey === "awaiting" || statusKey === "confirmed" ||
     (statusKey === "denied" && Boolean(record.appointmentAt));
   const appointment = showsAppointment ? formatAppointment_(record.appointmentAt) : "";
   const appointmentHtml = showsAppointment
-    ? '<div class="appointment"><span>' + escapeHtml_(copy.appointment) + '</span><strong>' +
+    ? '<div class="appointment"><span>' + escapeHtml_(isUnheldPreference ? copy.appointmentPreference : copy.appointment) + '</span><strong>' +
       escapeHtml_(appointment || copy.appointmentPending) + '</strong></div>'
+    : "";
+  const reasonHtml = statusKey === "denied" && record.adminDecisionReason
+    ? '<div class="decision-reason"><span>' + escapeHtml_(copy.denialReason) + '</span><p>' +
+      escapeHtml_(record.adminDecisionReason) + '</p></div>'
     : "";
   let heading = copy.verifiedTitle;
   let lead = copy.verifiedText;
   if (statusKey === "scheduling") {
-    heading = copy.scheduleTitle;
-    lead = copy.scheduleIntro;
+    heading = record.appointmentChangeRequestedAt ? copy.changeEmailTitle : copy.scheduleTitle;
+    lead = record.appointmentChangeRequestedAt ? copy.changeEmailIntro : copy.scheduleIntro;
   } else if (statusKey === "awaiting") {
-    heading = copy.awaitingConfirmationTitle;
-    lead = copy.awaitingConfirmationText;
+    heading = isUnheldPreference ? copy.preferenceAwaitingTitle : copy.awaitingConfirmationTitle;
+    lead = isUnheldPreference ? copy.preferenceAwaitingText : copy.awaitingConfirmationText;
   } else if (statusKey === "confirmed") {
     heading = copy.appointmentConfirmedTitle;
     lead = copy.appointmentConfirmedText;
   } else if (statusKey === "denied") {
-    heading = copy.requestDeniedTitle;
-    lead = copy.requestDeniedText;
+    heading = record.appointmentAt ? copy.appointmentDeniedEmailTitle : copy.requestDeniedTitle;
+    lead = record.appointmentAt ? copy.appointmentDeniedEmailText : copy.requestDeniedText;
   } else if (statusKey === "declined") {
     heading = copy.appointmentDeclinedTitle;
     lead = copy.appointmentDeclinedText;
@@ -1242,12 +1384,12 @@ function buildRequestStatusPage_(record, token, config, notice, sheet) {
   const html = '<!doctype html><html lang="' + escapeHtml_(record.language || "es") + '"><head>' +
     '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<meta name="robots" content="noindex,nofollow"><title>' + escapeHtml_(copy.pageTitle) + '</title>' +
-    requestPageStyles_() + workflowPageStyles_() + schedulingSelectStyles_() + '</head><body><main class="card">' +
+    requestPageStyles_() + workflowPageStyles_() + schedulingSelectStyles_() + workflowEnhancementStyles_() + '</head><body><main class="card">' +
     '<div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div>' +
     '<div class="verified">&#10003; ' + escapeHtml_(copy.verifiedLabel) + '</div>' +
     '<h1>' + escapeHtml_(heading) + '</h1><p class="lead">' + escapeHtml_(lead) + '</p>' +
     '<section class="status"><span>' + escapeHtml_(copy.statusTitle) + '</span><strong class="pill ' + statusKey + '">' + escapeHtml_(statusLabel) + '</strong></section>' +
-    appointmentHtml + noticeHtml + schedulingHtml + '<p class="reference">' + escapeHtml_(copy.reference) + ': <strong>' + escapeHtml_(record.submissionId) + '</strong></p>' +
+    appointmentHtml + reasonHtml + noticeHtml + schedulingHtml + '<p class="reference">' + escapeHtml_(copy.reference) + ': <strong>' + escapeHtml_(record.submissionId) + '</strong></p>' +
     '<button type="button" onclick="window.close()">' + escapeHtml_(copy.close) + '</button>' +
     '</main></body></html>';
   return HtmlService.createHtmlOutput(html).setTitle(copy.pageTitle);
@@ -1262,6 +1404,10 @@ function buildSchedulingFormHtml_(record, token, config, copy, sheet) {
   }
   const actionUrl = getWebAppUrl_(config);
   const cleanToken = String(token || "");
+  const changeMessage = record.appointmentChangeRequestedAt && record.adminDecisionReason
+    ? '<div class="decision-reason"><span>' + escapeHtml_(copy.changeReason) + '</span><p>' +
+      escapeHtml_(record.adminDecisionReason) + '</p></div>'
+    : "";
   const dateOptions = [];
   const seenDates = {};
   const slotData = slots.map(function (slot) {
@@ -1316,7 +1462,7 @@ function buildSchedulingFormHtml_(record, token, config, copy, sheet) {
       fallbackTimeOptions + '</select></span></div></div></fieldset>' +
       '<button id="bookingSubmit" type="submit">' + escapeHtml_(copy.confirmAppointment) + '</button></form>' + schedulerScript
     : '<p class="no-slots">' + escapeHtml_(copy.noSlots) + '</p>';
-  return '<section class="scheduler"><p class="schedule-window">' + escapeHtml_(copy.scheduleWindow) +
+  return '<section class="scheduler">' + changeMessage + '<p class="schedule-window">' + escapeHtml_(copy.scheduleWindow) +
     '</p>' + bookingForm + '<form class="decline-form" method="post" target="_top" action="' + escapeHtml_(actionUrl) +
     '"><input type="hidden" name="action" value="decline"><input type="hidden" name="request" value="' +
     escapeHtml_(cleanToken) + '"><button class="danger" type="submit">' +
@@ -1360,17 +1506,21 @@ function buildRequestMessagePage_(copy, kind) {
 
 function handleWorkflowPost_(event, workflowAction) {
   try {
+    const adminMessage = event && event.parameter ? event.parameter.reason || "" : "";
     if (workflowAction === "admin-approve") {
-      return handleAdminDecision_(event.parameter.admin, "approve");
+      return handleAdminDecision_(event.parameter.admin, "approve", adminMessage);
     }
     if (workflowAction === "admin-deny") {
-      return handleAdminDecision_(event.parameter.admin, "deny");
+      return handleAdminDecision_(event.parameter.admin, "deny", adminMessage);
     }
     if (workflowAction === "admin-confirm-appointment") {
-      return handleAdminDecision_(event.parameter.admin, "confirmAppointment");
+      return handleAdminDecision_(event.parameter.admin, "confirmAppointment", adminMessage);
+    }
+    if (workflowAction === "admin-change-appointment") {
+      return handleAdminDecision_(event.parameter.admin, "changeAppointment", adminMessage);
     }
     if (workflowAction === "admin-deny-appointment") {
-      return handleAdminDecision_(event.parameter.admin, "denyAppointment");
+      return handleAdminDecision_(event.parameter.admin, "denyAppointment", adminMessage);
     }
     if (workflowAction === "book" || workflowAction === "decline") {
       return handleVisitorDecision_(
@@ -1408,7 +1558,7 @@ function renderAdminReview_(token) {
   }
 }
 
-function handleAdminDecision_(token, decision) {
+function handleAdminDecision_(token, decision, reason) {
   const cleanToken = requirePrivateToken_(token);
   const config = getConfiguration_();
   const sheet = getLeadsSheet_(config);
@@ -1429,22 +1579,27 @@ function handleAdminDecision_(token, decision) {
       if (statusKey === "processing") {
         deleteLegacyFollowup_(record, config);
         const decidedAt = new Date().toISOString();
+        const hasPreference = Boolean(record.preferredAppointmentAt);
         applyLeadUpdates_(sheet, row, record, {
-          status: REQUEST_STATUSES.scheduling,
+          status: hasPreference ? REQUEST_STATUSES.awaitingConfirmation : REQUEST_STATUSES.scheduling,
           calendarEventId: "",
           meetingUrl: "",
-          appointmentAt: "",
+          appointmentAt: hasPreference ? String(record.preferredAppointmentAt) : "",
           adminDecisionAt: decidedAt,
+          adminDecisionReason: "",
           adminDecisionEmailSentAt: "",
           visitorDecisionAt: "",
           appointmentReviewEmailSentAt: "",
+          appointmentChangeRequestedAt: "",
           visitorConfirmationSentAt: "",
           finalNotificationSentAt: "",
           statusUpdatedAt: decidedAt
         });
-        statusKey = "scheduling";
+        statusKey = hasPreference ? "awaiting" : "scheduling";
       }
-      if (statusKey !== "scheduling") {
+      if (statusKey === "awaiting") {
+        notice = { text: "Solicitud aprobada. Comprueba ahora la preferencia de cita antes de confirmarla o pedir otra fecha.", type: "success" };
+      } else if (statusKey !== "scheduling") {
         notice = { text: "La solicitud ya tiene una decisión final y no se ha modificado.", type: "warning" };
       } else if (record.adminDecisionEmailSentAt) {
         notice = { text: "La solicitud ya está aprobada y el correo de horarios ya fue enviado.", type: "success" };
@@ -1464,6 +1619,7 @@ function handleAdminDecision_(token, decision) {
         }
       }
     } else if (decision === "deny") {
+      const denialReason = requireAdminDecisionReason_(reason);
       if (statusKey === "processing" || statusKey === "scheduling") {
         if (statusKey === "processing") deleteLegacyFollowup_(record, config);
         const decidedAt = new Date().toISOString();
@@ -1473,10 +1629,13 @@ function handleAdminDecision_(token, decision) {
           meetingUrl: "",
           appointmentAt: "",
           adminDecisionAt: decidedAt,
+          adminDecisionReason: denialReason,
           adminDecisionEmailSentAt: "",
           statusUpdatedAt: decidedAt
         });
         statusKey = "denied";
+      } else if (statusKey === "denied" && !record.adminDecisionEmailSentAt) {
+        applyLeadUpdates_(sheet, row, record, { adminDecisionReason: denialReason });
       }
       if (statusKey !== "denied") {
         notice = { text: "La solicitud ya tiene una decisión final y no se ha modificado.", type: "warning" };
@@ -1496,7 +1655,7 @@ function handleAdminDecision_(token, decision) {
     } else if (decision === "confirmAppointment") {
       if (statusKey === "awaiting") {
         if (!isSelectedAppointmentAvailable_(record, config, sheet)) {
-          notice = { text: "La hora seleccionada ya no está disponible. Deniega la cita para que el cliente reciba el aviso.", type: "warning" };
+          notice = { text: "La hora seleccionada ya no está disponible. Usa Cambiar cita para que el cliente elija otro horario.", type: "warning" };
         } else {
           const event = createBookingEvent_(record, new Date(String(record.appointmentAt)), config);
           const confirmedAt = new Date().toISOString();
@@ -1525,7 +1684,47 @@ function handleAdminDecision_(token, decision) {
           ? { text: "Cita confirmada. Se creó Calendar con Google Meet y el cliente recibió el aviso final.", type: "success" }
           : { text: "La cita se creó, pero el correo final no pudo enviarse. Usa Reenviar confirmación.", type: "warning" };
       }
+    } else if (decision === "changeAppointment") {
+      const changeMessage = sanitiseAdminMessage_(reason, 1200);
+      const canStartChange = statusKey === "awaiting";
+      const canRetryChange = statusKey === "scheduling" &&
+        Boolean(record.appointmentChangeRequestedAt) && !record.adminDecisionEmailSentAt;
+      if (!canStartChange && !canRetryChange) {
+        notice = { text: "La cita no está pendiente de revisión y no se ha modificado.", type: "warning" };
+      } else {
+        const bookingToken = createVerificationToken_();
+        const requestedAt = canStartChange
+          ? new Date().toISOString()
+          : String(record.appointmentChangeRequestedAt);
+        applyLeadUpdates_(sheet, row, record, {
+          status: REQUEST_STATUSES.scheduling,
+          calendarEventId: "",
+          meetingUrl: "",
+          appointmentAt: "",
+          bookingTokenHash: hashVerificationToken_(bookingToken),
+          adminDecisionReason: changeMessage,
+          adminDecisionEmailSentAt: "",
+          visitorDecisionAt: "",
+          appointmentReviewEmailSentAt: "",
+          appointmentChangeRequestedAt: requestedAt,
+          visitorConfirmationSentAt: "",
+          finalNotificationSentAt: "",
+          statusUpdatedAt: requestedAt
+        });
+        statusKey = "scheduling";
+        try {
+          sendAppointmentChangeEmail_(record, bookingToken, config);
+          applyLeadUpdates_(sheet, row, record, {
+            adminDecisionEmailSentAt: new Date().toISOString()
+          });
+          notice = { text: "Cambio solicitado. El cliente ha recibido la agenda para elegir otra cita.", type: "success" };
+        } catch (emailError) {
+          console.error(emailError);
+          notice = { text: "El cambio quedó registrado, pero el correo no pudo enviarse. Usa Reenviar cambio para intentarlo de nuevo.", type: "warning" };
+        }
+      }
     } else if (decision === "denyAppointment") {
+      const denialReason = requireAdminDecisionReason_(reason);
       const canDenyAppointment = statusKey === "awaiting" ||
         (statusKey === "denied" && Boolean(record.appointmentAt));
       if (statusKey === "awaiting") {
@@ -1535,11 +1734,14 @@ function handleAdminDecision_(token, decision) {
           calendarEventId: "",
           meetingUrl: "",
           adminDecisionAt: deniedAt,
+          adminDecisionReason: denialReason,
           visitorConfirmationSentAt: "",
           finalNotificationSentAt: "",
           statusUpdatedAt: deniedAt
         });
         statusKey = "denied";
+      } else if (statusKey === "denied" && !record.visitorConfirmationSentAt) {
+        applyLeadUpdates_(sheet, row, record, { adminDecisionReason: denialReason });
       }
       if (!canDenyAppointment) {
         notice = { text: "La cita no está pendiente de confirmación y no se ha modificado.", type: "warning" };
@@ -1610,6 +1812,7 @@ function handleVisitorDecision_(token, action, slotValue) {
           meetingUrl: "",
           status: REQUEST_STATUSES.awaitingConfirmation,
           appointmentAt: requestedStart.toISOString(),
+          adminDecisionReason: "",
           visitorDecisionAt: decidedAt,
           appointmentReviewEmailSentAt: "",
           visitorConfirmationSentAt: "",
@@ -1707,6 +1910,20 @@ function applyLeadUpdates_(sheet, row, record, updates) {
   });
 }
 
+function sanitiseAdminMessage_(value, maxLength) {
+  return String(value || "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function requireAdminDecisionReason_(value) {
+  const reason = sanitiseAdminMessage_(value, 1200);
+  if (reason.length < 3) throw new Error("A denial reason is required");
+  return reason;
+}
+
 function requirePrivateToken_(token) {
   const cleanToken = String(token || "").trim();
   if (!/^[a-f0-9]{64}$/i.test(cleanToken)) throw new Error("Invalid private token");
@@ -1717,19 +1934,30 @@ function buildAdminReviewPage_(record, token, config, notice) {
   const actionUrl = getWebAppUrl_(config);
   const statusKey = getRequestStatusKey_(record.status);
   const hasSelectedAppointment = Boolean(record.appointmentAt);
+  const isInitialPreference = statusKey === "awaiting" &&
+    Boolean(record.preferredAppointmentAt) && !record.visitorDecisionAt;
+  const changeIsPending = statusKey === "scheduling" && Boolean(record.appointmentChangeRequestedAt);
   const canApprove = statusKey === "processing" ||
-    (statusKey === "scheduling" && !record.adminDecisionEmailSentAt);
+    (statusKey === "scheduling" && !changeIsPending && !record.adminDecisionEmailSentAt);
   const canDeny = statusKey === "processing" || statusKey === "scheduling" ||
     (statusKey === "denied" && !hasSelectedAppointment && !record.adminDecisionEmailSentAt);
   const canConfirmAppointment = statusKey === "awaiting" ||
     (statusKey === "confirmed" && !record.visitorConfirmationSentAt);
+  const canChangeAppointment = statusKey === "awaiting" ||
+    (changeIsPending && !record.adminDecisionEmailSentAt);
   const canDenyAppointment = statusKey === "awaiting" ||
     (statusKey === "denied" && hasSelectedAppointment && !record.visitorConfirmationSentAt);
   const approveLabel = statusKey === "scheduling" ? "Reenviar horarios" : "Aprobar y enviar horarios";
   const denyLabel = statusKey === "denied" ? "Reenviar denegación" : "Denegar solicitud";
-  const confirmAppointmentLabel = statusKey === "confirmed" ? "Reenviar confirmación" : "Confirmar cita definitivamente";
+  const confirmAppointmentLabel = statusKey === "confirmed"
+    ? "Reenviar confirmación"
+    : isInitialPreference ? "Confirmar preferencia definitivamente" : "Confirmar cita definitivamente";
+  const changeAppointmentLabel = changeIsPending ? "Reenviar cambio" : "Cambiar cita";
   const denyAppointmentLabel = statusKey === "denied" ? "Reenviar denegación de cita" : "Denegar cita";
   const appointment = hasSelectedAppointment ? formatAppointment_(record.appointmentAt) : "";
+  const preferredAppointment = record.preferredAppointmentAt
+    ? formatAppointment_(record.preferredAppointmentAt)
+    : "";
   const details = [
     { label: "Referencia", value: record.submissionId, wide: false },
     { label: "Estado", value: record.status, wide: false },
@@ -1742,7 +1970,9 @@ function buildAdminReviewPage_(record, token, config, notice) {
     { label: "Anuncio", value: record.listingUrl, wide: true },
     { label: "Fotos", value: record.photosUrl || record.driveFolderUrl, wide: true },
     { label: "Comentarios", value: record.comments, wide: true },
-    { label: "Cita seleccionada", value: appointment, wide: true },
+    { label: "Preferencia inicial (no retenida)", value: preferredAppointment, wide: true },
+    { label: isInitialPreference ? "Preferencia pendiente" : "Cita seleccionada", value: appointment, wide: true },
+    { label: "Último motivo o mensaje", value: record.adminDecisionReason, wide: true },
     { label: "Google Meet", value: record.meetingUrl, wide: true }
   ];
   const detailsHtml = details.filter(function (detail) {
@@ -1755,37 +1985,70 @@ function buildAdminReviewPage_(record, token, config, notice) {
     ? buildAdminActionForm_(actionUrl, token, "admin-approve", approveLabel, "")
     : "";
   const denyForm = canDeny
-    ? buildAdminActionForm_(actionUrl, token, "admin-deny", denyLabel, "danger")
+    ? buildAdminActionForm_(actionUrl, token, "admin-deny", denyLabel, "danger", {
+      label: "Motivo de la denegación",
+      placeholder: "Explica de forma clara por qué no puede continuar la solicitud.",
+      value: record.adminDecisionReason,
+      required: true
+    })
     : "";
   const confirmAppointmentForm = canConfirmAppointment
     ? buildAdminActionForm_(actionUrl, token, "admin-confirm-appointment", confirmAppointmentLabel, "")
     : "";
+  const changeAppointmentForm = canChangeAppointment
+    ? buildAdminActionForm_(actionUrl, token, "admin-change-appointment", changeAppointmentLabel, "secondary", {
+      label: "Mensaje para el cliente (opcional)",
+      placeholder: "Indica por qué debe elegir otra fecha o cualquier instrucción útil.",
+      value: record.adminDecisionReason,
+      required: false
+    })
+    : "";
   const denyAppointmentForm = canDenyAppointment
-    ? buildAdminActionForm_(actionUrl, token, "admin-deny-appointment", denyAppointmentLabel, "danger")
+    ? buildAdminActionForm_(actionUrl, token, "admin-deny-appointment", denyAppointmentLabel, "danger", {
+      label: "Motivo de la denegación de la cita",
+      placeholder: "Explica de forma clara por qué no se confirma la cita.",
+      value: record.adminDecisionReason,
+      required: true
+    })
     : "";
   const noticeHtml = notice
     ? '<p class="notice' + (notice.type === "warning" ? ' warning' : '') + '">' + escapeHtml_(notice.text) + '</p>'
     : "";
-  const actionForms = approveForm + denyForm + confirmAppointmentForm + denyAppointmentForm;
+  const actionForms = approveForm + confirmAppointmentForm + changeAppointmentForm + denyForm + denyAppointmentForm;
   const actionsHtml = actionForms
     ? '<div class="admin-actions">' + actionForms + '</div>'
-    : '<p class="notice">La solicitud ya tiene una decisión final. No hay acciones pendientes.</p>';
-  const pageTitle = statusKey === "awaiting" ? "Confirmar cita" : "Revisar solicitud";
+    : changeIsPending
+      ? '<p class="notice">El cliente ya recibió la petición de cambio. Esperamos que elija otra fecha.</p>'
+      : '<p class="notice">La solicitud ya tiene una decisión final. No hay acciones pendientes.</p>';
+  const pageTitle = statusKey === "awaiting"
+    ? "Confirmar cita"
+    : changeIsPending ? "Cambio de cita solicitado" : "Revisar solicitud";
   const pageLead = statusKey === "awaiting"
-    ? "El cliente eligió esta fecha. Confírmala para crear Calendar con Google Meet o deniégala para cerrar la solicitud."
-    : "Aprueba la solicitud para enviar los horarios libres o deniégala para cerrar el proceso.";
+    ? isInitialPreference
+      ? "El cliente indicó esta preferencia en el formulario. No está retenida: confirma solo si sigue libre, pide otra fecha o deniega con un motivo."
+      : "El cliente eligió esta fecha libre. Confírmala para crear Calendar con Google Meet, pide otra fecha o deniégala con un motivo."
+    : changeIsPending
+      ? "El cliente debe volver a la agenda privada y elegir otro horario disponible."
+      : "Aprueba la solicitud para continuar o deniégala indicando el motivo que recibirá el cliente.";
   const html = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Revisar solicitud - Hot Host Hospitality</title>' +
-    requestPageStyles_() + workflowPageStyles_() + '</head><body><main class="card"><div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div><div class="verified">Revisión privada</div><h1>' + escapeHtml_(pageTitle) + '</h1><p class="lead">' + escapeHtml_(pageLead) + '</p><section class="status"><span>Estado actual</span><strong class="pill ' +
+    requestPageStyles_() + workflowPageStyles_() + workflowEnhancementStyles_() + '</head><body><main class="card"><div class="brand"><strong>HOT HOST</strong><span>HOSPITALITY</span></div><div class="verified">Revisión privada</div><h1>' + escapeHtml_(pageTitle) + '</h1><p class="lead">' + escapeHtml_(pageLead) + '</p><section class="status"><span>Estado actual</span><strong class="pill ' +
     escapeHtml_(statusKey) + '">' + escapeHtml_(record.status) + '</strong></section>' + noticeHtml +
     '<section class="admin-details">' + detailsHtml + '</section>' + actionsHtml +
     '<p class="reference">Este enlace es privado. No lo compartas.</p></main></body></html>';
   return HtmlService.createHtmlOutput(html).setTitle("Revisar solicitud - Hot Host Hospitality");
 }
 
-function buildAdminActionForm_(actionUrl, token, action, label, buttonClass) {
-  return '<form method="post" target="_top" action="' + escapeHtml_(actionUrl) + '"><input type="hidden" name="action" value="' +
+function buildAdminActionForm_(actionUrl, token, action, label, buttonClass, messageOptions) {
+  const messageField = messageOptions
+    ? '<label class="admin-message"><span>' + escapeHtml_(messageOptions.label) + '</span><textarea name="reason" maxlength="1200" ' +
+      (messageOptions.required ? 'required ' : '') + 'placeholder="' + escapeHtml_(messageOptions.placeholder) + '">' +
+      escapeHtml_(messageOptions.value || "") + '</textarea><small>' +
+      (messageOptions.required ? 'Obligatorio. Este texto se enviará al cliente.' : 'Este texto se incluirá en el correo al cliente.') +
+      '</small></label>'
+    : "";
+  return '<form class="admin-action-form" method="post" target="_top" action="' + escapeHtml_(actionUrl) + '"><input type="hidden" name="action" value="' +
     escapeHtml_(action) + '"><input type="hidden" name="admin" value="' + escapeHtml_(token) +
-    '"><button class="' + escapeHtml_(buttonClass) + '" type="submit">' + escapeHtml_(label) + '</button></form>';
+    '">' + messageField + '<button class="' + escapeHtml_(buttonClass) + '" type="submit">' + escapeHtml_(label) + '</button></form>';
 }
 
 function buildWorkflowMessagePage_(title, text) {
@@ -1805,6 +2068,10 @@ function workflowPageStyles_() {
 
 function schedulingSelectStyles_() {
   return '<style>.schedule-selects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.schedule-field{display:grid;gap:8px;color:#4f4433;font-size:13px;font-weight:800}.schedule-control{position:relative;display:block}.schedule-control:after{content:"⌄";position:absolute;right:14px;top:50%;color:#7a5a1f;transform:translateY(-56%);pointer-events:none}.schedule-control select{width:100%;min-height:52px;padding:0 42px 0 14px;color:#241d14;border:1px solid #d7c8ad;border-radius:13px;background:#fff;font:inherit;appearance:none;cursor:pointer}.schedule-control select:focus{outline:3px solid rgba(25,135,84,.18);border-color:#198754}.schedule-control select:disabled{color:#8b8171;background:#f2ede4;cursor:not-allowed}.booking-form button:disabled{opacity:.48;cursor:not-allowed}.booking-form button:disabled:hover{transform:none}@media(max-width:560px){.schedule-selects{grid-template-columns:1fr}}</style>';
+}
+
+function workflowEnhancementStyles_() {
+  return '<style>.decision-reason{margin-top:20px;padding:16px 18px;border-left:4px solid #a13d3d;border-radius:10px;background:#fbeeee}.decision-reason span{display:block;color:#963535;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.decision-reason p{margin:7px 0 0;white-space:pre-line;line-height:1.55}.admin-actions{display:grid;grid-template-columns:1fr;gap:14px}.admin-action-form{padding:16px;border:1px solid #eadfcf;border-radius:14px;background:#faf6ed}.admin-action-form button{width:100%;margin-top:0}.admin-message{display:grid;gap:8px;margin-bottom:14px}.admin-message span{font-size:13px;font-weight:800}.admin-message textarea{width:100%;min-height:104px;padding:12px 13px;resize:vertical;border:1px solid #d7c8ad;border-radius:10px;background:#fff;color:#241d14;font:inherit;line-height:1.45}.admin-message textarea:focus{outline:3px solid rgba(25,135,84,.18);border-color:#198754}.admin-message small{color:#776a57;font-size:12px;line-height:1.4}.admin-actions .secondary{color:#62470d;background:#f1cf7b}.admin-actions .secondary:hover{background:#ddb04d}</style>';
 }
 
 function escapeHtml_(value) {
@@ -1879,10 +2146,12 @@ function getPendingAppointmentTimes_(sheet, excludedSubmissionId) {
   const submissionIndex = headers.indexOf("submissionId");
   const statusIndex = headers.indexOf("status");
   const appointmentIndex = headers.indexOf("appointmentAt");
-  if (statusIndex === -1 || appointmentIndex === -1) return [];
+  const visitorDecisionIndex = headers.indexOf("visitorDecisionAt");
+  if (statusIndex === -1 || appointmentIndex === -1 || visitorDecisionIndex === -1) return [];
   return sheet.getRange(2, 1, sheet.getLastRow() - 1, headers.length).getValues()
     .filter(function (values) {
       return getRequestStatusKey_(values[statusIndex]) === "awaiting" &&
+        Boolean(values[visitorDecisionIndex]) &&
         String(values[submissionIndex] || "") !== String(excludedSubmissionId || "");
     })
     .map(function (values) {
@@ -1895,23 +2164,7 @@ function getPendingAppointmentTimes_(sheet, excludedSubmissionId) {
 
 function isSelectedAppointmentAvailable_(record, config, sheet) {
   const start = new Date(String(record.appointmentAt || ""));
-  if (Number.isNaN(start.getTime()) || start <= new Date()) return false;
-  const timeZone = Session.getScriptTimeZone();
-  const localDate = Utilities.formatDate(start, timeZone, "yyyy-MM-dd").split("-").map(Number);
-  const day = new Date(Date.UTC(localDate[0], localDate[1] - 1, localDate[2])).getUTCDay();
-  if (config.bookingWeekdays.indexOf(day) === -1) return false;
-  const localTime = Utilities.formatDate(start, timeZone, "HH:mm").split(":").map(Number);
-  const minute = localTime[0] * 60 + localTime[1];
-  const firstMinute = config.bookingStartHour * 60;
-  const lastMinute = config.bookingEndHour * 60;
-  const intervalMinutes = config.eventDurationMinutes + config.bookingBufferMinutes;
-  if (
-    minute < firstMinute ||
-    minute + config.eventDurationMinutes > lastMinute ||
-    (minute - firstMinute) % intervalMinutes !== 0
-  ) {
-    return false;
-  }
+  if (!isAppointmentWithinBookingRules_(start, config)) return false;
   if (getPendingAppointmentTimes_(sheet, record.submissionId).indexOf(start.getTime()) !== -1) {
     return false;
   }
@@ -2060,6 +2313,7 @@ function sendLeadNotification_(payload, record, adminToken, config) {
     payload.property.photosUrl ? "Fotos: " + payload.property.photosUrl : "",
     record.driveFolderUrl ? "Carpeta Drive: " + record.driveFolderUrl : "",
     payload.property.comments ? "Comentarios: " + payload.property.comments : "",
+    record.preferredAppointmentAt ? "Preferencia de cita: " + formatAppointment_(record.preferredAppointmentAt) : "",
     "",
     "Revisar y decidir: " + reviewUrl
   ].filter(function (line) { return line !== ""; }).join("\n");
@@ -2072,7 +2326,8 @@ function sendLeadNotification_(payload, record, adminToken, config) {
       { label: "Email", value: payload.contact.email },
       { label: "Teléfono", value: payload.contact.phone },
       { label: "Propiedad", value: [payload.property.type, payload.property.city, payload.property.country].filter(Boolean).join(" · ") },
-      { label: "Comentarios", value: payload.property.comments }
+      { label: "Comentarios", value: payload.property.comments },
+      { label: "Preferencia de cita (no retenida)", value: formatAppointment_(record.preferredAppointmentAt) }
     ],
     "Revisar y decidir",
     reviewUrl,
@@ -2130,13 +2385,17 @@ function sendAppointmentReviewEmail_(record, adminToken, config) {
   }
   const reviewUrl = buildAdminReviewUrl_(adminToken, config);
   const appointment = formatAppointment_(record.appointmentAt);
-  const subject = "Confirmación final de cita - " + sanitiseText_(record.name, "Contacto", 60);
-  const intro = "El cliente ha elegido una fecha. Confírmala o deniégala antes de crear el evento de Calendar.";
+  const isInitialPreference = Boolean(record.preferredAppointmentAt) && !record.visitorDecisionAt;
+  const subject = (isInitialPreference ? "Revisar preferencia de cita - " : "Confirmación final de cita - ") +
+    sanitiseText_(record.name, "Contacto", 60);
+  const intro = isInitialPreference
+    ? "El cliente indicó esta preferencia en el formulario. No está retenida: confirma solo si sigue libre o solicita que elija otra fecha."
+    : "El cliente ha elegido una fecha libre. Confírmala, solicita otra fecha o deniégala antes de crear el evento de Calendar.";
   const details = [
     { label: "Referencia", value: record.submissionId },
     { label: "Cliente", value: record.name },
     { label: "Email", value: record.email },
-    { label: "Cita seleccionada", value: appointment }
+    { label: isInitialPreference ? "Preferencia (no retenida)" : "Cita seleccionada", value: appointment }
   ];
   sendWorkspaceEmail_({
     to: config.notificationEmail,
@@ -2147,12 +2406,12 @@ function sendAppointmentReviewEmail_(record, adminToken, config) {
       "Referencia: " + record.submissionId,
       "Cliente: " + record.name,
       "Email: " + record.email,
-      "Cita seleccionada: " + appointment,
+      (isInitialPreference ? "Preferencia no retenida: " : "Cita seleccionada: ") + appointment,
       "",
       "Revisar y decidir: " + reviewUrl
     ].join("\n"),
     htmlBody: buildBrandedEmailHtml_(
-      "Confirmar cita",
+      isInitialPreference ? "Revisar preferencia" : "Confirmar cita",
       intro,
       details,
       "Revisar y decidir",
@@ -2165,6 +2424,41 @@ function sendAppointmentReviewEmail_(record, adminToken, config) {
   return true;
 }
 
+function sendAppointmentChangeEmail_(record, bookingToken, config) {
+  const copy = getVerificationCopy_(record.language);
+  const schedulingUrl = buildVerificationUrl_(bookingToken, config);
+  const details = [
+    { label: copy.reference, value: record.submissionId },
+    { label: copy.changeReason, value: record.adminDecisionReason }
+  ];
+  const body = [
+    copy.changeEmailIntro,
+    record.adminDecisionReason ? copy.changeReason + ": " + record.adminDecisionReason : "",
+    "",
+    copy.changeEmailButton + ": " + schedulingUrl,
+    "",
+    copy.schedulingEmailNote,
+    copy.changeEmailNote
+  ].filter(function (line) { return line !== ""; }).join("\n");
+  const message = {
+    to: String(record.email || ""),
+    subject: copy.changeEmailSubject,
+    body: body,
+    htmlBody: buildBrandedEmailHtml_(
+      copy.changeEmailTitle,
+      copy.changeEmailIntro,
+      details,
+      copy.changeEmailButton,
+      schedulingUrl,
+      copy.schedulingEmailNote + " " + copy.changeEmailNote
+    ),
+    name: "Hot Host Hospitality"
+  };
+  if (config.notificationEmail) message.replyTo = config.notificationEmail;
+  sendWorkspaceEmail_(message);
+  return true;
+}
+
 function sendVisitorDenialEmail_(record, config) {
   const copy = getVerificationCopy_(record.language);
   const name = sanitiseText_(record.name, "", 80);
@@ -2174,6 +2468,7 @@ function sendVisitorDenialEmail_(record, config) {
     "",
     copy.denialEmailText,
     "",
+    copy.denialReason + ": " + record.adminDecisionReason,
     copy.reference + ": " + record.submissionId
   ].join("\n");
   const message = {
@@ -2183,7 +2478,10 @@ function sendVisitorDenialEmail_(record, config) {
     htmlBody: buildBrandedEmailHtml_(
       copy.denialEmailTitle,
       copy.denialEmailText,
-      [{ label: copy.reference, value: record.submissionId }],
+      [
+        { label: copy.denialReason, value: record.adminDecisionReason },
+        { label: copy.reference, value: record.submissionId }
+      ],
       "",
       "",
       ""
@@ -2204,6 +2502,7 @@ function sendVisitorAppointmentDenialEmail_(record, config) {
     body: [
       copy.appointmentDeniedEmailText,
       "",
+      copy.denialReason + ": " + record.adminDecisionReason,
       copy.appointment + ": " + appointment,
       copy.reference + ": " + record.submissionId
     ].join("\n"),
@@ -2211,6 +2510,7 @@ function sendVisitorAppointmentDenialEmail_(record, config) {
       copy.appointmentDeniedEmailTitle,
       copy.appointmentDeniedEmailText,
       [
+        { label: copy.denialReason, value: record.adminDecisionReason },
         { label: copy.appointment, value: appointment },
         { label: copy.reference, value: record.submissionId }
       ],

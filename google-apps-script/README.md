@@ -7,8 +7,8 @@ La web se publica en GitHub Pages y no dispone de un servidor privado. Por eso n
 1. **Google Apps Script (obligatorio):** recibe de forma segura las solicitudes del formulario y actua como backend.
 2. **Google Sheets (obligatorio):** registra una fila por solicitud con contacto, propiedad, consentimiento, canal, referencias de Drive y estado.
 3. **Google Drive (recomendado):** guarda las fotografias y el archivo `solicitud.json` en una carpeta privada por solicitud.
-4. **Google Calendar y Google Meet (recomendado):** publica los huecos libres; cuando el visitante selecciona uno, espera la confirmacion final del administrador y solo entonces crea el evento con Meet.
-5. **Gmail API con permiso `gmail.send` (recomendado):** envia la revision al administrador, la decision al visitante y la confirmacion final sin permitir lectura ni borrado del correo.
+4. **Google Calendar y Google Meet (recomendado):** valida la preferencia inicial, publica huecos reales si el administrador solicita un cambio y solo crea el evento con Meet tras la confirmacion final.
+5. **Gmail API con permiso `gmail.send` (recomendado):** envia la verificacion, la revision al administrador, los cambios de cita, las denegaciones motivadas y la confirmacion final sin permitir lectura ni borrado del correo.
 6. **GitHub Pages (obligatorio para activar la web):** expone unicamente la URL publica `/exec` mediante una variable del repositorio.
 
 Google Sheets sustituye a lo que normalmente se llama "Excel" dentro de Google Workspace y permite descargar o exportar el registro como `.xlsx`. Una sincronizacion bidireccional con Microsoft Excel o Microsoft 365 no pertenece a Google API y requeriria una integracion separada con Microsoft Graph.
@@ -92,7 +92,9 @@ Abre **Configuracion del proyecto > Propiedades del script** y copia las variabl
 
 La disponibilidad acordada esta fijada de lunes a jueves. Dentro de 11:00-14:00 se ofrecen citas de 30 minutos a las 11:00, 12:00 y 13:00, dejando 30 minutos entre ellas. Los valores horarios, margen, duracion y horizonte se pueden cambiar mediante propiedades; para cambiar los dias hay que actualizar `bookingWeekdays` en `Code.gs`.
 
-La aprobacion automatica nunca asigna una fecha ni escribe `appointmentAt`. Solo habilita la agenda; el visitante debe escoger una fecha y una hora disponibles y esa seleccion sigue pendiente de la confirmacion administrativa final.
+El formulario pide una fecha y una hora preferidas antes de verificar el email. Esa preferencia se guarda en `preferredAppointmentAt`, pero no bloquea Calendar ni otros registros. Tras verificar el correo, las solicitudes con evidencia suficiente pasan a revision final de la cita: el administrador puede confirmar la preferencia si sigue libre, pedir al cliente que elija otro hueco real o denegar indicando un motivo.
+
+`appointmentAt` contiene la fecha que esta revisando el administrador. Una preferencia inicial no se considera retenida porque todavia no tiene `visitorDecisionAt`. Si el administrador pulsa **Cambiar cita**, el cliente recibe la agenda que consulta Calendar; su nueva seleccion si queda retenida en Sheets hasta la decision final. Calendar y Google Meet solo se crean al pulsar **Confirmar cita definitivamente**.
 
 ## 4. Autorizar y probar
 
@@ -140,32 +142,32 @@ La URL publica puede permanecer en `assets/config.js`. Si quieres sustituirla si
 ## 7. Prueba de extremo a extremo
 
 1. Abre `contacto.html` en el sitio publicado.
-2. Completa una solicitud de prueba y acepta la politica de privacidad.
-3. Comprueba que Sheets contiene una fila con estado `Pendiente de verificación`.
-4. Si adjuntaste fotos, comprueba la carpeta privada de Drive y `solicitud.json`.
-5. Abre el correo del visitante y pulsa el boton verde **Verificar email**.
-6. Con una solicitud que no tenga enlace y tenga menos de 10 fotos, comprueba que la pagina privada muestra `En proceso` y que la empresa recibe el correo **Revisar y decidir**. Verificar el email no crea un evento de Calendar.
-7. Abre el enlace interno. La pagina privada del administrador debe mostrar **Aprobar y enviar horarios** y **Denegar solicitud**.
-8. Prueba **Denegar**: el visitante recibe el aviso y la fila pasa a `Denegada`.
-9. Con otra solicitud, prueba **Aprobar**: el visitante recibe **Elegir cita** y la fila pasa a `Pendiente de cita`.
-10. Crea una solicitud con entre 10 y 60 fotos, un enlace compartido de fotos o una URL de anuncio. Al verificar el email debe pasar directamente a `Pendiente de cita` y enviar la agenda al visitante sin la primera revision administrativa, pero sin asignar fecha ni hora.
-11. Abre el enlace del visitante. Los desplegables de fecha y hora solo deben ofrecer huecos libres de lunes a jueves, 11:00-14:00, durante los proximos 14 dias.
-12. Selecciona una hora. La fila pasa a `Cita pendiente de confirmación`, Sheets guarda `appointmentAt`, Calendar sigue vacio y el administrador recibe un segundo correo.
-13. Abre ese correo y pulsa **Confirmar cita definitivamente**. Calendar crea el evento con Google Meet, la fila pasa a `Confirmada` y el cliente recibe el correo final con **Añadir a Google Calendar** y **Unirse a Google Meet**.
-14. Con otra cita seleccionada, prueba **Denegar cita**. No debe crearse ningun evento y el cliente recibe el aviso de denegacion.
-15. Con otra solicitud aprobada, prueba **Rechazar y cerrar solicitud** desde la pagina del visitante. La fila pasa a `Cita rechazada por el solicitante` y el administrador recibe el aviso.
+2. Completa una solicitud de prueba, elige una preferencia de cita y acepta la politica de privacidad. Antes del boton debe aparecer el aviso para revisar el email y SPAM.
+3. Comprueba que Sheets contiene una fila con estado `Pendiente de verificación` y `preferredAppointmentAt`, mientras `appointmentAt` sigue vacio.
+4. Si adjuntaste fotos, comprueba la carpeta privada de Drive y que `solicitud.json` incluye `appointment`.
+5. Abre el correo del visitante y pulsa el boton verde **Verificar email**. Verificar no debe crear un evento de Calendar.
+6. Con 10-60 fotos, un enlace compartido de fotos o una URL de anuncio, la fila pasa a `Cita pendiente de confirmación`: `appointmentAt` copia la preferencia, pero `visitorDecisionAt` sigue vacio para indicar que el hueco no esta retenido.
+7. Comprueba que la empresa recibe **Revisar preferencia de cita** y abre el panel privado. Debe mostrar **Confirmar preferencia definitivamente**, **Cambiar cita** y **Denegar cita**.
+8. Prueba **Confirmar preferencia definitivamente**. El backend vuelve a comprobar reglas, selecciones retenidas y Calendar; si sigue libre, crea Calendar con Google Meet, cambia a `Confirmada` y envia al cliente **Añadir a Google Calendar** y **Unirse a Google Meet**.
+9. Con otra solicitud, pulsa **Cambiar cita**. Puedes incluir un mensaje. La fila pasa a `Pendiente de cita`, se vacia `appointmentAt` y el cliente recibe un enlace para elegir otro horario realmente disponible.
+10. Abre ese enlace y comprueba que los desplegables solo muestran huecos libres de lunes a jueves, 11:00-14:00, durante los proximos 14 dias.
+11. Elige otra hora. La fila vuelve a `Cita pendiente de confirmación`, guarda `appointmentAt` y `visitorDecisionAt`, Calendar sigue vacio y la hora queda retenida frente a otras selecciones pendientes.
+12. Abre el nuevo correo administrativo y confirma para terminar el flujo.
+13. Prueba **Denegar solicitud** desde un registro `En proceso` o `Pendiente de cita`: el formulario no permite enviar sin motivo y el cliente recibe ese texto.
+14. Prueba **Denegar cita** desde una cita pendiente: tambien exige motivo, no crea Calendar y envia la explicacion al cliente.
+15. Desde una agenda enviada al cliente, prueba **Rechazar y cerrar solicitud**. La fila pasa a `Cita rechazada por el solicitante` y el administrador recibe el aviso.
 
 ## Estados de una solicitud
 
-- `Pendiente de verificación`: datos y fotografias guardados; falta validar el correo del visitante.
-- `En proceso`: correo validado y solicitud sin evidencia suficiente notificada al negocio para la primera revision.
-- `Pendiente de cita`: el administrador aprobo la solicitud o se detectaron 10 o mas fotos, un enlace de fotos o un anuncio; el visitante debe elegir un hueco libre.
-- `Cita pendiente de confirmación`: el visitante eligio una hora, que queda retenida en Sheets hasta la decision final del administrador.
+- `Pendiente de verificación`: datos, fotografias y preferencia no retenida guardados; falta validar el correo del visitante.
+- `En proceso`: estado compatible para solicitudes antiguas o revisiones manuales que todavia requieren una decision inicial.
+- `Pendiente de cita`: el administrador pidio un cambio o una solicitud antigua fue aprobada; el visitante debe elegir un hueco libre desde la agenda privada.
+- `Cita pendiente de confirmación`: el administrador revisa `appointmentAt`. Si procede del formulario inicial y `visitorDecisionAt` esta vacio, es una preferencia no retenida. Si el cliente la eligio desde la agenda, queda retenida en Sheets hasta la decision final.
 - `Confirmada`: el administrador confirmo la hora; Calendar contiene el evento con Meet y `appointmentAt` contiene la cita.
-- `Denegada`: la pagina privada conserva y muestra la denegacion; cambiar el estado no elimina la fila ni sus archivos.
+- `Denegada`: la pagina privada conserva y muestra la denegacion y `adminDecisionReason`; cambiar el estado no elimina la fila ni sus archivos.
 - `Cita rechazada por el solicitante`: el visitante decidio no reservar y el administrador fue avisado.
 
-Las dos decisiones administrativas se realizan desde paginas privadas enlazadas en los correos internos. El administrador no necesita editar `status` ni `appointmentAt` en Sheets. El enlace del visitante consulta la fila y el calendario en cada apertura.
+Las decisiones administrativas se realizan desde paginas privadas enlazadas en los correos internos. El administrador no necesita editar `status`, `appointmentAt` ni los motivos en Sheets. Las denegaciones exigen un texto de 3-1200 caracteres. El enlace del visitante consulta la fila y el calendario en cada apertura.
 
 La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHub Pages y Apps Script no comparten origen. Apps Script responde con una pagina HTML minima que autoriza el marco y comunica el resultado mediante `postMessage` exclusivamente al origen configurado en `PUBLIC_SITE_URL`. Durante las primeras pruebas revisa tambien **Ejecuciones** y usa `submissionId` para localizar cada registro.
 
@@ -180,7 +182,7 @@ La peticion usa un `POST` de formulario dirigido a un marco oculto, porque GitHu
 - Maximo aproximado de 30 MB por peticion.
 - Maximo de 5 solicitudes por correo cada 6 horas y 30 solicitudes globales por hora.
 - La Web App es publica y sus limites son una proteccion basica. Antes de recibir trafico elevado, anade un desafio anti-bot validado en el backend y actualiza la politica de privacidad correspondiente.
-- Los enlaces privados solo abren paginas de revision. Aprobar, denegar, seleccionar o confirmar requiere un `POST` explicito. La hora elegida se retiene en Sheets y, antes de crear Calendar y Meet, un bloqueo vuelve a comprobar Calendar y las selecciones pendientes para evitar dobles citas.
+- Los enlaces privados solo abren paginas de revision. Aprobar, cambiar, denegar, seleccionar o confirmar requiere un `POST` explicito. La preferencia inicial no bloquea horarios; solo una reeleccion desde la agenda queda retenida. Antes de crear Calendar y Meet, un bloqueo vuelve a comprobar reglas, Calendar y selecciones retenidas para evitar dobles citas.
 - Las carpetas de Drive y los documentos permanecen privados salvo que cambies sus permisos.
 - El trigger elimina filas de Sheets, eventos de Calendar y carpetas de Drive. Configura en Google Workspace/Vault una retencion equivalente para los avisos de Gmail; los mensajes de WhatsApp se gestionan con la politica de Meta y deben revisarse por separado.
 - Revisa las cuotas de Apps Script, Gmail, Calendar y Drive de la cuenta empresarial.

@@ -25,6 +25,11 @@
   const MAX_PROPERTY_PHOTO_DIMENSION = 1920;
   const PHOTO_PROCESS_TIMEOUT_MS = 30000;
   const PHOTO_UPLOAD_TIMEOUT_MS = 6 * 60 * 1000;
+  const APPOINTMENT_TIME_ZONE = "Europe/Madrid";
+  const APPOINTMENT_DAYS_AHEAD = 14;
+  const APPOINTMENT_MIN_LEAD_HOURS = 24;
+  const APPOINTMENT_WEEKDAYS = [1, 2, 3, 4];
+  const APPOINTMENT_TIMES = ["11:00", "12:00", "13:00"];
   const AUDIT_OFFER_END = Date.parse("2026-09-30T23:59:59+02:00");
   const MARKET_OCCUPANCY = 63;
   const HOT_HOST_OCCUPANCY = 72;
@@ -2136,6 +2141,165 @@
     return allContent[language] || allContent.es || {};
   }
 
+  function getFormEnhancements(language) {
+    const enhancements = {
+      es: {
+        contactDetailsHelp: "Pedimos estos datos para verificar que la solicitud es real, comunicarnos contigo y preparar la auditoría. No se usan para publicidad ajena a tu solicitud.",
+        addressGroupHelp: "La dirección exacta nos permite ubicar la propiedad en su micromercado, comparar demanda, tarifas y competencia cercanas, y evitar una estimación genérica.",
+        propertyDetailsGroup: "Características de la propiedad",
+        propertyDetailsHelp: "La tipología, capacidad, planta y situación actual influyen en el huésped objetivo, la tarifa posible y la complejidad operativa.",
+        appointmentGroup: "Preferencia para la primera llamada",
+        appointmentHelp: "Elige cuándo te viene mejor hablar. Es una preferencia, no una reserva: no bloquea el horario y nuestro equipo debe confirmarlo. Lunes a jueves, 11:00–14:00, hora de Madrid.",
+        appointmentDate: "Fecha preferida",
+        appointmentDatePlaceholder: "Elige una fecha",
+        appointmentTime: "Hora preferida",
+        appointmentTimePlaceholder: "Elige una hora",
+        appointmentNoSlots: "No hay fechas que cumplan la antelación mínima de 24 horas. Inténtalo de nuevo más tarde.",
+        emailNoticeTitle: "Después de enviar, revisa tu email",
+        emailNoticeText: "Te enviaremos un correo para verificar la dirección y activar la solicitud. Si no aparece en la bandeja de entrada, revisa SPAM, correo no deseado y Promociones.",
+        status: { submissionSent: "Solicitud guardada. Revisa tu email y también SPAM o correo no deseado; pulsa «Verificar email» para activarla." }
+      },
+      en: {
+        contactDetailsHelp: "We request these details to verify that the enquiry is genuine, contact you and prepare the audit. They are not used for advertising unrelated to your enquiry.",
+        addressGroupHelp: "The exact address places the property in its micro-market, allowing us to compare nearby demand, rates and competitors rather than produce a generic estimate.",
+        propertyDetailsGroup: "Property characteristics",
+        propertyDetailsHelp: "Property type, capacity, floor and current rental status affect the target guest, achievable rate and operational complexity.",
+        appointmentGroup: "Preferred time for the first call",
+        appointmentHelp: "Choose when you would prefer to speak. This is a preference, not a booking: it does not hold the time and our team must confirm it. Monday to Thursday, 11:00–14:00 Madrid time.",
+        appointmentDate: "Preferred date",
+        appointmentDatePlaceholder: "Choose a date",
+        appointmentTime: "Preferred time",
+        appointmentTimePlaceholder: "Choose a time",
+        appointmentNoSlots: "No dates currently meet the minimum 24-hour notice. Please try again later.",
+        emailNoticeTitle: "Check your email after submitting",
+        emailNoticeText: "We will send an email to verify the address and activate your enquiry. If it is not in your inbox, check Spam, Junk and Promotions.",
+        status: { submissionSent: "Your enquiry has been saved. Check your email, including Spam or Junk, and select “Verify email” to activate it." }
+      },
+      fr: {
+        contactDetailsHelp: "Ces données servent à vérifier que la demande est réelle, à vous contacter et à préparer l’audit. Elles ne sont pas utilisées pour une publicité sans rapport avec votre demande.",
+        addressGroupHelp: "L’adresse exacte situe le bien dans son micro-marché afin de comparer la demande, les tarifs et la concurrence à proximité plutôt que de produire une estimation générique.",
+        propertyDetailsGroup: "Caractéristiques du bien",
+        propertyDetailsHelp: "Le type, la capacité, l’étage et la situation locative influencent la clientèle cible, le tarif possible et la complexité opérationnelle.",
+        appointmentGroup: "Préférence pour le premier appel",
+        appointmentHelp: "Choisissez le moment qui vous convient. Il s’agit d’une préférence, pas d’une réservation : le créneau n’est pas bloqué et notre équipe doit le confirmer. Du lundi au jeudi, de 11 h à 14 h, heure de Madrid.",
+        appointmentDate: "Date souhaitée",
+        appointmentDatePlaceholder: "Choisissez une date",
+        appointmentTime: "Heure souhaitée",
+        appointmentTimePlaceholder: "Choisissez une heure",
+        appointmentNoSlots: "Aucune date ne respecte actuellement le délai minimum de 24 heures. Réessayez plus tard.",
+        emailNoticeTitle: "Consultez votre e-mail après l’envoi",
+        emailNoticeText: "Nous vous enverrons un e-mail pour vérifier l’adresse et activer la demande. S’il n’apparaît pas, consultez les dossiers Spam, Indésirables et Promotions.",
+        status: { submissionSent: "Votre demande a été enregistrée. Consultez votre e-mail, y compris les indésirables, puis cliquez sur « Vérifier l’e-mail » pour l’activer." }
+      },
+      it: {
+        contactDetailsHelp: "Richiediamo questi dati per verificare che la richiesta sia reale, contattarti e preparare l’audit. Non vengono usati per pubblicità estranea alla richiesta.",
+        addressGroupHelp: "L’indirizzo esatto colloca la proprietà nel suo micro-mercato e permette di confrontare domanda, tariffe e concorrenti vicini invece di produrre una stima generica.",
+        propertyDetailsGroup: "Caratteristiche della proprietà",
+        propertyDetailsHelp: "Tipologia, capacità, piano e situazione attuale incidono sull’ospite ideale, sulla tariffa possibile e sulla complessità operativa.",
+        appointmentGroup: "Preferenza per la prima chiamata",
+        appointmentHelp: "Scegli quando preferisci parlare. È una preferenza, non una prenotazione: non blocca l’orario e il nostro team deve confermarlo. Dal lunedì al giovedì, 11:00–14:00, ora di Madrid.",
+        appointmentDate: "Data preferita",
+        appointmentDatePlaceholder: "Scegli una data",
+        appointmentTime: "Ora preferita",
+        appointmentTimePlaceholder: "Scegli un’ora",
+        appointmentNoSlots: "Al momento nessuna data rispetta il preavviso minimo di 24 ore. Riprova più tardi.",
+        emailNoticeTitle: "Controlla l’e-mail dopo l’invio",
+        emailNoticeText: "Invieremo un’e-mail per verificare l’indirizzo e attivare la richiesta. Se non arriva nella posta in arrivo, controlla Spam, Posta indesiderata e Promozioni.",
+        status: { submissionSent: "La richiesta è stata salvata. Controlla l’e-mail, incluso lo Spam, e premi «Verifica e-mail» per attivarla." }
+      },
+      de: {
+        contactDetailsHelp: "Diese Angaben bestätigen, dass die Anfrage echt ist, ermöglichen die Kontaktaufnahme und helfen bei der Auditvorbereitung. Sie werden nicht für anfragefremde Werbung genutzt.",
+        addressGroupHelp: "Mit der genauen Adresse ordnen wir das Objekt seinem Mikromarkt zu und vergleichen Nachfrage, Preise und nahe Wettbewerber, statt eine pauschale Schätzung zu erstellen.",
+        propertyDetailsGroup: "Merkmale der Immobilie",
+        propertyDetailsHelp: "Objektart, Kapazität, Etage und aktueller Vermietungsstatus beeinflussen Zielgäste, möglichen Preis und betrieblichen Aufwand.",
+        appointmentGroup: "Wunschtermin für das erste Gespräch",
+        appointmentHelp: "Wähle deinen bevorzugten Zeitpunkt. Dies ist noch keine Buchung: Der Termin wird nicht blockiert und muss von unserem Team bestätigt werden. Montag bis Donnerstag, 11:00–14:00 Uhr, Madrider Zeit.",
+        appointmentDate: "Wunschdatum",
+        appointmentDatePlaceholder: "Datum auswählen",
+        appointmentTime: "Wunschzeit",
+        appointmentTimePlaceholder: "Uhrzeit auswählen",
+        appointmentNoSlots: "Derzeit erfüllt kein Datum den Mindestvorlauf von 24 Stunden. Versuche es später erneut.",
+        emailNoticeTitle: "Prüfe nach dem Absenden deine E-Mail",
+        emailNoticeText: "Wir senden eine E-Mail, um die Adresse zu bestätigen und die Anfrage zu aktivieren. Prüfe auch Spam, Junk und Werbung, falls sie nicht im Posteingang liegt.",
+        status: { submissionSent: "Die Anfrage wurde gespeichert. Prüfe deine E-Mail einschließlich Spam oder Junk und klicke auf „E-Mail bestätigen“ zur Aktivierung." }
+      },
+      pl: {
+        contactDetailsHelp: "Prosimy o te dane, aby potwierdzić autentyczność zapytania, skontaktować się z Tobą i przygotować audyt. Nie używamy ich do reklam niezwiązanych z zapytaniem.",
+        addressGroupHelp: "Dokładny adres pozwala umieścić nieruchomość w jej mikrorynku oraz porównać pobliski popyt, stawki i konkurencję zamiast tworzyć ogólną wycenę.",
+        propertyDetailsGroup: "Charakterystyka nieruchomości",
+        propertyDetailsHelp: "Typ, pojemność, piętro i obecny sposób wynajmu wpływają na grupę gości, możliwą stawkę i złożoność obsługi.",
+        appointmentGroup: "Preferowany termin pierwszej rozmowy",
+        appointmentHelp: "Wybierz dogodny termin. To preferencja, a nie rezerwacja: termin nie jest blokowany i musi go potwierdzić nasz zespół. Od poniedziałku do czwartku, 11:00–14:00 czasu madryckiego.",
+        appointmentDate: "Preferowana data",
+        appointmentDatePlaceholder: "Wybierz datę",
+        appointmentTime: "Preferowana godzina",
+        appointmentTimePlaceholder: "Wybierz godzinę",
+        appointmentNoSlots: "Obecnie żaden termin nie spełnia minimalnego wyprzedzenia 24 godzin. Spróbuj później.",
+        emailNoticeTitle: "Po wysłaniu sprawdź pocztę",
+        emailNoticeText: "Wyślemy e-mail, aby zweryfikować adres i aktywować zapytanie. Jeśli go nie widać, sprawdź Spam, Wiadomości-śmieci i Oferty.",
+        status: { submissionSent: "Zapytanie zapisano. Sprawdź e-mail, także Spam, i kliknij „Zweryfikuj e-mail”, aby je aktywować." }
+      },
+      nl: {
+        contactDetailsHelp: "We vragen deze gegevens om te controleren of de aanvraag echt is, contact met u op te nemen en de audit voor te bereiden. Ze worden niet gebruikt voor reclame buiten uw aanvraag.",
+        addressGroupHelp: "Met het exacte adres plaatsen we de accommodatie in haar micromarkt en vergelijken we lokale vraag, tarieven en concurrenten in plaats van een algemene schatting te maken.",
+        propertyDetailsGroup: "Kenmerken van de accommodatie",
+        propertyDetailsHelp: "Type, capaciteit, verdieping en huidige verhuursituatie beïnvloeden de doelgroep, mogelijke prijs en operationele complexiteit.",
+        appointmentGroup: "Voorkeur voor het eerste gesprek",
+        appointmentHelp: "Kies wanneer u het liefst spreekt. Dit is een voorkeur, geen reservering: het tijdstip wordt niet geblokkeerd en moet door ons team worden bevestigd. Maandag tot en met donderdag, 11.00–14.00 uur, tijd Madrid.",
+        appointmentDate: "Voorkeursdatum",
+        appointmentDatePlaceholder: "Kies een datum",
+        appointmentTime: "Voorkeurstijd",
+        appointmentTimePlaceholder: "Kies een tijd",
+        appointmentNoSlots: "Momenteel voldoet geen datum aan de minimale termijn van 24 uur. Probeer het later opnieuw.",
+        emailNoticeTitle: "Controleer uw e-mail na verzending",
+        emailNoticeText: "We sturen een e-mail om het adres te verifiëren en de aanvraag te activeren. Controleer Spam, Ongewenst en Reclame als het bericht niet in uw inbox staat.",
+        status: { submissionSent: "Uw aanvraag is opgeslagen. Controleer uw e-mail, inclusief Spam, en klik op ‘E-mail verifiëren’ om deze te activeren." }
+      },
+      pt: {
+        contactDetailsHelp: "Pedimos estes dados para confirmar que o pedido é real, entrar em contacto e preparar a auditoria. Não são usados para publicidade alheia ao pedido.",
+        addressGroupHelp: "A morada exata situa a propriedade no seu micromercado e permite comparar procura, tarifas e concorrência próxima em vez de produzir uma estimativa genérica.",
+        propertyDetailsGroup: "Características da propriedade",
+        propertyDetailsHelp: "A tipologia, capacidade, piso e situação atual influenciam o hóspede-alvo, a tarifa possível e a complexidade operacional.",
+        appointmentGroup: "Preferência para a primeira chamada",
+        appointmentHelp: "Escolha quando prefere falar. É uma preferência, não uma reserva: o horário não fica bloqueado e a nossa equipa terá de o confirmar. Segunda a quinta-feira, 11:00–14:00, hora de Madrid.",
+        appointmentDate: "Data preferida",
+        appointmentDatePlaceholder: "Escolha uma data",
+        appointmentTime: "Hora preferida",
+        appointmentTimePlaceholder: "Escolha uma hora",
+        appointmentNoSlots: "Neste momento nenhuma data cumpre a antecedência mínima de 24 horas. Tente mais tarde.",
+        emailNoticeTitle: "Consulte o e-mail depois de enviar",
+        emailNoticeText: "Enviaremos um e-mail para verificar o endereço e ativar o pedido. Se não aparecer na caixa de entrada, consulte Spam, Lixo e Promoções.",
+        status: { submissionSent: "O pedido foi guardado. Consulte o e-mail, incluindo Spam, e clique em «Verificar e-mail» para o ativar." }
+      },
+      el: {
+        contactDetailsHelp: "Ζητάμε αυτά τα στοιχεία για να επιβεβαιώσουμε ότι το αίτημα είναι γνήσιο, να επικοινωνήσουμε μαζί σας και να προετοιμάσουμε τον έλεγχο. Δεν χρησιμοποιούνται για άσχετη διαφήμιση.",
+        addressGroupHelp: "Η ακριβής διεύθυνση τοποθετεί το ακίνητο στη μικροαγορά του και μας επιτρέπει να συγκρίνουμε τοπική ζήτηση, τιμές και ανταγωνισμό αντί για μια γενική εκτίμηση.",
+        propertyDetailsGroup: "Χαρακτηριστικά ακινήτου",
+        propertyDetailsHelp: "Ο τύπος, η χωρητικότητα, ο όροφος και η τρέχουσα χρήση επηρεάζουν το κοινό-στόχο, την πιθανή τιμή και τη λειτουργική πολυπλοκότητα.",
+        appointmentGroup: "Προτίμηση για την πρώτη κλήση",
+        appointmentHelp: "Επιλέξτε πότε προτιμάτε να μιλήσουμε. Πρόκειται για προτίμηση, όχι κράτηση: η ώρα δεν δεσμεύεται και πρέπει να επιβεβαιωθεί από την ομάδα μας. Δευτέρα έως Πέμπτη, 11:00–14:00, ώρα Μαδρίτης.",
+        appointmentDate: "Προτιμώμενη ημερομηνία",
+        appointmentDatePlaceholder: "Επιλέξτε ημερομηνία",
+        appointmentTime: "Προτιμώμενη ώρα",
+        appointmentTimePlaceholder: "Επιλέξτε ώρα",
+        appointmentNoSlots: "Καμία ημερομηνία δεν πληροί τώρα την ελάχιστη προθεσμία των 24 ωρών. Δοκιμάστε αργότερα.",
+        emailNoticeTitle: "Ελέγξτε το email μετά την αποστολή",
+        emailNoticeText: "Θα στείλουμε email για επαλήθευση της διεύθυνσης και ενεργοποίηση του αιτήματος. Αν δεν εμφανιστεί, ελέγξτε Spam, Ανεπιθύμητα και Προωθήσεις.",
+        status: { submissionSent: "Το αίτημα αποθηκεύτηκε. Ελέγξτε το email, μαζί με τα Spam, και πατήστε «Επαλήθευση email» για ενεργοποίηση." }
+      }
+    };
+    return enhancements[language] || enhancements.es;
+  }
+
+  function enhanceLocale(locale) {
+    const enhancement = getFormEnhancements(activeLanguage);
+    return Object.assign({}, locale, {
+      form: Object.assign({}, locale.form, enhancement, {
+        status: Object.assign({}, locale.form.status, enhancement.status || {})
+      })
+    });
+  }
+
   function getProfitabilityCtaLabel() {
     const labels = {
       es: "¿Cuánto podría ganar?",
@@ -2643,7 +2807,15 @@
     const page = getExperienceContent(activeLanguage).founderPage || {};
     const breadcrumb = page.breadcrumb || founder.signature;
     const intro = page.intro || founder.lead;
-    return `<main class="founder-page"><section class="page-hero founder-page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a> / ${escapeHtml(breadcrumb)}</div><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h1>${escapeHtml(page.title || founder.title)}</h1><p class="lead">${escapeHtml(intro)}</p></div></section>${renderFounderStory()}<section class="section soft"><div class="wrap founder-page-cta"><div><div class="eyebrow">${escapeHtml(page.ctaEyebrow || "Hablemos de tu alojamiento")}</div><h2>${escapeHtml(page.ctaTitle || "Una buena gestión empieza por entender bien el lugar.")}</h2></div><a class="btn primary" href="contacto.html">${escapeHtml(locale.common.requestAssessment)}</a></div></section></main>`;
+    return `<main class="founder-page"><section class="page-hero founder-page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a> / ${escapeHtml(breadcrumb)}</div><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h1>${escapeHtml(page.title || founder.title)}</h1><p class="lead">${escapeHtml(intro)}</p></div></section>${renderFounderStory()}</main>`;
+  }
+
+  function renderCommercialStory(story, context) {
+    if (!Array.isArray(story) || !story.length) return "";
+    const cards = story.map(function (item, index) {
+      return `<article class="commercial-story-card commercial-story-card-${index + 1}"><span class="commercial-story-number">0${index + 1}</span><div class="eyebrow">${escapeHtml(item.label)}</div><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.text)}</p></article>`;
+    }).join("");
+    return `<section class="section commercial-story commercial-story-${escapeHtml(context)}"><div class="wrap commercial-story-grid">${cards}</div></section>`;
   }
 
   function renderLegalHub(locale) {
@@ -2666,6 +2838,7 @@
 
     return `<main class="home-page">
       <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="sobre-hot-host.html#recorrido">${escapeHtml(home.discover)}</a><a class="btn ghost" href="rentabilidad.html#comparador">${escapeHtml(getProfitabilityCtaLabel())}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
+      ${renderCommercialStory(home.story, "home")}
       <section class="section home-services-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.servicesEyebrow)}</div><h2>${escapeHtml(home.servicesTitle)}</h2></div><p>${escapeHtml(home.servicesLead)}</p></div><div class="services-carousel" data-services-carousel role="region" aria-roledescription="${escapeHtml(locale.common.carouselRole)}" aria-label="${escapeHtml(home.servicesTitle)}" tabindex="0"><div class="services-carousel-viewport" data-services-viewport><div class="services-carousel-track">${serviceCards}</div></div><div class="carousel-controls services-carousel-controls"><button class="carousel-button" type="button" data-services-previous aria-label="${escapeHtml(locale.common.previousServices)}">←</button><span class="carousel-status" data-services-status aria-live="polite">${escapeHtml(renderServiceCounter(locale.common.serviceCounter, 1, initialVisibleServices, services.length))}</span><button class="carousel-button" type="button" data-services-next aria-label="${escapeHtml(locale.common.nextServices)}">→</button></div></div><div style="text-align:center;margin-top:26px"><a class="btn ghost" href="servicios.html">${escapeHtml(home.allServices)}</a></div></div></section>
       ${renderGuarantee("home")}
       ${renderCta(locale)}
@@ -2683,11 +2856,12 @@
     const paragraphs = (founder.paragraphs || []).map(function (paragraph) {
       return `<p>${escapeHtml(paragraph)}</p>`;
     }).join("");
-    return `<section class="section founder-section"><div class="wrap founder-grid"><figure class="founder-portrait founder-portrait-studio"><img src="assets/yunior-bacallao-alonso-founder.png" alt="${escapeHtml(founder.photoAlt)}" width="1122" height="1404" loading="lazy" decoding="async"><figcaption><span>${escapeHtml(founder.signature)}</span><small>${escapeHtml(founder.role)}</small></figcaption></figure><article class="founder-copy"><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h2>${escapeHtml(founder.title)}</h2><p class="founder-identity"><strong>${escapeHtml(founder.signature)}</strong><span>${escapeHtml(founder.role)}</span></p><p class="lead">${escapeHtml(founder.lead)}</p><div class="founder-prose">${paragraphs}</div><blockquote>${escapeHtml(founder.quote)}</blockquote><a class="btn primary" href="contacto.html">${escapeHtml((locales[activeLanguage] || locales.es).common.requestAssessment)}</a></article></div></section>`;
+    return `<section class="section founder-section"><div class="wrap founder-grid"><figure class="founder-portrait founder-portrait-studio"><img src="assets/yunior-bacallao-alonso-founder.png" alt="${escapeHtml(founder.photoAlt)}" width="1122" height="1404" loading="lazy" decoding="async"><figcaption><span>${escapeHtml(founder.signature)}</span><small>${escapeHtml(founder.role)}</small></figcaption></figure><article class="founder-copy"><div class="eyebrow">${escapeHtml(founder.eyebrow)}</div><h2>${escapeHtml(founder.title)}</h2><p class="founder-identity"><strong>${escapeHtml(founder.signature)}</strong><span>${escapeHtml(founder.role)}</span></p><p class="lead">${escapeHtml(founder.lead)}</p><div class="founder-prose">${paragraphs}</div><blockquote>${escapeHtml(founder.quote)}</blockquote></article></div></section>`;
   }
 
   function renderAbout(locale) {
-    const about = locale.about;
+    const marketing = getSupplementalContent(activeLanguage).marketing || {};
+    const about = Object.assign({}, locale.about, marketing.about || {});
     const founder = getSupplementalContent(activeLanguage).founder;
     const founderPage = getExperienceContent(activeLanguage).founderPage || {};
     const servicesPage = locale.servicesPage;
@@ -2724,6 +2898,7 @@
 
     return `<main>
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(about.breadcrumb)}</div><div class="eyebrow">${escapeHtml(about.eyebrow)}</div><h1>${renderStarredLines(about.title, locale.home.starsLabel)}</h1><p class="lead">${escapeHtml(about.lead)}</p></div></section>
+      ${renderCommercialStory(about.story, "about")}
       ${journey}
       ${founderTeaser}
       <section class="section"><div class="wrap service-detail"><div class="prose">${prose}</div><aside class="side-panel credentials-panel" aria-labelledby="credentialsTitle"><h3 id="credentialsTitle">${escapeHtml(about.credentialsTitle)}</h3><p class="credentials-lead">${escapeHtml(about.credentialsLead)}</p><ul class="credentials-list credentials-primary-list">${primaryCredential}</ul><button class="credentials-toggle" type="button" data-credentials-toggle data-expand-label="${escapeHtml(about.credentialsExpand)}" data-collapse-label="${escapeHtml(about.credentialsCollapse)}" aria-expanded="false" aria-controls="credentialsDetails"><span data-credentials-toggle-label>${escapeHtml(about.credentialsExpand)}</span><span class="credentials-toggle-icon" aria-hidden="true">⌄</span></button><div class="credentials-hover-preview" aria-hidden="true"><ul class="credentials-list credentials-preview-list">${extraCredentials}</ul></div><div class="credentials-details" id="credentialsDetails" aria-hidden="true"><ul class="credentials-list credentials-extra-list">${extraCredentials}</ul></div><a class="credentials-cta" href="contacto.html">${escapeHtml(about.credentialsCta)}</a></aside></div></section>
@@ -2756,13 +2931,14 @@
     return `<main>${testTool}
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(contact.breadcrumb)}</div><div class="eyebrow">${escapeHtml(contact.eyebrow)}</div><h1>${escapeHtml(contact.title)}</h1></div></section>
       <section class="section"><div class="wrap contact-grid"><div><h2>${escapeHtml(contact.heading)}</h2><p class="lead">${escapeHtml(contact.lead)}</p><div class="contact-item"><small>${escapeHtml(contact.serviceAreaLabel)}</small><strong>${escapeHtml(contact.serviceArea)}</strong></div><div class="contact-item"><small>${escapeHtml(contact.emailLabel)}</small><strong>${escapeHtml(CONTACT_EMAIL)}</strong></div><div class="contact-item"><small>WhatsApp</small><strong>+34 600 907 716</strong></div><div class="contact-item"><small>${escapeHtml(contact.hoursLabel)}</small><strong>${escapeHtml(contact.hours)}</strong></div></div>
-      <form class="contact-form" id="contactForm" novalidate>${offer}<h3>${escapeHtml(form.title)}</h3>
+      <form class="contact-form" id="contactForm" novalidate>${offer}<h3>${escapeHtml(form.title)}</h3><p class="form-group-help">${escapeHtml(form.contactDetailsHelp)}</p>
         <div class="field"><label for="contactRole">${escapeHtml(form.contactRole)}</label><select id="contactRole" name="contactRole" required>${renderOptions(form.roles, form.selectOption)}</select></div>
         <div class="field"><label for="name">${escapeHtml(form.fullName)}</label><input id="name" name="name" required autocomplete="name"></div>
         <div class="field"><label for="email">${escapeHtml(form.email)}</label><input id="email" name="email" type="email" required autocomplete="email"></div>
         <div class="field-grid phone-grid"><div class="field"><label for="phoneCountry">${escapeHtml(form.phoneCountry)}</label><select id="phoneCountry" name="phoneCountry" required autocomplete="tel-country-code"></select></div><div class="field"><label for="phone">${escapeHtml(form.phone)}</label><input id="phone" name="phone" type="tel" required autocomplete="tel-national" inputmode="tel" maxlength="24" placeholder="${escapeHtml(form.phonePlaceholder)}" aria-describedby="phoneHelp"><small class="field-help" id="phoneHelp">${escapeHtml(form.phoneHelp)}</small></div></div>
-        <div class="field"><strong id="addressGroupLabel">${escapeHtml(form.addressGroup)}</strong></div>
+        <div class="field form-section-heading"><strong id="addressGroupLabel">${escapeHtml(form.addressGroup)}</strong><small class="field-help">${escapeHtml(form.addressGroupHelp)}</small></div>
         <div class="address-grid" role="group" aria-labelledby="addressGroupLabel"><div class="field"><label for="streetAddress">${escapeHtml(form.streetAddress)}</label><input id="streetAddress" name="streetAddress" required minlength="3" autocomplete="street-address" placeholder="${escapeHtml(form.streetPlaceholder)}" aria-describedby="streetHelp"><small class="field-help" id="streetHelp">${escapeHtml(form.streetHelp)}</small></div><div class="field"><label for="postalCode">${escapeHtml(form.postalCode)}</label><input id="postalCode" name="postalCode" required minlength="2" maxlength="16" autocomplete="postal-code" placeholder="${escapeHtml(form.postalPlaceholder)}" aria-describedby="postalHelp"><small class="field-help" id="postalHelp">${escapeHtml(form.postalHelp)}</small></div><div class="field"><label for="city">${escapeHtml(form.city)}</label><input id="city" name="city" required minlength="2" autocomplete="address-level2" placeholder="${escapeHtml(form.cityPlaceholder)}"></div><div class="field"><label for="propertyCountry">${escapeHtml(form.propertyCountry)}</label><select id="propertyCountry" name="propertyCountry" required autocomplete="country"><option value="">${escapeHtml(form.selectCountry)}</option></select></div></div>
+        <div class="field form-section-heading"><strong id="propertyDetailsLabel">${escapeHtml(form.propertyDetailsGroup)}</strong><small class="field-help">${escapeHtml(form.propertyDetailsHelp)}</small></div>
         <div class="field"><label for="propertyType">${escapeHtml(form.propertyType)}</label><select id="propertyType" name="propertyType" required>${renderOptions(form.propertyTypes, form.selectOption)}</select></div>
         <div class="field" id="otherTypeField" hidden><label for="otherType">${escapeHtml(form.otherType)}</label><input id="otherType" name="otherType" placeholder="${escapeHtml(form.otherTypePlaceholder)}"></div>
         <div class="field" id="bedroomsField"><label for="bedrooms">${escapeHtml(form.bedrooms)}</label><input id="bedrooms" name="bedrooms" type="number" min="1" step="1" required inputmode="numeric"></div>
@@ -2773,8 +2949,10 @@
         <div class="field" id="listingUrlField" hidden><label for="listingUrl">${escapeHtml(form.listingUrl)}</label><input id="listingUrl" name="listingUrl" type="url" placeholder="${escapeHtml(form.listingPlaceholder)}"></div>
         <div class="field property-photos-field" id="propertyPhotosField" hidden>${directUploadLabel}<div class="property-photo-dropzone" data-photo-dropzone${driveUploadAvailable ? "" : " hidden"}><input id="propertyPhotos" name="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-describedby="propertyPhotosHelp propertyPhotosStatus"${driveUploadAvailable ? "" : " disabled"}><span class="property-photo-icon" aria-hidden="true">＋</span><strong>${escapeHtml(form.photosUpload)}</strong><small class="field-help" id="propertyPhotosHelp">${escapeHtml(form.photosUploadHelp)}</small></div><p class="property-photos-status" id="propertyPhotosStatus" aria-live="polite"></p><div class="property-photo-previews" id="propertyPhotoPreviews"></div><label class="property-photos-link-label" for="photosUrl">${escapeHtml(form.photosUrl)}${optionalPhotosLink}</label><input id="photosUrl" name="photosUrl" type="url" placeholder="${escapeHtml(form.photosPlaceholder)}" aria-describedby="photosHelp"><small class="field-help" id="photosHelp">${escapeHtml(form.photosHelp)}</small></div>
         <div class="field"><label for="message">${escapeHtml(form.comments)} <span style="font-weight:400">${escapeHtml(form.optional)}</span></label><textarea id="message" name="message" placeholder="${escapeHtml(form.commentsPlaceholder)}"></textarea></div>
+        <div class="field form-section-heading appointment-heading"><strong id="appointmentPreferenceLabel">${escapeHtml(form.appointmentGroup)}</strong><small class="field-help" id="appointmentPreferenceHelp">${escapeHtml(form.appointmentHelp)}</small></div>
+        <div class="field-grid appointment-grid" role="group" aria-labelledby="appointmentPreferenceLabel" aria-describedby="appointmentPreferenceHelp"><div class="field"><label for="appointmentDate">${escapeHtml(form.appointmentDate)}</label><select id="appointmentDate" name="appointmentDate" required><option value="">${escapeHtml(form.appointmentDatePlaceholder)}</option></select></div><div class="field"><label for="appointmentTime">${escapeHtml(form.appointmentTime)}</label><select id="appointmentTime" name="appointmentTime" required disabled><option value="">${escapeHtml(form.appointmentTimePlaceholder)}</option></select></div></div><p class="appointment-preference-status" id="appointmentPreferenceStatus" aria-live="polite"></p>
         <div class="field consent-field"><label class="consent-control" for="privacyConsent"><input id="privacyConsent" name="privacyConsent" type="checkbox" required><span>${escapeHtml(form.privacyConsent)}</span></label><small class="field-help">${escapeHtml(form.privacyNote)}${privacyLink}</small></div>
-        <p class="form-actions-label" id="deliveryLabel">${escapeHtml(form.actionsLabel)}</p><div class="form-actions" aria-labelledby="deliveryLabel"><button class="btn form-action email-action" type="submit">${escapeHtml(form.sendEmail)}</button></div><p id="formStatus" aria-live="polite"></p>
+        <aside class="verification-email-notice"><span aria-hidden="true">@</span><div><strong>${escapeHtml(form.emailNoticeTitle)}</strong><p>${escapeHtml(form.emailNoticeText)}</p></div></aside><p class="form-actions-label" id="deliveryLabel">${escapeHtml(form.actionsLabel)}</p><div class="form-actions" aria-labelledby="deliveryLabel"><button class="btn form-action email-action" type="submit">${escapeHtml(form.sendEmail)}</button></div><p id="formStatus" aria-live="polite"></p>
       </form></div></section>
     </main>`;
   }
@@ -2878,6 +3056,7 @@
       founder: "Fundador",
       legalHub: "Información legal y privacidad",
       overview: "Ver página principal",
+      servicesOverview: "Ver todos los servicios",
       legalOverview: "Ver información legal"
     }, experience.nav || {});
     const languageOptions = SUPPORTED_LANGUAGES.map(function (language) {
@@ -2886,10 +3065,12 @@
     const languageMenuOptions = SUPPORTED_LANGUAGES.map(function (language) {
       return `<button class="language-option" type="button" role="option" data-language-option="${language}" aria-selected="${String(language === activeLanguage)}" tabindex="-1"><span class="language-option-flag" data-language="${language}" aria-hidden="true"></span><span>${escapeHtml(LANGUAGE_NAMES[language])}</span><small>${language.toUpperCase()}</small></button>`;
     }).join("");
-    const aboutActive = currentPage === "about" || currentPage === "founder";
-    const legalActive = currentPage === "legal-hub" || ["legal", "privacy", "cookies"].includes(currentPage);
-    const nav = `<a href="index.html"${currentPage === "home" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.home)}</a><a href="servicios.html"${currentPage === "services" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.services)}</a><a href="rentabilidad.html"${currentPage === "profitability" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.profitability)}</a><div class="nav-dropdown${aboutActive ? " is-active" : ""}"><button class="nav-dropdown-trigger" type="button" data-nav-dropdown aria-expanded="false" aria-controls="aboutMenu">${escapeHtml(locale.shell.nav.about)}<span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu" id="aboutMenu"><a href="sobre-hot-host.html"${currentPage === "about" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.overview)}</a><a href="fundador.html"${currentPage === "founder" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.founder)}</a></div></div><a href="contacto.html"${currentPage === "contact" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.contact)}</a><div class="nav-dropdown nav-dropdown-legal${legalActive ? " is-active" : ""}"><button class="nav-dropdown-trigger" type="button" data-nav-dropdown aria-expanded="false" aria-controls="legalMenu">${escapeHtml(navLabels.legalHub)}<span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu" id="legalMenu"><a href="informacion-legal.html"${currentPage === "legal-hub" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.legalOverview)}</a><a href="aviso-legal.html"${currentPage === "legal" ? " aria-current=\"page\"" : ""}>${escapeHtml((getSupplementalContent(activeLanguage).legal || {}).nav?.legal || "Aviso legal")}</a><a href="privacidad.html"${currentPage === "privacy" ? " aria-current=\"page\"" : ""}>${escapeHtml((getSupplementalContent(activeLanguage).legal || {}).nav?.privacy || "Privacidad")}</a><a href="cookies.html"${currentPage === "cookies" ? " aria-current=\"page\"" : ""}>${escapeHtml((getSupplementalContent(activeLanguage).legal || {}).nav?.cookies || "Cookies")}</a></div></div>`;
     const services = getServices(locale);
+    const actualPage = document.body.dataset.page || currentPage;
+    const serviceLinks = services.map(function (service) {
+      return `<a href="${escapeHtml(service.path)}"${actualPage === service.key ? " aria-current=\"page\"" : ""}>${escapeHtml(service.title)}</a>`;
+    }).join("");
+    const nav = `<a href="index.html"${currentPage === "home" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.home)}</a><a href="sobre-hot-host.html"${currentPage === "about" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.about)}</a><div class="nav-dropdown nav-dropdown-services${currentPage === "services" ? " is-active" : ""}"><button class="nav-dropdown-trigger" type="button" data-nav-dropdown aria-expanded="false" aria-controls="servicesMenu">${escapeHtml(locale.shell.nav.services)}<span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu nav-services-menu" id="servicesMenu"><a href="servicios.html"${actualPage === "services" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.servicesOverview)}</a>${serviceLinks}</div></div><a href="rentabilidad.html"${currentPage === "profitability" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.profitability)}</a><a href="contacto.html"${currentPage === "contact" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.contact)}</a>`;
     const isDarkTheme = activeTheme === "dark";
     const themeLabel = isDarkTheme ? locale.common.enableLightMode : locale.common.enableDarkMode;
     const navCta = currentPage === "contact"
@@ -2898,7 +3079,7 @@
         ? `<a class="nav-cta" href="contacto.html" aria-label="${escapeHtml(`${locale.shell.assess}. ${locale.common.offerTitle}. ${locale.common.offerDeadline}`)}"><span>${escapeHtml(locale.shell.assess)}</span><small>${escapeHtml(locale.common.navOffer)}</small></a>`
         : `<a class="nav-cta" href="contacto.html"><span>${escapeHtml(locale.shell.assess)}</span></a>`;
 
-    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher" data-language="${activeLanguage}"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="rentabilidad.html">${escapeHtml(navLabels.profitability)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="fundador.html">${escapeHtml(navLabels.founder)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
+    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher" data-language="${activeLanguage}"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="rentabilidad.html">${escapeHtml(navLabels.profitability)}</a><a href="fundador.html">${escapeHtml(navLabels.founder)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
     document.querySelector(".language-switcher").innerHTML = `<button class="language-select" id="languageButton" type="button" aria-label="${escapeHtml(`${locale.shell.languageLabel}: ${LANGUAGE_NAMES[activeLanguage]}`)}" aria-haspopup="listbox" aria-expanded="false" aria-controls="languageMenu"><span class="language-option-flag" data-language="${activeLanguage}" aria-hidden="true"></span><span class="language-current-code">${activeLanguage.toUpperCase()}</span><span class="language-chevron" aria-hidden="true">⌄</span></button><div class="language-menu" id="languageMenu" role="listbox" aria-label="${escapeHtml(locale.shell.languageLabel)}" hidden>${languageMenuOptions}</div>`;
     const legal = getSupplementalContent(activeLanguage).legal;
     const copyright = document.querySelector(".copyright");
@@ -3150,7 +3331,7 @@
     for (let index = 0; index < files.length; index += 1) {
       photos.push(await optimisePropertyPhoto(files[index], index, targetPhotoBytes));
     }
-    const payload = Object.assign({ version: 2, photos: photos }, metadata);
+    const payload = Object.assign({ version: 3, photos: photos }, metadata);
     const payloadBody = JSON.stringify(payload);
     if (payloadBody.length > MAX_UPLOAD_REQUEST_CHARACTERS) {
       throw new Error("Workspace request is too large");
@@ -3242,12 +3423,72 @@
     }
   }
 
+  function getZonedDateParts(date, timeZone) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23"
+    }).formatToParts(date);
+    return parts.reduce(function (result, part) {
+      if (part.type !== "literal") result[part.type] = Number(part.value);
+      return result;
+    }, {});
+  }
+
+  function zonedAppointmentDate(dateValue, timeValue) {
+    const dateParts = dateValue.split("-").map(Number);
+    const timeParts = timeValue.split(":").map(Number);
+    const desiredUtc = Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1]);
+    let candidate = desiredUtc;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const actual = getZonedDateParts(new Date(candidate), APPOINTMENT_TIME_ZONE);
+      const representedUtc = Date.UTC(actual.year, actual.month - 1, actual.day, actual.hour, actual.minute);
+      candidate += desiredUtc - representedUtc;
+    }
+    return new Date(candidate);
+  }
+
+  function getAppointmentPreferences(language) {
+    const now = new Date();
+    const current = getZonedDateParts(now, APPOINTMENT_TIME_ZONE);
+    const dayAnchor = Date.UTC(current.year, current.month - 1, current.day);
+    const earliest = now.getTime() + APPOINTMENT_MIN_LEAD_HOURS * 60 * 60 * 1000;
+    const formatter = new Intl.DateTimeFormat(language, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      timeZone: "UTC"
+    });
+    const preferences = [];
+
+    for (let offset = 0; offset <= APPOINTMENT_DAYS_AHEAD; offset += 1) {
+      const day = new Date(dayAnchor + offset * 24 * 60 * 60 * 1000);
+      if (!APPOINTMENT_WEEKDAYS.includes(day.getUTCDay())) continue;
+      const dateValue = day.toISOString().slice(0, 10);
+      const times = APPOINTMENT_TIMES.filter(function (timeValue) {
+        return zonedAppointmentDate(dateValue, timeValue).getTime() >= earliest;
+      });
+      if (!times.length) continue;
+      const dateLabel = formatter.format(day);
+      preferences.push({
+        value: dateValue,
+        label: dateLabel.charAt(0).toLocaleUpperCase(language) + dateLabel.slice(1),
+        times: times
+      });
+    }
+    return preferences;
+  }
+
   function setupContactForm(locale, formState) {
     const form = document.querySelector("#contactForm");
     if (!form) return;
 
     populateCountrySelects(locale, formState);
-    restoreFormState(form, formState);
 
     const propertyType = form.querySelector("#propertyType");
     const touristRental = form.querySelector("#touristRental");
@@ -3259,8 +3500,54 @@
     const photosStatus = form.querySelector("#propertyPhotosStatus");
     const photoPreviews = form.querySelector("#propertyPhotoPreviews");
     const photoDropzone = form.querySelector("[data-photo-dropzone]");
+    const appointmentDate = form.querySelector("#appointmentDate");
+    const appointmentTime = form.querySelector("#appointmentTime");
+    const appointmentStatus = form.querySelector("#appointmentPreferenceStatus");
     const workspaceEndpoint = getGoogleAppsScriptEndpoint();
     const driveUploadAvailable = Boolean(workspaceEndpoint);
+    const appointmentPreferences = getAppointmentPreferences(activeLanguage);
+
+    appointmentPreferences.forEach(function (preference) {
+      const option = document.createElement("option");
+      option.value = preference.value;
+      option.textContent = preference.label;
+      appointmentDate.appendChild(option);
+    });
+    if (!appointmentPreferences.length) {
+      appointmentDate.dataset.noSlots = "true";
+      appointmentDate.setCustomValidity(locale.form.appointmentNoSlots);
+      appointmentStatus.textContent = locale.form.appointmentNoSlots;
+      appointmentStatus.dataset.kind = "warning";
+    }
+
+    restoreFormState(form, formState);
+
+    function updateAppointmentTimes(preferredTime) {
+      const preference = appointmentPreferences.find(function (item) {
+        return item.value === appointmentDate.value;
+      });
+      appointmentTime.replaceChildren();
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = locale.form.appointmentTimePlaceholder;
+      appointmentTime.appendChild(placeholder);
+      (preference ? preference.times : []).forEach(function (timeValue) {
+        const option = document.createElement("option");
+        option.value = timeValue;
+        option.textContent = timeValue;
+        appointmentTime.appendChild(option);
+      });
+      appointmentTime.disabled = !preference;
+      if (preferredTime && preference && preference.times.includes(preferredTime)) {
+        appointmentTime.value = preferredTime;
+      }
+    }
+
+    updateAppointmentTimes(formState && formState.appointmentTime);
+    appointmentDate.addEventListener("change", function () {
+      updateAppointmentTimes("");
+      appointmentTime.setCustomValidity("");
+    });
 
     function setPhotoStatus(message, kind) {
       photosStatus.textContent = message;
@@ -3411,7 +3698,9 @@
       control.setCustomValidity("");
       const value = String(control.value || "").trim();
 
-      if (control.type === "checkbox" && control.required && !control.checked) {
+      if (control === appointmentDate && control.dataset.noSlots === "true") {
+        control.setCustomValidity(locale.form.appointmentNoSlots);
+      } else if (control.type === "checkbox" && control.required && !control.checked) {
         control.setCustomValidity(messages.required);
       } else if (control.required && !value) {
         control.setCustomValidity(messages.required);
@@ -3541,6 +3830,10 @@
             email: String(data.get("email")).trim(),
             phone: internationalPhone
           },
+          appointment: {
+            date: String(data.get("appointmentDate") || ""),
+            time: String(data.get("appointmentTime") || "")
+          },
           property: {
             street: String(data.get("streetAddress")).trim(),
             postalCode: String(data.get("postalCode")).trim(),
@@ -3573,6 +3866,7 @@
       delete status.dataset.kind;
       status.textContent = locale.form.status.submissionSent;
       form.reset();
+      updateAppointmentTimes("");
       selectedPropertyPhotos = [];
       updatePropertyFields();
       updateRentalFields();
@@ -3673,6 +3967,14 @@
       setValue("#listingUrl", "https://hhosthospitality.com/");
       setValue("#photosUrl", "");
       setValue("#message", testName);
+      const firstAppointmentDate = Array.from(contactForm.querySelector("#appointmentDate").options)
+        .find(function (option) { return option.value; });
+      if (firstAppointmentDate) {
+        setValue("#appointmentDate", firstAppointmentDate.value);
+        const firstAppointmentTime = Array.from(contactForm.querySelector("#appointmentTime").options)
+          .find(function (option) { return option.value; });
+        if (firstAppointmentTime) setValue("#appointmentTime", firstAppointmentTime.value);
+      }
       const consent = contactForm.querySelector("#privacyConsent");
       consent.checked = true;
       consent.dispatchEvent(new Event("change", { bubbles: true }));
@@ -4844,6 +5146,7 @@
     const legalPage = legal && legal[pageKey];
     const marketing = getSupplementalContent(activeLanguage).marketing || {};
     const homeMarketing = marketing.home || {};
+    const aboutMarketing = marketing.about || {};
     const founder = getSupplementalContent(activeLanguage).founder || {};
     const experience = getExperienceContent(activeLanguage);
     const experiencePage = pageKey === "profitability"
@@ -4870,8 +5173,8 @@
           ? (experiencePage.lead || experiencePage.intro || founder.lead)
         : pageKey === "home" && homeMarketing.lead
           ? homeMarketing.lead
-          : pageKey === "about" && founder.lead
-            ? founder.lead
+          : pageKey === "about" && aboutMarketing.lead
+            ? aboutMarketing.lead
           : (locale.meta.descriptions[pageKey] || locale.meta.descriptions.home);
     const pageFile = getCurrentPageFile();
     const canonicalUrl = localizedPageUrl(pageFile, activeLanguage);
@@ -4904,7 +5207,7 @@
   }
 
   function renderApp(formState) {
-    const locale = locales[activeLanguage] || locales.es;
+    const locale = enhanceLocale(locales[activeLanguage] || locales.es);
     const pageKey = document.body.dataset.page || "home";
     const services = getServices(locale);
     let content;

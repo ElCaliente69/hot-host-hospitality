@@ -11,7 +11,7 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     email: "direccion@hhosthospitality.com",
     phone: "+34 600 907 716",
     retention: "1 año",
-    website: "https://elcaliente69.github.io/hot-host-hospitality/"
+    website: "https://hhosthospitality.com/"
   }),
   locales: {
     es: {
@@ -219,47 +219,47 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
   const privacyUpdates = {
     es: {
       purpose: "Registrar, atender, preparar y dar seguimiento a una solicitud de auditoría o información comercial.",
-      recipients: "Los datos solo se comunican cuando es necesario para prestar el servicio o por obligación legal. Al enviar el formulario, Google Apps Script registra la solicitud en Google Sheets, guarda las fotografías en Google Drive y envía un correo de verificación. Tras verificar el email, Gmail envía la solicitud al administrador para que la apruebe o deniegue. Si la aprueba, Google Calendar muestra los huecos libres. El visitante selecciona uno y el administrador debe confirmarlo definitivamente; solo entonces se crea la cita con Google Meet. El sitio también carga imágenes de Unsplash y tipos de cambio de Frankfurter.",
+      recipients: "Los datos solo se comunican cuando es necesario para prestar el servicio o por obligación legal. Al enviar el formulario, Google Apps Script registra la solicitud y la preferencia de cita en Google Sheets, guarda las fotografías en Google Drive y envía un correo de verificación. La preferencia no bloquea el horario. Tras verificar el email, Gmail avisa al administrador, que puede confirmar la cita, pedir al visitante que elija otro hueco libre o denegar con un motivo. Google Calendar y Google Meet solo se crean después de la confirmación final. El sitio también carga imágenes de Unsplash y tipos de cambio de Frankfurter.",
       retention: "Conservamos los datos de consultas, los registros de seguimiento y las fotografías compartidas durante un máximo de un año desde la última interacción o hasta que solicites su supresión, salvo que exista una obligación legal que exija conservarlos durante más tiempo."
     },
     en: {
       purpose: "Record, respond to, prepare and follow up an audit request or commercial enquiry.",
-      recipients: "Data is shared only where necessary to provide the service or meet legal obligations. When the form is submitted, Google Apps Script records the enquiry in Google Sheets, stores photographs in Google Drive and sends a verification email. After verification, Gmail sends the request to the administrator for approval or rejection. If approved, Google Calendar shows available times. The visitor selects one and the administrator must give final confirmation; only then is the appointment created with Google Meet. The site also loads Unsplash images and Frankfurter exchange rates.",
+      recipients: "Data is shared only where necessary to provide the service or meet legal obligations. When the form is submitted, Google Apps Script records the enquiry and appointment preference in Google Sheets, stores photographs in Google Drive and sends a verification email. The preference does not hold the time. After verification, Gmail notifies the administrator, who may confirm it, ask the visitor to choose another available time or decline with a reason. Google Calendar and Google Meet are created only after final confirmation. The site also loads Unsplash images and Frankfurter exchange rates.",
       retention: "Enquiry data, follow-up records and shared photographs are kept for no more than one year from the last interaction, or until you request deletion, unless a legal obligation requires longer retention."
     },
     fr: {
       purpose: "Enregistrer, préparer, traiter et suivre une demande d'audit ou d'information commerciale.",
-      recipients: "Les données ne sont communiquées que si nécessaire au service ou à une obligation légale. À l'envoi du formulaire, Google Apps Script enregistre la demande dans Google Sheets, stocke les photographies dans Google Drive et envoie un e-mail de vérification. Après vérification, Gmail transmet la demande à l'administrateur pour approbation ou refus. Si elle est approuvée, Google Calendar affiche les créneaux libres. Le visiteur en sélectionne un et l'administrateur doit le confirmer définitivement ; le rendez-vous avec Google Meet n'est créé qu'ensuite. Le site charge également des images Unsplash et des taux Frankfurter.",
+      recipients: "Les données ne sont communiquées que si nécessaire au service ou à une obligation légale. À l'envoi, Google Apps Script enregistre la demande et la préférence de rendez-vous dans Google Sheets, stocke les photographies dans Google Drive et envoie un e-mail de vérification. Cette préférence ne bloque pas le créneau. Après vérification, Gmail avertit l'administrateur, qui peut confirmer, demander un autre créneau libre ou refuser avec un motif. Google Calendar et Google Meet ne sont créés qu'après confirmation finale. Le site charge également des images Unsplash et des taux Frankfurter.",
       retention: "Les données des demandes, les enregistrements de suivi et les photographies partagées sont conservés au maximum un an après la dernière interaction, ou jusqu'à votre demande de suppression, sauf obligation légale contraire."
     },
     it: {
       purpose: "Registrare, rispondere, preparare e seguire una richiesta di audit o informazioni commerciali.",
-      recipients: "I dati vengono comunicati solo se necessari al servizio o per obbligo legale. All'invio del modulo, Google Apps Script registra la richiesta in Google Sheets, archivia le fotografie in Google Drive e invia un'e-mail di verifica. Dopo la verifica, Gmail invia la richiesta all'amministratore per l'approvazione o il rifiuto. Se approvata, Google Calendar mostra gli orari liberi. Il visitatore ne seleziona uno e l'amministratore deve confermarlo definitivamente; solo allora viene creato l'appuntamento con Google Meet. Il sito carica inoltre immagini Unsplash e tassi Frankfurter.",
+      recipients: "I dati vengono comunicati solo se necessari al servizio o per obbligo legale. All'invio, Google Apps Script registra richiesta e preferenza di appuntamento in Google Sheets, archivia le fotografie in Google Drive e invia un'e-mail di verifica. La preferenza non blocca l'orario. Dopo la verifica, Gmail avvisa l'amministratore, che può confermare, chiedere al visitatore un altro orario libero o rifiutare indicando il motivo. Google Calendar e Google Meet vengono creati solo dopo la conferma finale. Il sito carica inoltre immagini Unsplash e tassi Frankfurter.",
       retention: "I dati delle richieste, i registri di follow-up e le fotografie condivise sono conservati al massimo per un anno dall'ultima interazione o fino alla richiesta di cancellazione, salvo obblighi legali più lunghi."
     },
     de: {
       purpose: "Eine Audit- oder Geschäftsanfrage erfassen, bearbeiten, vorbereiten und nachverfolgen.",
-      recipients: "Daten werden nur weitergegeben, wenn dies für den Service oder gesetzliche Pflichten erforderlich ist. Beim Absenden erfasst Google Apps Script die Anfrage in Google Sheets, speichert Fotos in Google Drive und sendet eine Bestätigungs-E-Mail. Nach der Bestätigung sendet Gmail die Anfrage zur Genehmigung oder Ablehnung an den Administrator. Bei Genehmigung zeigt Google Calendar freie Termine an. Der Besucher wählt einen Termin aus, den der Administrator endgültig bestätigen muss; erst dann wird der Termin mit Google Meet erstellt. Die Website lädt auch Unsplash-Bilder und Frankfurter-Wechselkurse.",
+      recipients: "Daten werden nur weitergegeben, wenn dies für den Service oder gesetzliche Pflichten erforderlich ist. Beim Absenden speichert Google Apps Script Anfrage und Terminwunsch in Google Sheets, Fotos in Google Drive und sendet eine Bestätigungs-E-Mail. Der Wunsch blockiert keinen Termin. Nach der Bestätigung informiert Gmail den Administrator; dieser kann bestätigen, um die Wahl eines anderen freien Termins bitten oder mit Begründung ablehnen. Google Calendar und Google Meet werden erst nach der endgültigen Bestätigung erstellt. Die Website lädt auch Unsplash-Bilder und Frankfurter-Wechselkurse.",
       retention: "Anfragedaten, Nachverfolgungseinträge und geteilte Fotos werden höchstens ein Jahr nach der letzten Interaktion oder bis zu deinem Löschantrag gespeichert, sofern keine längere gesetzliche Pflicht besteht."
     },
     pl: {
       purpose: "Rejestrowanie, przygotowanie, obsługa i dalsze prowadzenie wniosku o audyt lub zapytania handlowego.",
-      recipients: "Dane są udostępniane tylko wtedy, gdy jest to konieczne do realizacji usługi lub obowiązku prawnego. Po wysłaniu formularza Google Apps Script zapisuje zapytanie w Google Sheets, przechowuje zdjęcia w Google Drive i wysyła e-mail weryfikacyjny. Po weryfikacji Gmail przekazuje wniosek administratorowi do zatwierdzenia lub odrzucenia. Po zatwierdzeniu Google Calendar pokazuje wolne terminy. Użytkownik wybiera jeden z nich, a administrator musi go ostatecznie potwierdzić; dopiero wtedy tworzone jest spotkanie Google Meet. Strona ładuje także obrazy Unsplash i kursy Frankfurter.",
+      recipients: "Dane są udostępniane tylko wtedy, gdy wymaga tego usługa lub prawo. Po wysłaniu Google Apps Script zapisuje zapytanie i preferowany termin w Google Sheets, zdjęcia w Google Drive oraz wysyła e-mail weryfikacyjny. Preferencja nie blokuje terminu. Po weryfikacji Gmail zawiadamia administratora, który może potwierdzić, poprosić o wybór innego wolnego terminu albo odrzucić z uzasadnieniem. Google Calendar i Google Meet powstają dopiero po ostatecznym potwierdzeniu. Strona ładuje także obrazy Unsplash i kursy Frankfurter.",
       retention: "Dane zapytań, wpisy dotyczące dalszego kontaktu i udostępnione zdjęcia są przechowywane maksymalnie przez rok od ostatniej interakcji lub do czasu żądania usunięcia, chyba że prawo wymaga dłuższego okresu."
     },
     nl: {
       purpose: "Een auditverzoek of commerciële aanvraag registreren, beantwoorden, voorbereiden en opvolgen.",
-      recipients: "Gegevens worden alleen gedeeld als dat nodig is voor de dienst of een wettelijke verplichting. Bij verzending registreert Google Apps Script de aanvraag in Google Sheets, slaat het foto's op in Google Drive en verstuurt het een verificatie-e-mail. Na verificatie stuurt Gmail de aanvraag naar de beheerder voor goedkeuring of afwijzing. Na goedkeuring toont Google Calendar de vrije tijden. De bezoeker kiest er een en de beheerder moet deze definitief bevestigen; pas daarna wordt de afspraak met Google Meet aangemaakt. De site laadt daarnaast Unsplash-afbeeldingen en Frankfurter-wisselkoersen.",
+      recipients: "Gegevens worden alleen gedeeld als dat nodig is voor de dienst of een wettelijke verplichting. Bij verzending registreert Google Apps Script de aanvraag en afspraakvoorkeur in Google Sheets, slaat foto's op in Google Drive en verstuurt een verificatie-e-mail. De voorkeur houdt het tijdstip niet vast. Na verificatie meldt Gmail dit aan de beheerder, die kan bevestigen, om een ander beschikbaar tijdstip kan vragen of met een reden kan afwijzen. Google Calendar en Google Meet worden pas na definitieve bevestiging aangemaakt. De site laadt daarnaast Unsplash-afbeeldingen en Frankfurter-wisselkoersen.",
       retention: "Aanvraaggegevens, opvolgregistraties en gedeelde foto's worden maximaal één jaar na de laatste interactie bewaard, of totdat u om verwijdering vraagt, tenzij een wettelijke plicht een langere termijn vereist."
     },
     pt: {
       purpose: "Registar, responder, preparar e acompanhar um pedido de auditoria ou informação comercial.",
-      recipients: "Os dados são comunicados apenas quando necessário ao serviço ou a uma obrigação legal. Ao enviar o formulário, o Google Apps Script regista o pedido no Google Sheets, guarda fotografias no Google Drive e envia um e-mail de verificação. Após a verificação, o Gmail envia o pedido ao administrador para aprovação ou recusa. Se for aprovado, o Google Calendar mostra os horários livres. O visitante seleciona um e o administrador deve confirmá-lo definitivamente; só então é criada a reunião com Google Meet. O site carrega ainda imagens Unsplash e taxas Frankfurter.",
+      recipients: "Os dados são comunicados apenas quando necessário ao serviço ou a uma obrigação legal. Ao enviar, o Google Apps Script regista o pedido e a preferência de horário no Google Sheets, guarda fotografias no Google Drive e envia um e-mail de verificação. A preferência não bloqueia o horário. Após a verificação, o Gmail avisa o administrador, que pode confirmar, pedir outro horário livre ou recusar indicando o motivo. O Google Calendar e o Google Meet só são criados depois da confirmação final. O site carrega ainda imagens Unsplash e taxas Frankfurter.",
       retention: "Os dados dos pedidos, os registos de acompanhamento e as fotografias partilhadas são conservados no máximo durante um ano após a última interação, ou até ao pedido de eliminação, salvo obrigação legal de prazo superior."
     },
     el: {
       purpose: "Καταγραφή, προετοιμασία, διαχείριση και παρακολούθηση αιτήματος ελέγχου ή εμπορικής ενημέρωσης.",
-      recipients: "Τα δεδομένα κοινοποιούνται μόνο όταν είναι απαραίτητο για την υπηρεσία ή για νομική υποχρέωση. Με την αποστολή της φόρμας, το Google Apps Script καταγράφει το αίτημα στο Google Sheets, αποθηκεύει φωτογραφίες στο Google Drive και στέλνει email επαλήθευσης. Μετά την επαλήθευση, το Gmail στέλνει το αίτημα στον διαχειριστή για έγκριση ή απόρριψη. Αν εγκριθεί, το Google Calendar εμφανίζει τις διαθέσιμες ώρες. Ο επισκέπτης επιλέγει μία και ο διαχειριστής πρέπει να την επιβεβαιώσει οριστικά· μόνο τότε δημιουργείται το ραντεβού με Google Meet. Ο ιστότοπος φορτώνει ακόμη εικόνες Unsplash και ισοτιμίες Frankfurter.",
+      recipients: "Τα δεδομένα κοινοποιούνται μόνο όταν απαιτείται για την υπηρεσία ή από τον νόμο. Με την αποστολή, το Google Apps Script καταγράφει το αίτημα και την προτίμηση ραντεβού στο Google Sheets, αποθηκεύει φωτογραφίες στο Google Drive και στέλνει email επαλήθευσης. Η προτίμηση δεν δεσμεύει την ώρα. Μετά την επαλήθευση, το Gmail ειδοποιεί τον διαχειριστή, ο οποίος μπορεί να επιβεβαιώσει, να ζητήσει άλλη διαθέσιμη ώρα ή να απορρίψει με αιτιολογία. Google Calendar και Google Meet δημιουργούνται μόνο μετά την τελική επιβεβαίωση. Ο ιστότοπος φορτώνει ακόμη εικόνες Unsplash και ισοτιμίες Frankfurter.",
       retention: "Τα δεδομένα αιτημάτων, οι εγγραφές παρακολούθησης και οι κοινόχρηστες φωτογραφίες διατηρούνται έως ένα έτος από την τελευταία αλληλεπίδραση ή μέχρι να ζητήσετε διαγραφή, εκτός αν ο νόμος απαιτεί μεγαλύτερη περίοδο."
     }
   };
@@ -296,7 +296,7 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     ["Retain", "We close every stay with an experience worth recommending.", "We listen, ask for reviews and use what we learn to make the next booking stronger."]
   ];
   const spanish = {
-    nav: { profitability: "Rentabilidad", founder: "Fundador", legalHub: "Información legal y privacidad", overview: "Ver página principal", legalOverview: "Ver información legal" },
+    nav: { profitability: "Rentabilidad", founder: "Fundador", legalHub: "Información legal y privacidad", overview: "Ver página principal", servicesOverview: "Ver todos los servicios", legalOverview: "Ver información legal" },
     journeyTitle: "Un recorrido que no deja cabos sueltos.",
     journeyLead: "Ocho etapas conectadas para cuidar la rentabilidad, la operación y la experiencia sin improvisar por el camino.",
     journey: spanishJourney,
@@ -316,7 +316,7 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     legalHub: { breadcrumb: "Información legal y privacidad", eyebrow: "Transparencia", title: "Información legal y privacidad", lead: "Accede a las condiciones legales, al tratamiento de datos y a las preferencias de esta web.", open: "Ver información" }
   };
   const english = {
-    nav: { profitability: "Profitability", founder: "Founder", legalHub: "Legal information and privacy", overview: "View main page", legalOverview: "View legal information" },
+    nav: { profitability: "Profitability", founder: "Founder", legalHub: "Legal information and privacy", overview: "View main page", servicesOverview: "View all services", legalOverview: "View legal information" },
     journeyTitle: "A journey with no loose ends.",
     journeyLead: "Eight connected stages that protect profitability, operations and the guest experience without improvising along the way.",
     journey: englishJourney,
@@ -336,13 +336,13 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     legalHub: { breadcrumb: "Legal information and privacy", eyebrow: "Transparency", title: "Legal information and privacy", lead: "Access the legal terms, data processing information and website preferences.", open: "View information" }
   };
   const localNavigation = {
-    fr: { profitability: "Rentabilité", founder: "Fondateur", legalHub: "Informations légales et confidentialité", overview: "Voir la page principale", legalOverview: "Voir les informations légales" },
-    it: { profitability: "Redditività", founder: "Fondatore", legalHub: "Informazioni legali e privacy", overview: "Vedi la pagina principale", legalOverview: "Vedi le informazioni legali" },
-    de: { profitability: "Rentabilität", founder: "Gründer", legalHub: "Rechtliches und Datenschutz", overview: "Hauptseite ansehen", legalOverview: "Rechtliche Informationen ansehen" },
-    pl: { profitability: "Rentowność", founder: "Założyciel", legalHub: "Informacje prawne i prywatność", overview: "Zobacz stronę główną", legalOverview: "Zobacz informacje prawne" },
-    nl: { profitability: "Rendement", founder: "Oprichter", legalHub: "Juridische informatie en privacy", overview: "Hoofdpagina bekijken", legalOverview: "Juridische informatie bekijken" },
-    pt: { profitability: "Rentabilidade", founder: "Fundador", legalHub: "Informação legal e privacidade", overview: "Ver página principal", legalOverview: "Ver informação legal" },
-    el: { profitability: "Κερδοφορία", founder: "Ιδρυτής", legalHub: "Νομικές πληροφορίες και απόρρητο", overview: "Δείτε την κύρια σελίδα", legalOverview: "Δείτε νομικές πληροφορίες" }
+    fr: { profitability: "Rentabilité", founder: "Fondateur", legalHub: "Informations légales et confidentialité", overview: "Voir la page principale", servicesOverview: "Voir tous les services", legalOverview: "Voir les informations légales" },
+    it: { profitability: "Redditività", founder: "Fondatore", legalHub: "Informazioni legali e privacy", overview: "Vedi la pagina principale", servicesOverview: "Vedi tutti i servizi", legalOverview: "Vedi le informazioni legali" },
+    de: { profitability: "Rentabilität", founder: "Gründer", legalHub: "Rechtliches und Datenschutz", overview: "Hauptseite ansehen", servicesOverview: "Alle Leistungen ansehen", legalOverview: "Rechtliche Informationen ansehen" },
+    pl: { profitability: "Rentowność", founder: "Założyciel", legalHub: "Informacje prawne i prywatność", overview: "Zobacz stronę główną", servicesOverview: "Zobacz wszystkie usługi", legalOverview: "Zobacz informacje prawne" },
+    nl: { profitability: "Rendement", founder: "Oprichter", legalHub: "Juridische informatie en privacy", overview: "Hoofdpagina bekijken", servicesOverview: "Bekijk alle diensten", legalOverview: "Juridische informatie bekijken" },
+    pt: { profitability: "Rentabilidade", founder: "Fundador", legalHub: "Informação legal e privacidade", overview: "Ver página principal", servicesOverview: "Ver todos os serviços", legalOverview: "Ver informação legal" },
+    el: { profitability: "Κερδοφορία", founder: "Ιδρυτής", legalHub: "Νομικές πληροφορίες και απόρρητο", overview: "Δείτε την κύρια σελίδα", servicesOverview: "Δείτε όλες τις υπηρεσίες", legalOverview: "Δείτε νομικές πληροφορίες" }
   };
   const localizedFounderPages = {
     fr: { breadcrumb: "Fondateur", title: "L'hospitalité s'apprend sur le terrain.", intro: "Découvrez le parcours de Yunior Bacallao Alonso et le regard opérationnel qui guide Hot Host.", ctaEyebrow: "Parlons de votre hébergement", ctaTitle: "Une bonne gestion commence par une bonne compréhension du lieu." },
@@ -366,4 +366,232 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     });
   });
   window.HOT_HOST_EXPERIENCE = Object.freeze({ locales: locales });
+})();
+
+/* Problem, solution and value narrative for the main commercial routes. */
+(function () {
+  const narratives = {
+    es: {
+      home: {
+        eyebrow: "Cuando el alojamiento funciona, tú no apagas fuegos",
+        title: "Tu propiedad puede rendir más.",
+        titleAccent: "Sin convertirse en otro trabajo.",
+        lead: "La ocupación irregular, los precios sin estrategia y una operación fragmentada reducen el margen y consumen tiempo. Hot Host conecta comercialización, atención al huésped y operación para convertir ese desgaste en una gestión medible y responsable.",
+        servicesLead: "Cada servicio resuelve una parte concreta del mismo problema: vender mejor, operar sin fricción y conseguir que una buena estancia impulse la siguiente reserva.",
+        story: [
+          { label: "El problema", title: "Más reservas no arreglan una operación desordenada.", text: "Un calendario lleno puede seguir perdiendo margen entre precios reactivos, mensajes tardíos, proveedores descoordinados e incidencias que siempre vuelven al propietario." },
+          { label: "La solución", title: "Una estrategia conecta lo comercial con lo operativo.", text: "Alineamos posicionamiento, tarifas, comunicación y ejecución diaria para que cada decisión tenga contexto, responsable y seguimiento." },
+          { label: "El valor", title: "Más control para la propiedad. Menos carga para ti.", text: "Buscamos mejorar ingresos, reputación y consistencia mientras recuperas tiempo y sabes qué ocurre, por qué se decide y qué resultado produce." }
+        ]
+      },
+      about: {
+        eyebrow: "Criterio hotelero aplicado a propiedades independientes",
+        title: ["No gestionamos anuncios.", "Resolvemos la operación completa."],
+        lead: "Hot Host nace para cerrar la distancia entre prometer una buena estancia y ejecutarla cada día: experiencia real de hospitalidad, procesos claros y responsabilidad visible para el propietario.",
+        story: [
+          { label: "El problema", title: "El propietario suele quedar atrapado entre demasiados interlocutores.", text: "Agencia, limpieza, huéspedes, precios y mantenimiento toman decisiones separadas; cuando algo falla, la carga y la incertidumbre regresan a quien quería delegar." },
+          { label: "Nuestra respuesta", title: "Unimos criterio humano, disciplina operativa y datos.", text: "La experiencia en recepción y operación hotelera se convierte en estándares, prioridades y decisiones comerciales adaptadas a cada propiedad." },
+          { label: "El valor añadido", title: "No solo hacemos tareas: respondemos por el conjunto.", text: "El propietario conserva visibilidad sin perseguir cada detalle, y el huésped recibe una experiencia coherente desde la búsqueda hasta después del check-out." }
+        ]
+      }
+    },
+    en: {
+      home: {
+        eyebrow: "When the property works, you stop firefighting",
+        title: "Your property can earn more.",
+        titleAccent: "Without becoming another job.",
+        lead: "Uneven occupancy, pricing without a strategy and fragmented operations erode margin and consume time. Hot Host connects sales, guest care and delivery to turn that strain into measurable, accountable management.",
+        servicesLead: "Each service solves a specific part of the same problem: sell better, operate with less friction and make every good stay help secure the next booking.",
+        story: [
+          { label: "The problem", title: "More bookings do not fix a disorganised operation.", text: "A full calendar can still lose margin through reactive rates, late replies, disconnected suppliers and issues that always return to the owner." },
+          { label: "The solution", title: "One strategy connects commercial and operational decisions.", text: "We align positioning, rates, communication and daily delivery so every decision has context, ownership and follow-through." },
+          { label: "The value", title: "More control for the property. Less burden for you.", text: "We work to improve revenue, reputation and consistency while you regain time and understand what is happening, why decisions are made and what they deliver." }
+        ]
+      },
+      about: {
+        eyebrow: "Hotel judgement applied to independent properties",
+        title: ["We do not merely manage listings.", "We solve the whole operation."],
+        lead: "Hot Host closes the gap between promising a good stay and delivering it every day through genuine hospitality experience, clear processes and visible accountability for the owner.",
+        story: [
+          { label: "The problem", title: "Owners are often trapped between too many separate partners.", text: "Agency, cleaning, guests, pricing and maintenance make isolated decisions; when something fails, the workload and uncertainty return to the person who wanted to delegate." },
+          { label: "Our answer", title: "We combine human judgement, operational discipline and data.", text: "Front-desk and hotel-operations experience becomes standards, priorities and commercial decisions adapted to each property." },
+          { label: "Added value", title: "We do not just complete tasks; we answer for the whole.", text: "Owners retain visibility without chasing every detail, while guests receive one coherent experience from search to after check-out." }
+        ]
+      }
+    },
+    fr: {
+      home: {
+        eyebrow: "Quand le bien fonctionne, vous cessez d’éteindre les incendies",
+        title: "Votre bien peut rapporter davantage.",
+        titleAccent: "Sans devenir un second métier.",
+        lead: "Une occupation irrégulière, des tarifs sans stratégie et des opérations fragmentées réduisent la marge et absorbent du temps. Hot Host relie commercialisation, accueil et exploitation pour transformer cette charge en gestion mesurable et responsable.",
+        servicesLead: "Chaque service résout une partie précise du même problème : mieux vendre, fonctionner sans friction et faire de chaque bon séjour un moteur pour la prochaine réservation.",
+        story: [
+          { label: "Le problème", title: "Plus de réservations ne réparent pas une opération désorganisée.", text: "Même un calendrier rempli peut perdre de la marge à cause de prix réactifs, réponses tardives, prestataires déconnectés et incidents qui reviennent toujours au propriétaire." },
+          { label: "La solution", title: "Une seule stratégie relie le commercial et l’opérationnel.", text: "Nous alignons positionnement, tarifs, communication et exécution quotidienne afin que chaque décision ait un contexte, un responsable et un suivi." },
+          { label: "La valeur", title: "Plus de maîtrise pour le bien. Moins de charge pour vous.", text: "Nous cherchons à améliorer revenus, réputation et régularité pendant que vous récupérez du temps et comprenez les décisions et leurs résultats." }
+        ]
+      },
+      about: {
+        eyebrow: "Une exigence hôtelière appliquée aux biens indépendants",
+        title: ["Nous ne gérons pas seulement des annonces.", "Nous résolvons toute l’opération."],
+        lead: "Hot Host comble l’écart entre promettre un bon séjour et le réaliser chaque jour, grâce à une expérience réelle de l’hospitalité, des processus clairs et une responsabilité visible.",
+        story: [
+          { label: "Le problème", title: "Le propriétaire reste souvent pris entre trop d’interlocuteurs.", text: "Agence, ménage, voyageurs, tarifs et maintenance décident séparément ; au moindre échec, la charge et l’incertitude reviennent à celui qui voulait déléguer." },
+          { label: "Notre réponse", title: "Nous unissons jugement humain, discipline opérationnelle et données.", text: "L’expérience de la réception et des opérations hôtelières devient des standards, des priorités et des décisions commerciales adaptées à chaque bien." },
+          { label: "La valeur ajoutée", title: "Nous n’exécutons pas seulement des tâches : nous répondons de l’ensemble.", text: "Le propriétaire garde de la visibilité sans poursuivre chaque détail, tandis que le voyageur vit une expérience cohérente de la recherche à l’après-séjour." }
+        ]
+      }
+    },
+    it: {
+      home: {
+        eyebrow: "Quando la proprietà funziona, smetti di spegnere incendi",
+        title: "La tua proprietà può rendere di più.",
+        titleAccent: "Senza diventare un altro lavoro.",
+        lead: "Occupazione irregolare, prezzi senza strategia e operazioni frammentate riducono il margine e consumano tempo. Hot Host collega vendita, cura degli ospiti e operatività per trasformare questo peso in una gestione misurabile e responsabile.",
+        servicesLead: "Ogni servizio risolve una parte concreta dello stesso problema: vendere meglio, operare senza attriti e fare in modo che ogni buon soggiorno favorisca la prenotazione successiva.",
+        story: [
+          { label: "Il problema", title: "Più prenotazioni non sistemano un’operazione disordinata.", text: "Anche un calendario pieno può perdere margine tra prezzi reattivi, risposte tardive, fornitori scollegati e problemi che tornano sempre al proprietario." },
+          { label: "La soluzione", title: "Un’unica strategia collega commerciale e operatività.", text: "Allineiamo posizionamento, tariffe, comunicazione ed esecuzione quotidiana affinché ogni decisione abbia contesto, responsabile e seguito." },
+          { label: "Il valore", title: "Più controllo sulla proprietà. Meno peso per te.", text: "Lavoriamo per migliorare ricavi, reputazione e continuità mentre recuperi tempo e comprendi cosa accade, perché si decide e quale risultato produce." }
+        ]
+      },
+      about: {
+        eyebrow: "Criterio alberghiero per proprietà indipendenti",
+        title: ["Non gestiamo soltanto annunci.", "Risolviamo l’intera operazione."],
+        lead: "Hot Host colma la distanza tra promettere un buon soggiorno e realizzarlo ogni giorno, con vera esperienza nell’ospitalità, processi chiari e responsabilità visibile per il proprietario.",
+        story: [
+          { label: "Il problema", title: "Il proprietario resta spesso intrappolato tra troppi interlocutori.", text: "Agenzia, pulizie, ospiti, prezzi e manutenzione decidono separatamente; quando qualcosa non funziona, carico e incertezza tornano a chi voleva delegare." },
+          { label: "La nostra risposta", title: "Uniamo giudizio umano, disciplina operativa e dati.", text: "L’esperienza in reception e nelle operazioni alberghiere diventa standard, priorità e decisioni commerciali adatte a ogni proprietà." },
+          { label: "Valore aggiunto", title: "Non svolgiamo solo compiti: rispondiamo dell’insieme.", text: "Il proprietario conserva visibilità senza inseguire ogni dettaglio e l’ospite riceve un’esperienza coerente dalla ricerca al dopo check-out." }
+        ]
+      }
+    },
+    de: {
+      home: {
+        eyebrow: "Wenn die Unterkunft läuft, musst du keine Brände mehr löschen",
+        title: "Deine Immobilie kann mehr erwirtschaften.",
+        titleAccent: "Ohne zum Zweitjob zu werden.",
+        lead: "Schwankende Auslastung, Preise ohne Strategie und getrennte Abläufe kosten Marge und Zeit. Hot Host verbindet Vermarktung, Gästebetreuung und Betrieb zu einem messbaren Management mit klarer Verantwortung.",
+        servicesLead: "Jede Leistung löst einen konkreten Teil desselben Problems: besser verkaufen, reibungsloser arbeiten und jeden gelungenen Aufenthalt für die nächste Buchung nutzen.",
+        story: [
+          { label: "Das Problem", title: "Mehr Buchungen reparieren keinen ungeordneten Betrieb.", text: "Auch ein voller Kalender kann durch reaktive Preise, späte Antworten, unkoordinierte Dienstleister und Probleme, die beim Eigentümer landen, Marge verlieren." },
+          { label: "Die Lösung", title: "Eine Strategie verbindet Vermarktung und Betrieb.", text: "Wir stimmen Positionierung, Preise, Kommunikation und tägliche Umsetzung ab, damit jede Entscheidung Kontext, Verantwortung und Nachverfolgung hat." },
+          { label: "Der Mehrwert", title: "Mehr Kontrolle über die Immobilie. Weniger Belastung für dich.", text: "Wir verbessern Ertrag, Reputation und Beständigkeit, während du Zeit zurückgewinnst und Entscheidungen sowie ihre Wirkung nachvollziehen kannst." }
+        ]
+      },
+      about: {
+        eyebrow: "Hotelkompetenz für unabhängige Immobilien",
+        title: ["Wir verwalten nicht nur Inserate.", "Wir lösen den gesamten Betrieb."],
+        lead: "Hot Host schließt die Lücke zwischen dem Versprechen eines guten Aufenthalts und seiner täglichen Umsetzung: mit echter Hotellerieerfahrung, klaren Prozessen und sichtbarer Verantwortung.",
+        story: [
+          { label: "Das Problem", title: "Eigentümer geraten oft zwischen zu viele einzelne Partner.", text: "Agentur, Reinigung, Gäste, Preise und Wartung entscheiden getrennt; wenn etwas scheitert, kehren Arbeit und Unsicherheit zu der Person zurück, die delegieren wollte." },
+          { label: "Unsere Antwort", title: "Wir verbinden menschliches Urteil, operative Disziplin und Daten.", text: "Erfahrung aus Rezeption und Hotelbetrieb wird zu Standards, Prioritäten und kommerziellen Entscheidungen, die zum Objekt passen." },
+          { label: "Der Zusatznutzen", title: "Wir erledigen nicht nur Aufgaben, sondern verantworten das Ganze.", text: "Eigentümer behalten den Überblick, ohne jedem Detail nachzulaufen; Gäste erleben einen durchgängigen Service von der Suche bis nach dem Check-out." }
+        ]
+      }
+    },
+    pl: {
+      home: {
+        eyebrow: "Gdy obiekt działa sprawnie, nie musisz ciągle gasić pożarów",
+        title: "Twoja nieruchomość może zarabiać więcej.",
+        titleAccent: "Nie stając się drugim etatem.",
+        lead: "Nierówne obłożenie, ceny bez strategii i rozproszone operacje zmniejszają marżę i zabierają czas. Hot Host łączy sprzedaż, opiekę nad gośćmi i realizację w mierzalne zarządzanie z jasną odpowiedzialnością.",
+        servicesLead: "Każda usługa rozwiązuje konkretną część tego samego problemu: lepiej sprzedawać, działać bez tarć i wykorzystywać każdy udany pobyt do zdobycia kolejnej rezerwacji.",
+        story: [
+          { label: "Problem", title: "Więcej rezerwacji nie naprawi chaotycznej operacji.", text: "Nawet pełny kalendarz może tracić marżę przez reaktywne ceny, późne odpowiedzi, nieskoordynowanych dostawców i problemy wracające do właściciela." },
+          { label: "Rozwiązanie", title: "Jedna strategia łączy sprzedaż z operacją.", text: "Łączymy pozycjonowanie, stawki, komunikację i codzienną realizację, aby każda decyzja miała kontekst, właściciela i dalszy ciąg." },
+          { label: "Wartość", title: "Więcej kontroli nad nieruchomością. Mniej obciążenia dla Ciebie.", text: "Pracujemy nad przychodem, reputacją i powtarzalnością, a Ty odzyskujesz czas i rozumiesz decyzje oraz ich rezultaty." }
+        ]
+      },
+      about: {
+        eyebrow: "Hotelarskie podejście dla niezależnych nieruchomości",
+        title: ["Nie zarządzamy tylko ogłoszeniami.", "Rozwiązujemy całą operację."],
+        lead: "Hot Host zamyka lukę między obietnicą dobrego pobytu a jej codzienną realizacją dzięki prawdziwemu doświadczeniu, jasnym procesom i widocznej odpowiedzialności wobec właściciela.",
+        story: [
+          { label: "Problem", title: "Właściciel często pozostaje między zbyt wieloma wykonawcami.", text: "Agencja, sprzątanie, goście, ceny i utrzymanie decydują osobno; gdy coś zawodzi, praca i niepewność wracają do osoby, która chciała delegować." },
+          { label: "Nasza odpowiedź", title: "Łączymy ludzką ocenę, dyscyplinę operacyjną i dane.", text: "Doświadczenie z recepcji i operacji hotelowych przekładamy na standardy, priorytety i decyzje handlowe dostosowane do obiektu." },
+          { label: "Wartość dodana", title: "Nie tylko wykonujemy zadania; odpowiadamy za całość.", text: "Właściciel zachowuje widoczność bez pilnowania każdego szczegółu, a gość otrzymuje spójne doświadczenie od wyszukiwania po wymeldowaniu." }
+        ]
+      }
+    },
+    nl: {
+      home: {
+        eyebrow: "Als de accommodatie goed draait, hoeft u geen brandjes meer te blussen",
+        title: "Uw accommodatie kan meer opleveren.",
+        titleAccent: "Zonder een tweede baan te worden.",
+        lead: "Wisselende bezetting, prijzen zonder strategie en versnipperde uitvoering kosten marge en tijd. Hot Host verbindt verkoop, gastenzorg en operatie tot meetbaar beheer met duidelijke verantwoordelijkheid.",
+        servicesLead: "Elke dienst lost een concreet deel van hetzelfde probleem op: beter verkopen, soepeler werken en elk goed verblijf laten bijdragen aan de volgende boeking.",
+        story: [
+          { label: "Het probleem", title: "Meer boekingen herstellen geen rommelige operatie.", text: "Zelfs een volle kalender kan marge verliezen door reactieve prijzen, late antwoorden, losse leveranciers en problemen die steeds bij de eigenaar terugkomen." },
+          { label: "De oplossing", title: "Eén strategie verbindt commercie en operatie.", text: "We stemmen positionering, tarieven, communicatie en dagelijkse uitvoering af, zodat elke beslissing context, eigenaarschap en opvolging heeft." },
+          { label: "De waarde", title: "Meer grip op de accommodatie. Minder belasting voor u.", text: "We werken aan omzet, reputatie en consistentie terwijl u tijd terugkrijgt en begrijpt wat er gebeurt, waarom en met welk resultaat." }
+        ]
+      },
+      about: {
+        eyebrow: "Hotelkennis toegepast op zelfstandige accommodaties",
+        title: ["We beheren niet alleen advertenties.", "We lossen de hele operatie op."],
+        lead: "Hot Host overbrugt de afstand tussen een goed verblijf beloven en het elke dag waarmaken, met echte hospitalityervaring, heldere processen en zichtbare verantwoordelijkheid.",
+        story: [
+          { label: "Het probleem", title: "Eigenaren raken vaak klem tussen te veel losse partijen.", text: "Bureau, schoonmaak, gasten, prijzen en onderhoud beslissen apart; als iets misgaat, keren werk en onzekerheid terug naar degene die juist wilde delegeren." },
+          { label: "Ons antwoord", title: "We combineren menselijk inzicht, operationele discipline en data.", text: "Ervaring bij receptie en hoteloperaties wordt vertaald naar normen, prioriteiten en commerciële beslissingen op maat van de accommodatie." },
+          { label: "Toegevoegde waarde", title: "We voeren niet alleen taken uit; we staan voor het geheel.", text: "De eigenaar houdt zicht zonder elk detail na te jagen en de gast ervaart één samenhangende reis van zoeken tot na het uitchecken." }
+        ]
+      }
+    },
+    pt: {
+      home: {
+        eyebrow: "Quando a propriedade funciona, deixa de apagar incêndios",
+        title: "A sua propriedade pode render mais.",
+        titleAccent: "Sem se tornar noutro emprego.",
+        lead: "Ocupação irregular, preços sem estratégia e operações fragmentadas reduzem a margem e consomem tempo. A Hot Host liga comercialização, atenção ao hóspede e execução numa gestão mensurável e responsável.",
+        servicesLead: "Cada serviço resolve uma parte concreta do mesmo problema: vender melhor, operar sem fricção e fazer com que cada boa estadia ajude a conquistar a reserva seguinte.",
+        story: [
+          { label: "O problema", title: "Mais reservas não corrigem uma operação desorganizada.", text: "Mesmo um calendário cheio pode perder margem com preços reativos, respostas tardias, fornecedores desligados e problemas que regressam sempre ao proprietário." },
+          { label: "A solução", title: "Uma estratégia liga o comercial ao operacional.", text: "Alinhamos posicionamento, tarifas, comunicação e execução diária para que cada decisão tenha contexto, responsável e acompanhamento." },
+          { label: "O valor", title: "Mais controlo sobre a propriedade. Menos carga para si.", text: "Trabalhamos para melhorar receita, reputação e consistência enquanto recupera tempo e compreende as decisões e os seus resultados." }
+        ]
+      },
+      about: {
+        eyebrow: "Critério hoteleiro aplicado a propriedades independentes",
+        title: ["Não gerimos apenas anúncios.", "Resolvemos toda a operação."],
+        lead: "A Hot Host fecha a distância entre prometer uma boa estadia e executá-la todos os dias, com experiência real de hospitalidade, processos claros e responsabilidade visível.",
+        story: [
+          { label: "O problema", title: "O proprietário fica muitas vezes preso entre demasiados interlocutores.", text: "Agência, limpeza, hóspedes, preços e manutenção decidem separadamente; quando algo falha, a carga e a incerteza regressam a quem queria delegar." },
+          { label: "A nossa resposta", title: "Unimos critério humano, disciplina operacional e dados.", text: "A experiência em receção e operação hoteleira transforma-se em padrões, prioridades e decisões comerciais adaptadas a cada propriedade." },
+          { label: "Valor acrescentado", title: "Não fazemos apenas tarefas: respondemos pelo conjunto.", text: "O proprietário mantém visibilidade sem perseguir cada detalhe e o hóspede recebe uma experiência coerente desde a pesquisa até depois do check-out." }
+        ]
+      }
+    },
+    el: {
+      home: {
+        eyebrow: "Όταν το κατάλυμα λειτουργεί σωστά, σταματάτε να σβήνετε φωτιές",
+        title: "Το ακίνητό σας μπορεί να αποδίδει περισσότερο.",
+        titleAccent: "Χωρίς να γίνει δεύτερη δουλειά.",
+        lead: "Η ασταθής πληρότητα, οι τιμές χωρίς στρατηγική και η κατακερματισμένη λειτουργία μειώνουν το περιθώριο και καταναλώνουν χρόνο. Η Hot Host συνδέει πωλήσεις, φροντίδα επισκεπτών και λειτουργία σε μετρήσιμη διαχείριση με σαφή ευθύνη.",
+        servicesLead: "Κάθε υπηρεσία λύνει ένα συγκεκριμένο μέρος του ίδιου προβλήματος: καλύτερες πωλήσεις, ομαλότερη λειτουργία και κάθε καλή διαμονή να ενισχύει την επόμενη κράτηση.",
+        story: [
+          { label: "Το πρόβλημα", title: "Περισσότερες κρατήσεις δεν διορθώνουν μια ανοργάνωτη λειτουργία.", text: "Ακόμη και γεμάτο ημερολόγιο χάνει περιθώριο από αντιδραστικές τιμές, αργές απαντήσεις, ασύνδετους συνεργάτες και προβλήματα που επιστρέφουν στον ιδιοκτήτη." },
+          { label: "Η λύση", title: "Μία στρατηγική συνδέει εμπορικές και λειτουργικές αποφάσεις.", text: "Ευθυγραμμίζουμε τοποθέτηση, τιμές, επικοινωνία και καθημερινή εκτέλεση ώστε κάθε απόφαση να έχει πλαίσιο, υπεύθυνο και συνέχεια." },
+          { label: "Η αξία", title: "Περισσότερος έλεγχος στο ακίνητο. Λιγότερο βάρος για εσάς.", text: "Βελτιώνουμε έσοδα, φήμη και συνέπεια ενώ κερδίζετε χρόνο και κατανοείτε τι συμβαίνει, γιατί αποφασίζεται και τι αποτέλεσμα φέρνει." }
+        ]
+      },
+      about: {
+        eyebrow: "Ξενοδοχειακή κρίση για ανεξάρτητα ακίνητα",
+        title: ["Δεν διαχειριζόμαστε μόνο καταχωρίσεις.", "Λύνουμε ολόκληρη τη λειτουργία."],
+        lead: "Η Hot Host γεφυρώνει την απόσταση ανάμεσα στην υπόσχεση καλής διαμονής και την καθημερινή υλοποίησή της, με πραγματική εμπειρία φιλοξενίας, σαφείς διαδικασίες και ορατή ευθύνη.",
+        story: [
+          { label: "Το πρόβλημα", title: "Ο ιδιοκτήτης συχνά παγιδεύεται ανάμεσα σε πολλούς συνεργάτες.", text: "Γραφείο, καθαρισμός, επισκέπτες, τιμές και συντήρηση αποφασίζουν χωριστά· όταν κάτι αποτυγχάνει, ο φόρτος επιστρέφει σε εκείνον που ήθελε να αναθέσει." },
+          { label: "Η απάντησή μας", title: "Συνδυάζουμε ανθρώπινη κρίση, λειτουργική πειθαρχία και δεδομένα.", text: "Η εμπειρία υποδοχής και ξενοδοχειακής λειτουργίας γίνεται πρότυπα, προτεραιότητες και εμπορικές αποφάσεις προσαρμοσμένες σε κάθε ακίνητο." },
+          { label: "Προστιθέμενη αξία", title: "Δεν εκτελούμε μόνο εργασίες· αναλαμβάνουμε την ευθύνη του συνόλου.", text: "Ο ιδιοκτήτης διατηρεί ορατότητα χωρίς να κυνηγά κάθε λεπτομέρεια και ο επισκέπτης λαμβάνει συνεπή εμπειρία από την αναζήτηση έως μετά το check-out." }
+        ]
+      }
+    }
+  };
+
+  Object.keys(narratives).forEach(function (language) {
+    const locale = window.HOT_HOST_SITE_CONTENT.locales[language];
+    Object.assign(locale.marketing.home, narratives[language].home);
+    locale.marketing.about = narratives[language].about;
+  });
 })();
