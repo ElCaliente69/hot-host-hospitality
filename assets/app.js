@@ -94,6 +94,19 @@
     { id: "photo-1618221195710-dd6b41faaea6", position: "center" }
   ];
 
+  const COMMERCIAL_STORY_IMAGES = {
+    home: [
+      { background: "photo-1554224155-8d04cb21cd6c", detail: "photo-1484480974693-6ca0a78fb36b" },
+      { background: "photo-1521737711867-e3b97375f902", detail: "photo-1460925895917-afdab827c52f" },
+      { background: "photo-1600596542815-ffad4c1539a9", detail: "photo-1600210492486-724fe5c67fb0" }
+    ],
+    about: [
+      { background: "photo-1556155092-490a1ba16284", detail: "photo-1521737711867-e3b97375f902" },
+      { background: "photo-1542314831-068cd1dbfeeb", detail: "photo-1484480974693-6ca0a78fb36b" },
+      { background: "photo-1618221195710-dd6b41faaea6", detail: "photo-1551288049-bebda4e38f71" }
+    ]
+  };
+
   const SERVICE_DEFINITIONS = [
     { key: "gestion-integral", path: "gestion-integral.html", icon: "⌂", imageId: "photo-1484480974693-6ca0a78fb36b", imagePosition: "center" },
     { key: "guest-experience", path: "guest-experience.html", icon: "✦", imageId: "photo-1600210492486-724fe5c67fb0", imagePosition: "center" },
@@ -2812,8 +2825,10 @@
 
   function renderCommercialStory(story, context) {
     if (!Array.isArray(story) || !story.length) return "";
+    const visuals = COMMERCIAL_STORY_IMAGES[context] || COMMERCIAL_STORY_IMAGES.home;
     const cards = story.map(function (item, index) {
-      return `<article class="commercial-story-card commercial-story-card-${index + 1}"><span class="commercial-story-number">0${index + 1}</span><div class="eyebrow">${escapeHtml(item.label)}</div><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.text)}</p></article>`;
+      const visual = visuals[index] || visuals[0];
+      return `<article class="commercial-story-card commercial-story-card-${index + 1}" style="--story-background:url('${escapeHtml(imageUrl(visual.background, 1000, 1320))}')"><div class="commercial-story-card-content"><div class="eyebrow">${escapeHtml(item.label)}</div><figure class="commercial-story-visual" aria-hidden="true"><img src="${escapeHtml(imageUrl(visual.detail, 520, 340))}" alt="" width="520" height="340" loading="lazy" decoding="async"></figure><h2 class="commercial-story-title">${escapeHtml(item.title)}</h2><p>${escapeHtml(item.text)}</p></div></article>`;
     }).join("");
     return `<section class="section commercial-story commercial-story-${escapeHtml(context)}"><div class="wrap commercial-story-grid">${cards}</div></section>`;
   }
