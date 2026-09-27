@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import PillarPager from '../../components/PillarPager.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+
+const includes = [
+  'Check-in y check-out coordinados, con atención real detrás',
+  'Limpieza con estándares hoteleros y revisión entre estancias',
+  'Mantenimiento preventivo y resolución de incidencias',
+  'Atención al huésped en varios idiomas',
+  'Cumplimiento normativo y legal (registro de viajeros, licencia turística)',
+];
+---
+
+<BaseLayout
+  title="Método con toque humano"
+  description="Estándares de hotel, trato de persona: check-in y check-out coordinados, limpieza con estándares hoteleros, mantenimiento, atención en varios idiomas y cumplimiento normativo."
+>
+  <PageHero
+    eyebrow="Pilar 01 · Método con toque humano"
+    crumbs={[{ label: 'Pilares', href: '/pilares' }, { label: 'Método con toque humano' }]}
+  >
+    <Fragment slot="title">Estándares de hotel. <span class="accent">Trato de persona.</span></Fragment>
+  </PageHero>
+
+  <section class="section" aria-label="Automatizar o sistematizar">
+    <div class="container-x">
+      <div class="grid gap-6 lg:grid-cols-2 lg:gap-8">
+        <article class="card reveal bg-sand p-8 lg:p-10">
+          <p class="font-ui text-xs font-semibold tracking-[0.2em] text-muted uppercase">Agencias tradicionales</p>
+          <p class="mt-4 font-display text-[1.4rem] leading-snug font-semibold">
+            Las agencias tradicionales resuelven la gestión automatizando el trato:
+          </p>
+          <p class="mt-4 text-muted">respuestas genéricas, check-in sin nadie detrás, incidencias que tardan días.</p>
+        </article>
+        <article class="card reveal p-8 lg:p-10" style="--reveal-delay: 120ms">
+          <p class="font-ui text-xs font-semibold tracking-[0.2em] text-fire-deep uppercase">Hot Host</p>
+          <p class="mt-4 font-display text-[1.4rem] leading-snug font-semibold">Nosotros hacemos lo contrario:</p>
+          <p class="mt-4 text-muted">
+            sistematizamos todo lo que se puede sistematizar — para que nada se nos escape — pero mantenemos a una persona
+            real detrás de cada decisión.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section bg-paper pt-0 lg:pt-0" aria-labelledby="que-incluye">
+    <div class="container-x">
+      <div class="grid gap-12 border-t border-line pt-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20 lg:pt-24">
+        <div>
+          <p class="eyebrow">El estándar</p>
+          <h2 id="que-incluye" class="h-section mt-4">Qué incluye</h2>
+        </div>
+        <ol class="grid gap-0">
+          {
+            includes.map((item, index) => (
+              <li class="reveal grid grid-cols-[3.25rem_1fr] items-baseline gap-4 border-b border-line py-6 first:pt-0">
+                <span class="num text-3xl">{String(index + 1).padStart(2, '0')}</span>
+                <span class="font-display text-[1.2rem] leading-snug font-semibold">{item}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="on-dark section bg-ember" aria-label="No es un servicio, es un estándar">
+    <div class="container-x">
+      <blockquote class="reveal mx-auto max-w-4xl text-center">
+        <p class="quote text-snow">
+          No es un servicio, es un estándar: la propiedad funciona igual de bien la vea Yunior o no la vea, pero
+          <span class="text-gold">nunca la lleva un bot.</span>
+        </p>
+      </blockquote>
+    </div>
+  </section>
+
+  <div class="pt-20 lg:pt-28"></div>
+  <PillarPager current="/pilares/metodo-con-toque-humano" />
+  <CtaBanner />
+</BaseLayout>

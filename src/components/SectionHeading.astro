@@ -1,0 +1,28 @@
+---
+interface Props {
+  eyebrow?: string;
+  title?: string;
+  lead?: string;
+  align?: 'left' | 'center';
+  /** Nivel del titular (por defecto h2). */
+  as?: 'h2' | 'h3';
+  id?: string;
+  class?: string;
+}
+
+const { eyebrow, title, lead, align = 'left', as: Tag = 'h2', id, class: className } = Astro.props;
+const centered = align === 'center';
+---
+
+<div class:list={['max-w-3xl', { 'mx-auto text-center': centered }, className]}>
+  {eyebrow && <p class:list={['eyebrow', { 'justify-center': centered }]}>{eyebrow}</p>}
+  {
+    (title || Astro.slots.has('title')) && (
+      <Tag id={id} class="h-section mt-4">
+        {Astro.slots.has('title') ? <slot name="title" /> : title}
+      </Tag>
+    )
+  }
+  {lead && <p class="lead mt-5">{lead}</p>}
+  <slot />
+</div>

@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import PillarPager from '../../components/PillarPager.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+import { TIER_COMPARISON } from '../../data/content';
+
+// El alcance del canal propio por nivel sale de la tabla de precios (01-estrategia.md, sección 4).
+const tiers = ['Basic', 'Essentials', 'Iconic'];
+const rows = TIER_COMPARISON.filter((row) => row.label === 'Redes sociales' || row.label === 'Web de reservas');
+---
+
+<BaseLayout
+  title="Canal Directo"
+  description="Menos dependencia de Airbnb y Booking, más control sobre tu propiedad: redes sociales propias y, según el nivel, web con reserva directa."
+>
+  <PageHero
+    eyebrow="Pilar 02 · Canal Directo"
+    crumbs={[{ label: 'Pilares', href: '/pilares' }, { label: 'Canal Directo' }]}
+  >
+    <Fragment slot="title">Menos dependencia de las plataformas. <span class="accent">Más control sobre tu propiedad.</span></Fragment>
+  </PageHero>
+
+  <section class="section" aria-label="Por qué un canal propio">
+    <div class="container-x grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
+      <div class="reveal">
+        <p class="font-display text-[clamp(1.45rem,1.2rem+1vw,1.9rem)] leading-snug font-semibold">
+          Airbnb y Booking son buenos escaparates, pero también se quedan con una parte de tus ingresos en cada reserva.
+        </p>
+        <p class="lead mt-6">
+          Por eso, según el nivel que contrates, construimos también un canal propio: presencia en redes sociales de la
+          propiedad y, a partir de cierto nivel, una web propia con reserva directa.
+        </p>
+      </div>
+      <aside class="card-dark on-dark reveal self-start p-8 lg:p-10" style="--reveal-delay: 120ms">
+        <p class="quote text-snow">
+          Cuanta más reserva directa consigues, menos dependes de lo que decida <span class="text-gold">un algoritmo ajeno.</span>
+        </p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section bg-paper" aria-labelledby="alcance">
+    <div class="container-x">
+      <div class="max-w-3xl">
+        <p class="eyebrow">Según el nivel</p>
+        <h2 id="alcance" class="h-section mt-4">
+          El alcance exacto — dominio, motor de reservas, pagos — depende del nivel contratado.
+        </h2>
+      </div>
+      <div class="mt-12 grid gap-5 md:grid-cols-3">
+        {
+          tiers.map((tier, index) => (
+            <article class:list={['reveal rounded-card border p-7', index === 1 ? 'border-gold bg-cream' : 'border-line bg-cream/60']} style={`--reveal-delay: ${index * 100}ms`}>
+              <h3 class="font-display text-2xl font-bold">{tier}</h3>
+              <dl class="mt-5 grid gap-4">
+                {rows.map((row) => (
+                  <div>
+                    <dt class="font-ui text-xs font-semibold tracking-[0.16em] text-gold-ink uppercase">{row.label}</dt>
+                    <dd class="mt-1 text-muted">{row.values[index]}</dd>
+                  </div>
+                ))}
+              </dl>
+            </article>
+          ))
+        }
+      </div>
+      <p class="mt-10">
+        <a href="/precios" class="link-arrow">Ver niveles y precios <span aria-hidden="true">→</span></a>
+      </p>
+    </div>
+  </section>
+
+  <div class="pt-20 lg:pt-28"></div>
+  <PillarPager current="/pilares/canal-directo" />
+  <CtaBanner />
+</BaseLayout>

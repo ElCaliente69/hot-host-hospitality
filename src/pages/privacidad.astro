@@ -1,0 +1,107 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { SITE } from '../config';
+---
+
+<BaseLayout
+  title="Privacidad"
+  description="Qué datos trata Hot Host Hospitality, para qué, durante cuánto tiempo y cómo puedes ejercer tus derechos."
+>
+  <PageHero
+    eyebrow="Legal"
+    title="Política de privacidad y tratamiento de datos"
+    lead="Explicamos qué datos tratamos, para qué los necesitamos, durante cuánto tiempo los conservamos y cómo puedes ejercer tus derechos."
+    crumbs={[{ label: 'Privacidad' }]}
+  />
+
+  <section class="section">
+    <div class="container-x">
+      <div class="prose-hh">
+        <p class="text-sm">Última actualización: {SITE.legal.updated}.</p>
+
+        <h2>Responsable del tratamiento</h2>
+        <p>
+          El responsable es {SITE.legal.owner}, que opera comercialmente como {SITE.name} (NIF {SITE.legal.taxId},
+          {SITE.legal.address}, {SITE.legal.postalCode} {SITE.legal.city}). Puedes escribir a
+          <a href={`mailto:${SITE.email}`}>{SITE.email}</a> para cualquier cuestión sobre tus datos.
+        </p>
+
+        <h2>Datos que podemos tratar</h2>
+        <ul>
+          <li>Datos de contacto: nombre, correo electrónico y teléfono.</li>
+          <li>
+            Datos de la propiedad: dirección, ubicación, tipología, capacidad, situación de alquiler y enlaces a anuncios o
+            fotografías.
+          </li>
+          <li>
+            Contenido de la solicitud: objetivos, comentarios, preferencia de fecha y hora para la primera llamada y, si
+            decides subirlas, fotografías de la propiedad.
+          </li>
+          <li>Correo electrónico de quien solicita la Guía de Amenities.</li>
+        </ul>
+
+        <h2>Finalidades y base jurídica</h2>
+        <ul>
+          <li>Atender, preparar y dar seguimiento a una solicitud de análisis de propiedad o de información comercial.</li>
+          <li>Valorar el potencial operativo y comercial de una propiedad cuando el usuario solicita ese análisis.</li>
+          <li>Gestionar las fotografías que el usuario decide compartir para evaluar una solicitud.</li>
+          <li>Enviar la Guía de Amenities a quien la solicita y, con su consentimiento, comunicaciones de Hot Host.</li>
+        </ul>
+        <p>
+          La base jurídica es el consentimiento manifestado al enviar el formulario y, cuando procede, la aplicación de
+          medidas precontractuales solicitadas por el interesado. Puedes retirar el consentimiento en cualquier momento,
+          sin afectar al tratamiento anterior a la retirada.
+        </p>
+
+        <h2>Destinatarios y proveedores</h2>
+        <p>
+          Los datos solo se comunican cuando es necesario para prestar el servicio o por obligación legal. Los formularios
+          envían la información directamente a las herramientas de Google Workspace con las que la gestionamos (Google Apps
+          Script, Google Sheets, Google Drive para las fotografías, Gmail para los correos de verificación y Google Calendar
+          para agendar la llamada).
+        </p>
+        <p>
+          El sitio web está alojado en Vercel, que trata datos técnicos de conexión (como la dirección IP) para servir las
+          páginas. Las tipografías, imágenes e iconos se sirven desde nuestro propio dominio: al navegar no se cargan
+          recursos de Google Fonts ni de otros terceros.
+        </p>
+
+        <h2>Transferencias internacionales</h2>
+        <p>
+          Al utilizar proveedores tecnológicos como Google o Vercel pueden producirse tratamientos o transferencias
+          internacionales de datos conforme a sus respectivas garantías y políticas. No enviamos datos de los formularios a
+          estos proveedores salvo por la acción expresamente iniciada por el usuario al enviarlos.
+        </p>
+
+        <h2>Conservación</h2>
+        <p>
+          Conservamos los datos de las solicitudes y las fotografías compartidas durante un máximo de un año desde la última
+          interacción o hasta que solicites su supresión, salvo que exista una obligación legal que exija conservarlos
+          durante más tiempo. El correo de quien solicita la Guía de Amenities se conserva mientras no retire su
+          consentimiento o solicite su supresión.
+        </p>
+
+        <h2>Tus derechos</h2>
+        <p>
+          Puedes solicitar acceso, rectificación, supresión, oposición, limitación del tratamiento y portabilidad escribiendo
+          a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Si consideras que el tratamiento no respeta la normativa,
+          puedes reclamar ante la Agencia Española de Protección de Datos
+          (<a href="https://www.aepd.es" rel="noopener">www.aepd.es</a>).
+        </p>
+
+        <h2>Seguridad y decisiones automatizadas</h2>
+        <p>
+          Aplicamos medidas organizativas y técnicas razonables para proteger la información. No tomamos decisiones
+          automatizadas con efectos jurídicos o equivalentes basadas exclusivamente en tus datos.
+        </p>
+
+        <h2>Cambios en esta política</h2>
+        <p>
+          Podemos actualizar esta política para reflejar cambios normativos, técnicos o de servicio. La fecha de
+          actualización al inicio indica la versión vigente.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

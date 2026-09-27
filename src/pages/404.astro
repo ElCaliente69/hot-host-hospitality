@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { PILLARS, ANALYZE_HREF } from '../data/navigation';
+---
+
+<BaseLayout title="Página no encontrada" description="La página que buscas no existe o ha cambiado de sitio." noindex>
+  <section class="on-dark bg-ember">
+    <div class="container-x py-24 text-center lg:py-32">
+      <p class="num text-[clamp(4rem,3rem+6vw,8rem)] leading-none">404</p>
+      <h1 class="h-page mx-auto mt-6 max-w-3xl text-snow">Esta puerta no lleva a <span class="accent">ninguna parte.</span></h1>
+      <p class="lead mx-auto mt-6 max-w-xl">
+        La página que buscas no existe o ha cambiado de sitio con la nueva web. Te dejamos por dónde seguir.
+      </p>
+      <div class="mt-10 flex flex-wrap justify-center gap-4">
+        <a href="/" class="btn btn-primary">Ir al inicio</a>
+        <a href={ANALYZE_HREF} class="btn btn-ghost">Analizar mi propiedad</a>
+      </div>
+      <ul class="mx-auto mt-14 grid max-w-3xl gap-3 sm:grid-cols-3">
+        {
+          PILLARS.map((pillar) => (
+            <li>
+              <a href={pillar.href} class="card-dark block p-5 text-left transition-colors hover:border-gold">
+                <span class="num text-xl">{pillar.number}</span>
+                <span class="mt-1 block font-display font-semibold text-snow">{pillar.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

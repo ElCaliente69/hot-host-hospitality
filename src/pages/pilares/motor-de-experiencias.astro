@@ -1,0 +1,265 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import Icon from '../../components/Icon.astro';
+import AmenitiesLeadForm from '../../components/AmenitiesLeadForm.astro';
+import PillarPager from '../../components/PillarPager.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+import { FEATURED_EXPERIENCES, TAILORED_EXAMPLES } from '../../data/content';
+import amenities from '../../data/amenities.json';
+
+const layers = [
+  { number: '01', title: 'Replicables Hot Host', text: 'Las que ya funcionan y se repiten en todas las propiedades Hot Host.' },
+  { number: '02', title: 'A medida de tu propiedad', text: 'Las que se crean a medida para la tuya.' },
+  { number: '03', title: 'Colaboradores locales', text: 'Las que llegan a través de nuestra red de colaboradores locales.' },
+];
+
+const totalAmenities = amenities.categories.reduce((sum, category) => sum + category.items.length, 0);
+---
+
+<BaseLayout
+  title="Motor de Experiencias"
+  description="Experiencias en tres capas — replicables, a medida y con colaboradores locales — y 23 amenities que suben el valor percibido de tu propiedad. Descarga la guía."
+>
+  <PageHero
+    eyebrow="Pilar 03 · Motor de Experiencias"
+    crumbs={[{ label: 'Pilares', href: '/pilares' }, { label: 'Motor de Experiencias' }]}
+    lead="Diseñamos experiencias en tres capas: las que ya funcionan y se repiten en todas las propiedades Hot Host, las que se crean a medida para la tuya, y las que llegan a través de nuestra red de colaboradores locales."
+  >
+    <Fragment slot="title">
+      No vendemos apartamentos. <span class="accent">Ayudamos a crear historias que se cuentan al volver a casa.</span>
+    </Fragment>
+  </PageHero>
+
+  <!-- Las tres capas -->
+  <section class="section" aria-labelledby="capas">
+    <div class="container-x">
+      <h2 id="capas" class="eyebrow">Tres capas de experiencias</h2>
+      <ol class="mt-8 grid gap-5 md:grid-cols-3">
+        {
+          layers.map((layer, index) => (
+            <li class="card reveal p-8" style={`--reveal-delay: ${index * 100}ms`}>
+              <span class="num text-4xl">{layer.number}</span>
+              <h3 class="h-card mt-5">{layer.title}</h3>
+              <p class="mt-3 text-muted">{layer.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Capa 01: experiencias destacadas -->
+  <section class="section bg-paper" aria-labelledby="destacadas">
+    <div class="container-x">
+      <SectionHeading
+        eyebrow="Capa 01 · Replicables"
+        id="destacadas"
+        title="Seis de las veinte experiencias replicables."
+        lead="No es un catálogo cerrado: cada experiencia se elige según el tipo de propiedad, la duración de la estancia y si necesita una ruta local."
+      />
+      <ul class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {
+          FEATURED_EXPERIENCES.map((experience, index) => (
+            <li class="experience reveal" style={`--reveal-delay: ${(index % 3) * 100}ms`}>
+              <span class="num text-lg">{String(index + 1).padStart(2, '0')}</span>
+              <h3 class="mt-3 font-display text-[1.45rem] leading-tight font-bold">{experience.name}</h3>
+              <p class="mt-3 text-[0.975rem] text-muted">{experience.story}</p>
+              <ul class="mt-auto flex flex-wrap gap-2 pt-6" aria-label="Encaje">
+                <li class="chip">{experience.property}</li>
+                <li class="chip">{experience.stay}</li>
+                <li class="chip">{experience.route}</li>
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Capas 02 y 03 -->
+  <section class="section" aria-label="Experiencias a medida y colaboradores locales">
+    <div class="container-x grid gap-6 lg:grid-cols-2 lg:gap-8">
+      <article class="card reveal p-8 lg:p-10">
+        <p class="eyebrow">Capa 02 · A medida</p>
+        <h2 class="h-card mt-4">A medida de tu propiedad</h2>
+        <p class="mt-2 text-sm text-muted italic">Ejemplos ilustrativos, no una lista cerrada.</p>
+        <ul class="mt-6 grid gap-5">
+          {
+            TAILORED_EXAMPLES.map((example) => (
+              <li class="border-l-2 border-gold/60 pl-4">
+                <h3 class="font-display text-lg font-bold">{example.name}</h3>
+                <p class="mt-1 text-[0.975rem] text-muted">{example.text}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </article>
+      <article class="card-dark on-dark reveal flex flex-col p-8 lg:p-10" style="--reveal-delay: 120ms">
+        <p class="eyebrow">Capa 03 · Colaboradores</p>
+        <h2 class="h-card mt-4 text-snow">Red de colaboradores seleccionados por destino</h2>
+        <p class="mt-4 text-dim">
+          Restaurantes, actividades, bodegas… No hay una lista fija: varía según la ciudad y los acuerdos vigentes.
+        </p>
+        <!-- Una propiedad (centro) conectada con colaboradores del destino -->
+        <svg class="mx-auto mt-auto h-auto w-full max-w-xs pt-10 text-gold" viewBox="0 0 260 150" fill="none" aria-hidden="true">
+          <g stroke="currentColor" stroke-opacity=".55" stroke-width="1" stroke-dasharray="3 5">
+            <path d="M130 75 38 28M130 75l92-47M130 75 30 122M130 75l100 47M130 75V14" />
+          </g>
+          <g stroke="currentColor" stroke-width="1.5">
+            <circle cx="38" cy="28" r="7" />
+            <circle cx="222" cy="28" r="7" />
+            <circle cx="30" cy="122" r="7" />
+            <circle cx="230" cy="122" r="7" />
+            <circle cx="130" cy="14" r="7" />
+          </g>
+          <circle cx="130" cy="75" r="24" fill="#161512" stroke="#e25822" stroke-width="1.5" />
+          <path d="m118 80 12-11 12 11M122 77v9h16v-9" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+        </svg>
+      </article>
+    </div>
+  </section>
+
+  <!-- Amenities -->
+  <section class="section bg-paper" aria-labelledby="amenities">
+    <div class="container-x">
+      <SectionHeading
+        eyebrow="Amenities"
+        id="amenities"
+        title="El valor está en los detalles."
+        lead="Cada propiedad que gestionamos va incorporando, con el tiempo, una serie de detalles que suben el valor percibido sin que el propietario tenga que pagarlos aparte."
+      />
+      <ol class="mt-12 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {
+          amenities.categories.map((category, index) => (
+            <li class="amenity-category reveal" style={`--reveal-delay: ${index * 90}ms`}>
+              <div class="flex items-center justify-between">
+                <span class="grid size-12 place-items-center rounded-full border border-gold/50 text-gold-ink">
+                  <Icon name={category.icon} class="size-6" />
+                </span>
+                <span class="num text-2xl">{String(index + 1).padStart(2, '0')}</span>
+              </div>
+              <h3 class="mt-5 font-display text-xl font-bold">{category.name}</h3>
+              <p class="mt-2 text-[0.95rem] leading-snug text-muted">{category.tagline}</p>
+              <p class="mt-5 font-ui text-xs font-semibold tracking-[0.16em] text-gold-ink uppercase">
+                {category.items.length} detalles
+              </p>
+              <ul class="mt-3 flex flex-wrap gap-2">
+                {category.items.map((item) => (
+                  <li class="grid size-9 place-items-center rounded-full bg-cream text-ink" title={item.name}>
+                    <Icon name={item.icon} class="size-[1.15rem]" label={item.name} />
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- Cómo se financian: la metáfora del pastel (04-experiencias-amenities.md, usar tal cual) -->
+  <section class="on-dark section bg-ember" aria-labelledby="quien-paga">
+    <div class="container-x grid items-center gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:gap-20">
+      <div>
+        <p class="eyebrow">Cómo se financian</p>
+        <h2 id="quien-paga" class="h-section mt-4 text-snow">¿Y quién paga todo esto?</h2>
+        <p class="lead mt-6">
+          Los amenities no se facturan pieza a pieza al propietario. Se incorporan progresivamente con cargo al margen
+          operativo de Hot Host, no como gasto extra. El propietario no tiene que ver el coste — tiene que ver el resultado:
+          una propiedad que cada vez vale más, cobra más y tiene mejores reseñas. Y como la comisión de Hot Host es un
+          porcentaje de ese ingreso, si el propietario gana más, Hot Host también gana más.
+        </p>
+        <p class="quote mt-8 text-snow">
+          Es como repartir un pastel: en vez de pelearnos por el tamaño de la porción, <span class="text-gold">hacemos el pastel más grande para los dos.</span>
+        </p>
+        <p class="mt-6 text-dim">
+          Cada altavoz o juego de sábanas premium que añadimos es, literalmente, comprar un trozo de pastel más grande —
+          solo que lo pagamos nosotros primero, con la certeza de que va a crecer para ambos.
+        </p>
+      </div>
+      <svg class="mx-auto w-full max-w-xs text-gold" viewBox="0 0 320 200" fill="none" aria-hidden="true">
+        <circle cx="70" cy="110" r="44" stroke="currentColor" stroke-width="1.6" />
+        <path d="M70 110V66M70 110l38 22" stroke="currentColor" stroke-width="1.6" />
+        <path d="M70 66a44 44 0 0 1 38 66l-38-22Z" fill="#e25822" fill-opacity=".35" />
+        <path d="M128 110h34" stroke="currentColor" stroke-width="1.6" />
+        <path d="m156 103 8 7-8 7" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+        <circle cx="240" cy="110" r="70" stroke="currentColor" stroke-width="1.6" />
+        <path d="M240 110V40M240 110l60.6 35" stroke="currentColor" stroke-width="1.6" />
+        <path d="M240 40a70 70 0 0 1 60.6 105L240 110Z" fill="#e25822" fill-opacity=".35" />
+      </svg>
+    </div>
+  </section>
+
+  <!-- Descarga de la guía -->
+  <section class="section" id="guia" aria-labelledby="guia-titulo">
+    <div class="container-x">
+      <div class="card grid overflow-hidden lg:grid-cols-[0.85fr_1.15fr]">
+        <div class="on-dark guide-cover flex items-center justify-center p-10 lg:p-14">
+          <div class="guide-book" aria-hidden="true">
+            <p class="font-ui text-[0.6rem] font-semibold tracking-[0.3em] text-gold uppercase">{amenities.cover.eyebrow}</p>
+            <p class="mt-6 font-display text-[2rem] leading-none font-bold text-snow">{amenities.cover.title}</p>
+            <div class="rule-diamond mt-6 w-24"><span></span></div>
+            <p class="mt-6 text-[0.8rem] leading-snug text-dim">{amenities.cover.subtitle}</p>
+            <p class="mt-auto pt-8 font-accent text-sm text-gold italic">{amenities.cover.footer}</p>
+          </div>
+        </div>
+        <div class="p-8 sm:p-10 lg:p-14">
+          <p class="eyebrow">Guía gratuita · PDF</p>
+          <h2 id="guia-titulo" class="h-section mt-4">Descarga la guía completa de amenities que usamos.</h2>
+          <p class="mt-4 text-muted">
+            {totalAmenities} detalles con identidad propia, pensados para que una propiedad deje de ser un alojamiento más.
+          </p>
+          <div class="mt-8">
+            <AmenitiesLeadForm />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <PillarPager current="/pilares/motor-de-experiencias" />
+  <CtaBanner />
+</BaseLayout>
+
+<style>
+  .experience {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    background-color: var(--color-cream);
+  }
+  .amenity-category {
+    display: flex;
+    flex-direction: column;
+    padding: 1.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    background-color: var(--color-paper);
+    box-shadow: var(--shadow-card);
+  }
+  .guide-cover {
+    background:
+      radial-gradient(70% 60% at 50% 110%, rgb(226 88 34 / 0.35), transparent 70%),
+      var(--color-ink);
+  }
+  .guide-book {
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 15rem);
+    aspect-ratio: 210 / 297;
+    padding: 1.6rem 1.4rem;
+    border: 1px solid rgb(192 159 36 / 0.55);
+    border-radius: 0.4rem;
+    background-color: #0b0b0b;
+    box-shadow:
+      0 0 0 6px rgb(11 11 11),
+      0 0 0 7px rgb(192 159 36 / 0.25),
+      0 30px 60px -20px rgb(0 0 0 / 0.8);
+    transform: rotate(-3deg);
+  }
+</style>

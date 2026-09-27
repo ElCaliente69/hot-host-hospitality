@@ -1,0 +1,255 @@
+---
+import { MAIN_NAV, PILLARS, ANALYZE_HREF } from '../data/navigation';
+import { SITE } from '../config';
+
+const path = Astro.url.pathname.replace(/(index)?\.html$/, '').replace(/\/+$/, '') || '/';
+const isCurrent = (href: string) => path === href;
+const isSection = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+
+<header class="site-header on-dark">
+  <div class="container-x flex h-[4.5rem] items-center justify-between gap-4 lg:h-20">
+    <a href="/" class="brand" aria-label={`${SITE.name} — Inicio`}>
+      <img src="/logo-mark.svg" width="44" height="44" alt="" class="size-10 lg:size-11" />
+      <span class="brand-word" aria-hidden="true">
+        <span class="brand-name">Hot Host</span>
+        <span class="brand-sub">Hospitality</span>
+      </span>
+    </a>
+
+    <nav aria-label="Principal" class="hidden lg:block">
+      <ul class="flex items-center gap-1">
+        {
+          MAIN_NAV.map((item) =>
+            item.href === '/pilares' ? (
+              <li class="nav-item has-sub">
+                <a
+                  href={item.href}
+                  class:list={['nav-link', { 'is-active': isSection(item.href) }]}
+                  aria-current={isCurrent(item.href) ? 'page' : undefined}
+                >
+                  {item.label}
+                  <svg class="size-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </a>
+                <div class="subnav">
+                  <ul class="grid gap-1">
+                    {PILLARS.map((pillar) => (
+                      <li>
+                        <a href={pillar.href} class="subnav-link" aria-current={isCurrent(pillar.href) ? 'page' : undefined}>
+                          <span class="num text-xl">{pillar.number}</span>
+                          <span>
+                            <span class="block font-display text-[1.05rem] font-semibold text-snow">{pillar.label}</span>
+                            <span class="mt-0.5 block text-[0.8125rem] leading-snug text-dim">{pillar.summary}</span>
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  <a href="/pilares" class="link-arrow mt-3 ml-3 text-sm">Ver los 3 pilares <span aria-hidden="true">→</span></a>
+                </div>
+              </li>
+            ) : (
+              <li class="nav-item">
+                <a
+                  href={item.href}
+                  class:list={['nav-link', { 'is-active': isSection(item.href) }]}
+                  aria-current={isCurrent(item.href) ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ),
+          )
+        }
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a href={ANALYZE_HREF} class="btn btn-primary btn-sm hidden sm:inline-flex">Analizar mi propiedad</a>
+      <button type="button" class="menu-toggle lg:hidden" aria-expanded="false" aria-controls="mobile-menu">
+        <span class="sr-only" data-menu-label>Abrir menú</span>
+        <span class="menu-bars" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" class="mobile-menu lg:hidden" hidden>
+    <nav aria-label="Principal (móvil)" class="container-x py-8">
+      <ul class="grid gap-1">
+        <li><a href="/" class="mobile-link" aria-current={isCurrent('/') ? 'page' : undefined}>Inicio</a></li>
+        {
+          MAIN_NAV.map((item) => (
+            <li>
+              <a href={item.href} class="mobile-link" aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+              {item.href === '/pilares' && (
+                <ul class="mt-1 mb-3 grid gap-1 border-l border-gold/30 pl-4">
+                  {PILLARS.map((pillar) => (
+                    <li>
+                      <a href={pillar.href} class="mobile-sublink" aria-current={isCurrent(pillar.href) ? 'page' : undefined}>
+                        <span class="num">{pillar.number}</span> {pillar.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+      <div class="mt-8 grid gap-4 border-t border-gold/20 pt-8">
+        <a href={ANALYZE_HREF} class="btn btn-primary w-full">Analizar mi propiedad</a>
+        <a href={`mailto:${SITE.email}`} class="text-center text-sm text-dim underline underline-offset-4">{SITE.email}</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid rgb(192 159 36 / 0.18);
+    background-color: rgb(11 11 11 / 0.94);
+    backdrop-filter: saturate(140%) blur(10px);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 10px;
+  }
+  .brand-word { display: grid; line-height: 1; }
+  .brand-name {
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-snow);
+  }
+  .brand-sub {
+    margin-top: 0.3rem;
+    font-family: var(--font-ui);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.44em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+  }
+
+  .nav-item { position: relative; }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    font-family: var(--font-ui);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(245 240 230 / 0.82);
+    transition: color 0.2s ease, background-color 0.2s ease;
+  }
+  .nav-link:hover { color: var(--color-gold); }
+  .nav-link.is-active { color: var(--color-gold); }
+  .nav-link[aria-current='page'] { background-color: rgb(192 159 36 / 0.12); }
+
+  .subnav {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    left: 50%;
+    width: 25rem;
+    padding: 0.75rem 0.75rem 1rem;
+    border: 1px solid rgb(192 159 36 / 0.3);
+    border-radius: var(--radius-card);
+    background-color: var(--color-coal);
+    box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.6);
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, -6px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+  }
+  /* Puente invisible para que el ratón no pierda el hover al bajar al panel */
+  .subnav::before {
+    content: '';
+    position: absolute;
+    inset: -0.8rem 0 auto;
+    height: 0.8rem;
+  }
+  .has-sub:hover .subnav,
+  .has-sub:focus-within .subnav {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+  }
+  .subnav-link {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    align-items: start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.75rem;
+    border-radius: 0.75rem;
+    transition: background-color 0.2s ease;
+  }
+  .subnav-link:hover,
+  .subnav-link[aria-current='page'] { background-color: rgb(192 159 36 / 0.1); }
+
+  /* Ojo: los estilos con ámbito de Astro no van en capa y ganan a las utilidades
+     de Tailwind (lg:hidden), así que la visibilidad responsive se fija aquí. */
+  .menu-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgb(192 159 36 / 0.4);
+    border-radius: 999px;
+    color: var(--color-snow);
+  }
+  @media (min-width: 1024px) {
+    .menu-toggle,
+    .mobile-menu { display: none !important; }
+  }
+  .menu-bars { display: grid; gap: 4px; width: 1.1rem; }
+  .menu-bars span {
+    display: block;
+    height: 1.5px;
+    border-radius: 2px;
+    background-color: currentColor;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+  .menu-toggle[aria-expanded='true'] .menu-bars span:nth-child(1) { transform: translateY(5.5px) rotate(45deg); }
+  .menu-toggle[aria-expanded='true'] .menu-bars span:nth-child(2) { opacity: 0; }
+  .menu-toggle[aria-expanded='true'] .menu-bars span:nth-child(3) { transform: translateY(-5.5px) rotate(-45deg); }
+
+  .mobile-menu {
+    position: fixed;
+    inset: 4.5rem 0 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background:
+      radial-gradient(70% 45% at 100% 100%, rgb(226 88 34 / 0.22), transparent 70%),
+      var(--color-ink);
+  }
+  .mobile-link {
+    display: block;
+    padding: 0.55rem 0;
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--color-snow);
+  }
+  .mobile-link[aria-current='page'] { color: var(--color-gold); }
+  .mobile-sublink {
+    display: block;
+    padding: 0.4rem 0;
+    font-size: 1.05rem;
+    color: var(--color-dim);
+  }
+  .mobile-sublink[aria-current='page'] { color: var(--color-gold); }
+</style>

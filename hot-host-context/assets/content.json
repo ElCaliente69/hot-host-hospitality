@@ -1,0 +1,209 @@
+{
+  "cover": {
+    "eyebrow": "HOT HOST HOSPITALITY",
+    "title": "Guía de Amenities",
+    "subtitle": "23 detalles con identidad propia, pensados para que una propiedad deje de ser un alojamiento más.",
+    "footer": "Hospitalidad con personalidad"
+  },
+  "intro": {
+    "eyebrow": "Nuestro estándar",
+    "title": "El valor está en los detalles",
+    "paragraphs": [
+      "En un mercado donde casi todos los anuncios se parecen, lo que hace destacar a una propiedad no es el precio más bajo — es lo que se siente al llegar. Un buen amenity no es un capricho decorativo: es lo que convierte una estancia correcta en una estancia memorable, y una estancia memorable en una reseña de cinco estrellas, una tarifa más alta y un huésped que vuelve.",
+      "Esta es la guía que usamos puertas adentro en Hot Host para equipar cada propiedad que gestionamos. Reúne 23 detalles organizados en cuatro grupos —Bienvenida, Efecto WOW, Confort y detalle, y Práctico— que, juntos, elevan cualquier alojamiento muy por encima de la media."
+    ],
+    "quote": "Una propiedad no compite solo por precio. Compite por lo que se recuerda al volver a casa."
+  },
+  "closing": {
+    "eyebrow": "Una última cosa",
+    "title": "¿Y quién paga todo esto?",
+    "paragraphs": [
+      "Aquí va la parte que casi nadie cuenta: en Hot Host, buena parte de estos detalles no se facturan al propietario. Se incorporan poco a poco con cargo a nuestro propio margen operativo — no como un gasto extra en su cuenta.",
+      "¿Por qué? Porque preferimos que usted vea el resultado, no el coste: una propiedad que cada vez vale más, cobra más y acumula mejores reseñas. Y como nuestra comisión es un porcentaje de esos ingresos, si a usted le va mejor, a nosotros también.",
+      "Es como repartir un pastel: en vez de pelearnos por el tamaño de la porción, preferimos hacer el pastel más grande para los dos. Cada altavoz inteligente o juego de sábanas premium que añadimos es, literalmente, comprar un trozo de pastel más grande — solo que lo pagamos primero nosotros, con la certeza de que va a crecer para ambos."
+    ],
+    "cta_title": "Hablemos de su propiedad",
+    "cta_body": "Si quiere saber qué nivel de amenities le conviene a su alojamiento —y cuánto podría subir su tarifa media con ellos— escríbanos. Sin compromiso.",
+    "cta_email": "direccion@hhosthospitality.com",
+    "cta_web": "hhosthospitality.com",
+    "signature": "Hot Host Hospitality — Hospitalidad con personalidad"
+  },
+  "categories": [
+    {
+      "key": "bienvenida",
+      "icon": "door-welcome",
+      "name": "Bienvenida",
+      "tagline": "El primer minuto decide el resto de la estancia.",
+      "items": [
+        {
+          "icon": "basket",
+          "name": "Cesta de bienvenida",
+          "blurb": "Vino y productos de la tierra, una flor recién cortada y, si hay niños, un detalle solo para ellos. Lo primero que se ve al entrar es lo que más se recuerda."
+        },
+        {
+          "icon": "booklet",
+          "name": "Kit de bienvenida impreso",
+          "blurb": "Una mini-guía local y las normas de la casa, escritas como quien recibe a un amigo, no como quien reparte un reglamento."
+        },
+        {
+          "icon": "pen-note",
+          "name": "Nota de bienvenida manuscrita",
+          "blurb": "Unas líneas escritas a mano, con el nombre del huésped. Cuesta un minuto y no lo olvida nadie."
+        }
+      ]
+    },
+    {
+      "key": "wow",
+      "icon": "sparkle-burst",
+      "name": "Efecto WOW",
+      "tagline": "Lo que convierte una foto en una reseña de cinco estrellas.",
+      "items": [
+        {
+          "icon": "vinyl",
+          "name": "Tocadiscos",
+          "blurb": "Una selección de vinilos a mano. No hace falta que suene todo el día: con que suene una vez, ya generó una foto."
+        },
+        {
+          "icon": "gamepad",
+          "name": "Consola de videojuegos",
+          "blurb": "Para las tardes de lluvia, las noches en pareja o el capricho de revivir un clásico. Un extra que muy pocos alojamientos ofrecen."
+        },
+        {
+          "icon": "telescope",
+          "name": "Telescopio",
+          "blurb": "En una azotea o junto a una ventana despejada, convierte una noche cualquiera en una que sí se cuenta al volver a casa."
+        },
+        {
+          "icon": "books",
+          "name": "Selección de libros y juegos de mesa",
+          "blurb": "Cuatro o cinco títulos bien elegidos, no una estantería llena de libros que nadie va a abrir."
+        },
+        {
+          "icon": "diffuser",
+          "name": "Difusor de aroma de firma",
+          "blurb": "Un olor propio y reconocible en todas las propiedades Hot Host, para que, aunque cambie el piso, la sensación de llegar sea siempre la misma."
+        }
+      ]
+    },
+    {
+      "key": "confort",
+      "icon": "cushion",
+      "name": "Confort y detalle",
+      "tagline": "Lo que no sale en las fotos, pero se siente en cada noche.",
+      "items": [
+        {
+          "icon": "vanity-mirror",
+          "name": "Tocador de maquillaje con luz",
+          "blurb": "Luz cálida y uniforme para arreglarse antes de salir, un gesto pequeño que se agradece más de lo que parece."
+        },
+        {
+          "icon": "full-mirror",
+          "name": "Espejo de cuerpo completo",
+          "blurb": "En el dormitorio o en el pasillo. Lo esperan casi todos los huéspedes y casi ningún piso lo tiene."
+        },
+        {
+          "icon": "coffee",
+          "name": "Estación de café",
+          "blurb": "Variedad y calidad de verdad, sin escatimar. Es de las primeras cosas que se prueban cada mañana."
+        },
+        {
+          "icon": "soap-bottle",
+          "name": "Dosificadores de ducha rellenables",
+          "blurb": "Más higiénicos que un bote a medias, más rentables a largo plazo, y con espacio para la imagen de marca."
+        },
+        {
+          "icon": "bed",
+          "name": "Set premium de cama y almohadas",
+          "blurb": "Colchón cómodo y almohadas duras y blandas para elegir. El descanso es lo único que un huésped no puede fingir que le ha gustado."
+        },
+        {
+          "icon": "blanket",
+          "name": "Manta y cojines de salón",
+          "blurb": "Los detalles textiles que hacen que un salón se vea, y se sienta, como una casa y no como un piso de paso."
+        },
+        {
+          "icon": "dimmer-bulb",
+          "name": "Iluminación regulable",
+          "blurb": "Luz de trabajo durante el día, luz cálida por la noche. Un interruptor que cambia por completo el ambiente."
+        },
+        {
+          "icon": "curtain-moon",
+          "name": "Cortinas blackout",
+          "blurb": "Oscuridad total para dormir hasta tarde, sobre todo en las habitaciones que reciben el sol de frente."
+        }
+      ]
+    },
+    {
+      "key": "practico",
+      "icon": "gear",
+      "name": "Práctico",
+      "tagline": "Lo aburrido bien resuelto es lo que evita un mensaje de queja a las dos de la madrugada.",
+      "items": [
+        {
+          "icon": "charging",
+          "name": "Estación de carga universal",
+          "blurb": "Todo tipo de puertos y adaptadores, para que ningún huésped internacional se quede sin batería el primer día."
+        },
+        {
+          "icon": "toolbox",
+          "name": "Caja de herramientas básica",
+          "blurb": "Destornillador, pilas, bombillas de repuesto. Resuelve en un minuto lo que, sin ella, se convierte en un parte de incidencia."
+        },
+        {
+          "icon": "hairdryer",
+          "name": "Secador y plancha de calidad",
+          "blurb": "Que funcionen bien y se noten cuidados, no el modelo más barato que se pudo encontrar."
+        },
+        {
+          "icon": "wifi",
+          "name": "WiFi visual",
+          "blurb": "Un código QR grande y a la vista, en la nevera o en la entrada. La primera pregunta de cualquier huésped, resuelta sin que tenga que hacerla."
+        },
+        {
+          "icon": "smart-speaker",
+          "name": "Altavoz inteligente",
+          "blurb": "Música, información local o control de la casa con la voz. Un gesto de propiedad bien equipada, no de lujo innecesario."
+        },
+        {
+          "icon": "picnic-basket",
+          "name": "Kit de picnic",
+          "blurb": "Si hay un parque o una zona verde cerca, un kit prestable para salir de la propiedad sin tener que comprar nada."
+        },
+        {
+          "icon": "paw",
+          "name": "Rincón pet-friendly",
+          "blurb": "Un cuenco y una manta para quien viaja con su mascota. Un detalle pequeño que amplía el público que puede alojarse."
+        }
+      ]
+    }
+  ],
+  "icon_ids": [
+    "basket",
+    "bed",
+    "blanket",
+    "booklet",
+    "books",
+    "charging",
+    "coffee",
+    "curtain-moon",
+    "cushion",
+    "diffuser",
+    "dimmer-bulb",
+    "door-welcome",
+    "full-mirror",
+    "gamepad",
+    "gear",
+    "hairdryer",
+    "paw",
+    "pen-note",
+    "picnic-basket",
+    "smart-speaker",
+    "soap-bottle",
+    "sparkle-burst",
+    "telescope",
+    "toolbox",
+    "vanity-mirror",
+    "vinyl",
+    "wifi"
+  ]
+}

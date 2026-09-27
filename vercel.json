@@ -1,0 +1,60 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "astro",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/servicios", "destination": "/pilares", "permanent": true },
+    { "source": "/servicios.html", "destination": "/pilares", "permanent": true },
+    { "source": "/gestion-integral", "destination": "/pilares/metodo-con-toque-humano", "permanent": true },
+    { "source": "/gestion-integral.html", "destination": "/pilares/metodo-con-toque-humano", "permanent": true },
+    { "source": "/check-in-operaciones", "destination": "/pilares/metodo-con-toque-humano", "permanent": true },
+    { "source": "/check-in-operaciones.html", "destination": "/pilares/metodo-con-toque-humano", "permanent": true },
+    { "source": "/limpieza-lavanderia", "destination": "/pilares/metodo-con-toque-humano", "permanent": true },
+    { "source": "/limpieza-lavanderia.html", "destination": "/pilares/metodo-con-toque-humano", "permanent": true },
+    { "source": "/guest-experience", "destination": "/pilares/motor-de-experiencias", "permanent": true },
+    { "source": "/guest-experience.html", "destination": "/pilares/motor-de-experiencias", "permanent": true },
+    { "source": "/revenue-management", "destination": "/pilares", "permanent": true },
+    { "source": "/revenue-management.html", "destination": "/pilares", "permanent": true },
+    { "source": "/fotografia-profesional", "destination": "/pilares/canal-directo", "permanent": true },
+    { "source": "/fotografia-profesional.html", "destination": "/pilares/canal-directo", "permanent": true },
+    { "source": "/auditoria-rentabilidad", "destination": "/contacto", "permanent": true },
+    { "source": "/auditoria-rentabilidad.html", "destination": "/contacto", "permanent": true },
+    { "source": "/rentabilidad", "destination": "/precios", "permanent": true },
+    { "source": "/rentabilidad.html", "destination": "/precios", "permanent": true },
+    { "source": "/fundador", "destination": "/sobre-hot-host", "permanent": true },
+    { "source": "/fundador.html", "destination": "/sobre-hot-host", "permanent": true },
+    { "source": "/informacion-legal", "destination": "/aviso-legal", "permanent": true },
+    { "source": "/informacion-legal.html", "destination": "/aviso-legal", "permanent": true },
+    { "source": "/experiencias", "destination": "/pilares/motor-de-experiencias", "permanent": true },
+    { "source": "/experiencias.html", "destination": "/pilares/motor-de-experiencias", "permanent": true },
+    { "source": "/web-reservas-directas", "destination": "/pilares/canal-directo", "permanent": true },
+    { "source": "/web-reservas-directas.html", "destination": "/pilares/canal-directo", "permanent": true },
+    { "source": "/sitemap.xml", "destination": "/sitemap-index.xml", "permanent": true }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" }
+      ]
+    },
+    {
+      "source": "/solicitud",
+      "headers": [{ "key": "Referrer-Policy", "value": "no-referrer" }]
+    },
+    {
+      "source": "/_astro/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
+}

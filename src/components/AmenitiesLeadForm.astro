@@ -1,0 +1,142 @@
+---
+/**
+ * Lead magnet "Guía de Amenities" (hot-host-context/docs/05-sistema-tecnico.md).
+ * Contrato con el Apps Script: POST con email, consentAccepted=true, formType=amenities_pdf, sourceUrl.
+ * Se activa con AMENITIES_LEAD.enabled en src/config.ts.
+ */
+import { AMENITIES_LEAD, PRODUCTION_ORIGIN, SITE } from '../config';
+
+const mailSubject = encodeURIComponent('Guía de Amenities Hot Host');
+const mailBody = encodeURIComponent('Hola, me gustaría recibir la Guía de Amenities de Hot Host.');
+const mailto = `mailto:${SITE.email}?subject=${mailSubject}&body=${mailBody}`;
+---
+
+<form
+  id="amenities-form"
+  class="grid gap-5"
+  novalidate
+  data-enabled={String(AMENITIES_LEAD.enabled)}
+  data-endpoint={AMENITIES_LEAD.endpoint}
+  data-production-origin={PRODUCTION_ORIGIN}
+  data-mailto={mailto}
+>
+  <div data-form-fields class="grid gap-5">
+    <div class="field">
+      <label for="amenities-email">Tu email</label>
+      <input
+        id="amenities-email"
+        class="input"
+        type="email"
+        name="email"
+        autocomplete="email"
+        inputmode="email"
+        placeholder="nombre@email.com"
+        required
+      />
+    </div>
+    <label class="check" for="amenities-consent">
+      <input id="amenities-consent" type="checkbox" name="consentAccepted" value="true" required />
+      <span>
+        Acepto recibir la guía y comunicaciones de Hot Host. He leído la <a href="/privacidad" class="underline underline-offset-2">política de privacidad</a>.
+      </span>
+    </label>
+    <button type="submit" class="btn btn-primary w-full sm:w-auto sm:justify-self-start">
+      Descargar guía <span aria-hidden="true">↓</span>
+    </button>
+  </div>
+  <div class="form-status" data-form-status role="status" aria-live="polite" tabindex="-1"></div>
+</form>
+
+<script>
+  const form = document.getElementById('amenities-form') as HTMLFormElement | null;
+
+  if (form) {
+    const fields = form.querySelector<HTMLElement>('[data-form-fields]')!;
+    const status = form.querySelector<HTMLElement>('[data-form-status]')!;
+    const email = form.querySelector<HTMLInputElement>('#amenities-email')!;
+    const consent = form.querySelector<HTMLInputElement>('#amenities-consent')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const { enabled, endpoint = '', productionOrigin, mailto = '' } = form.dataset;
+    const contactEmail = 'direccion@hhosthospitality.com';
+
+    const setStatus = (kind: string, text: string, link?: { href: string; label: string }) => {
+      status.dataset.kind = kind;
+      status.textContent = text;
+      if (link) {
+        const anchor = document.createElement('a');
+        anchor.href = link.href;
+        anchor.textContent = link.label;
+        anchor.className = 'font-semibold underline underline-offset-2';
+        status.append(' ', anchor);
+      }
+    };
+
+    const validate = () => {
+      email.setCustomValidity('');
+      consent.setCustomValidity('');
+      const value = email.value.trim();
+      if (!value) email.setCustomValidity('Escribe tu email para recibir la guía.');
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) email.setCustomValidity('Introduce una dirección de correo válida.');
+      if (!consent.checked) consent.setCustomValidity('Necesitamos tu consentimiento para enviarte la guía.');
+      if (email.validationMessage) email.setAttribute('aria-invalid', 'true');
+      else email.removeAttribute('aria-invalid');
+      return form.checkValidity();
+    };
+
+    email.addEventListener('input', () => {
+      if (email.hasAttribute('aria-invalid')) validate();
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!validate()) {
+        form.reportValidity();
+        return;
+      }
+
+      if (enabled !== 'true') {
+        setStatus('warning', 'La descarga automática todavía no está activa. Pídenos la guía por email y te la enviamos a mano.', {
+          href: mailto,
+          label: 'Pedir la guía por email',
+        });
+        return;
+      }
+
+      // El backend es el de producción: fuera de hhosthospitality.com no se envía nada real.
+      if (window.location.origin !== productionOrigin) {
+        setStatus('warning', 'Vista previa: el formulario es válido, pero los envíos reales solo funcionan en hhosthospitality.com.');
+        return;
+      }
+
+      button.disabled = true;
+      setStatus('sending', 'Enviando…');
+      const body = new URLSearchParams({
+        email: email.value.trim().toLowerCase(),
+        consentAccepted: 'true',
+        formType: 'amenities_pdf',
+        sourceUrl: window.location.href,
+      });
+
+      try {
+        const response = await fetch(endpoint, { method: 'POST', body });
+        let ok = response.ok;
+        try {
+          const data = await response.json();
+          if (data && data.ok === false) ok = false;
+        } catch {
+          // Respuesta sin JSON legible: nos quedamos con el estado HTTP.
+        }
+        if (!ok) throw new Error('Envío rechazado');
+        fields.hidden = true;
+        setStatus('success', '¡Listo! Revisa tu email — te hemos enviado la guía.');
+        status.focus();
+      } catch {
+        button.disabled = false;
+        setStatus('error', `Algo falló. Escríbenos a ${contactEmail} y te la enviamos a mano.`, {
+          href: mailto,
+          label: 'Escribir ahora',
+        });
+      }
+    });
+  }
+</script>

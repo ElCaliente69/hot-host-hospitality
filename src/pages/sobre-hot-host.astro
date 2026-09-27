@@ -1,0 +1,117 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import CtaBanner from '../components/CtaBanner.astro';
+import founderPhoto from '../assets/yunior-bacallao-fundador.png';
+
+// Credenciales del fundador, siempre etiquetadas como personales (regla de honestidad, CLAUDE.md).
+const credentials = [
+  { title: '+13 años en hostelería', text: 'Trayectoria personal de Yunior, en hoteles — antes de Hot Host.' },
+  { title: 'Operación Patito', text: 'Una idea que Yunior probó primero en los hoteles donde trabajó.' },
+  { title: 'Nada que no se pueda demostrar', text: 'Nada de clientes inventados, nada de cifras que no existen.' },
+];
+---
+
+<BaseLayout
+  title="Sobre Hot Host"
+  description="Yunior Bacallao, fundador de Hot Host: más de una década en hostelería, en hoteles. Estándares, detalles y una condición no negociable — todo lo que decimos, lo podemos demostrar."
+>
+  <PageHero eyebrow="Sobre Hot Host" crumbs={[{ label: 'Sobre Hot Host' }]}>
+    <Fragment slot="title">13 años viendo qué hace que <span class="accent">un huésped vuelva.</span></Fragment>
+  </PageHero>
+
+  <section class="section" aria-label="La historia">
+    <div class="container-x grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+      <figure class="founder-photo reveal self-start">
+        <div class="photo-frame">
+          <Image
+            src={founderPhoto}
+            alt="Retrato de Yunior Bacallao, fundador de Hot Host Hospitality"
+            widths={[400, 600, 800]}
+            sizes="(min-width: 1024px) 34vw, (min-width: 640px) 70vw, 100vw"
+            class="aspect-[4/5] w-full rounded-card object-cover object-top"
+            loading="eager"
+          />
+        </div>
+        <figcaption class="mt-8 font-ui text-xs font-semibold tracking-[0.16em] text-muted uppercase">
+          Yunior Bacallao · Fundador
+        </figcaption>
+      </figure>
+
+      <div class="max-w-2xl">
+        <div class="story grid gap-6 text-[1.125rem] leading-relaxed text-muted">
+          <p class="first-para">
+            Antes de que existiera Hot Host, ya llevaba más de una década trabajando en hostelería — en hoteles, no detrás
+            de una pantalla. Ahí aprendí que los estándares importan, pero que lo que de verdad se recuerda son los
+            detalles: una bienvenida bien hecha, una sorpresa a tiempo, alguien que resuelve un problema sin hacerte sentir
+            un número.
+          </p>
+          <p>
+            Ideas como Operación Patito las probé primero en esos hoteles, mucho antes de tener una empresa propia donde
+            aplicarlas. Y antes de fundar Hot Host, ya ayudaba de forma informal a propietarios particulares con sus
+            alojamientos — aplicando ya entonces la misma filosofía de atención real y experiencias con personalidad.
+          </p>
+          <p>
+            Hot Host nace para convertir esa forma de trabajar en una empresa. Con una condición que no es negociable:
+            <strong class="text-ink">todo lo que decimos, lo podemos demostrar.</strong> Nada de clientes inventados, nada
+            de cifras que no existen. Solo experiencia real, aplicada a tu propiedad.
+          </p>
+        </div>
+        <p class="signature mt-10">— Yunior Bacallao, Fundador</p>
+
+        <div class="rule-diamond mt-14 max-w-xs" aria-hidden="true"><span></span></div>
+
+        <h2 class="mt-12 font-ui text-xs font-semibold tracking-[0.2em] text-fire-deep uppercase">Credenciales del fundador</h2>
+        <ul class="mt-6 grid gap-4 sm:grid-cols-3">
+          {
+            credentials.map((item, index) => (
+              <li class="card reveal p-6" style={`--reveal-delay: ${index * 90}ms`}>
+                <p class="font-display text-lg leading-snug font-bold">{item.title}</p>
+                <p class="mt-2 text-sm text-muted">{item.text}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <CtaBanner />
+</BaseLayout>
+
+<style>
+  /* Posición aquí y no con utilidades: los estilos con ámbito ganan a Tailwind. */
+  @media (min-width: 1024px) {
+    .founder-photo { position: sticky; top: 7rem; }
+  }
+  .photo-frame {
+    position: relative;
+    isolation: isolate;
+    margin-right: 1rem;
+  }
+  .photo-frame::before {
+    content: '';
+    position: absolute;
+    inset: 1rem -1rem -1rem 1rem;
+    z-index: -1;
+    border: 1px solid rgb(192 159 36 / 0.55);
+    border-radius: var(--radius-card);
+  }
+  .first-para::first-letter {
+    float: left;
+    margin: 0.35rem 0.6rem 0 0;
+    font-family: var(--font-display);
+    font-size: 4.2rem;
+    font-weight: 700;
+    line-height: 0.8;
+    color: var(--color-fire-deep);
+  }
+  .signature {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 1.6rem;
+    color: var(--color-ink);
+  }
+</style>

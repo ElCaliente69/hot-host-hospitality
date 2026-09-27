@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /solicitud
+
+Sitemap: https://hhosthospitality.com/sitemap-index.xml

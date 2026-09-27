@@ -1,0 +1,217 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import CtaBanner from '../components/CtaBanner.astro';
+import { TIERS, TIER_COMPARISON } from '../data/content';
+import { ANALYZE_HREF } from '../data/navigation';
+---
+
+<BaseLayout
+  title="Precios"
+  description="Tres niveles de gestión con comisión pura sobre ingresos netos y sin cuota fija: Basic 20%, Essentials 25% e Iconic 30%. Publicados, sin sorpresas."
+>
+  <PageHero
+    eyebrow="Precios"
+    crumbs={[{ label: 'Precios' }]}
+    lead="Comisión pura sobre ingresos netos, sin cuota fija adicional. Tres niveles, publicados abiertamente."
+  >
+    <Fragment slot="title">Basic, Essentials o Iconic: <span class="accent">20%, 25% o 30%.</span></Fragment>
+  </PageHero>
+
+  <section class="section" aria-labelledby="niveles">
+    <div class="container-x">
+      <h2 id="niveles" class="sr-only">Niveles de gestión</h2>
+      <ul class="grid items-stretch gap-6 lg:grid-cols-3">
+        {
+          TIERS.map((tier, index) => (
+            <li class:list={['tier reveal', { 'is-featured on-dark': tier.recommended }]} style={`--reveal-delay: ${index * 100}ms`}>
+              {tier.recommended && <p class="tier-badge">Recomendado</p>}
+              <h3 class="font-display text-[1.9rem] font-bold">{tier.name}</h3>
+              <p class="mt-5 flex items-baseline gap-2">
+                <span class="tier-price font-display font-bold">{tier.commission}%</span>
+                <span class="text-sm opacity-80">de los ingresos netos</span>
+              </p>
+              <ul class="mt-7 mb-9 grid gap-3.5 border-t border-current/15 pt-7">
+                {tier.features.map((feature) => (
+                  <li class="tier-feature">{feature}</li>
+                ))}
+              </ul>
+              <a href={ANALYZE_HREF} class:list={['btn mt-auto w-full', tier.recommended ? 'btn-primary' : 'btn-outline']}>
+                Analizar mi propiedad
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section bg-paper" aria-labelledby="comparativa">
+    <div class="container-x">
+      <div class="max-w-3xl">
+        <p class="eyebrow">Comparativa</p>
+        <h2 id="comparativa" class="h-section mt-4">Qué cambia entre niveles</h2>
+        <p class="lead mt-5">
+          Los tres incluyen la gestión operativa con estándares hoteleros. Cambian el alcance del canal propio, la
+          producción de contenido y tu participación en HHH Experiences.
+        </p>
+      </div>
+      <div class="mt-10 overflow-x-auto rounded-card border border-line" tabindex="0" role="region" aria-labelledby="comparativa">
+        <table class="compare-table w-full min-w-[40rem] text-left">
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only">Característica</span></th>
+              {TIERS.map((tier) => (
+                <th scope="col" class:list={{ 'is-featured': tier.recommended }}>
+                  {tier.name}
+                  {tier.recommended && <span class="block font-ui text-[0.65rem] font-semibold tracking-[0.18em] text-fire-deep uppercase">Recomendado</span>}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {
+              TIER_COMPARISON.map((row) => (
+                <tr>
+                  <th scope="row">{row.label}</th>
+                  {row.values.map((value, index) => (
+                    <td class:list={{ 'is-featured': TIERS[index]?.recommended }}>
+                      {value === true ? (
+                        <svg class="size-5 text-gold-ink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" role="img" aria-label="Incluido">
+                          <path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      ) : value === null ? (
+                        <span class="text-muted/70" aria-label="No incluido">—</span>
+                      ) : (
+                        value
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-6 max-w-3xl text-sm text-muted">
+        <strong class="text-ink">HHH Experiences:</strong> las experiencias generan ingresos adicionales que se reparten con
+        el propietario. El porcentaje indica tu participación en ese margen.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="transparencia">
+    <div class="container-x grid gap-6 lg:grid-cols-2 lg:gap-8">
+      <article class="card-dark on-dark reveal p-8 lg:p-12">
+        <p class="eyebrow">Nota de transparencia</p>
+        <h2 id="transparencia" class="sr-only">Nota de transparencia</h2>
+        <p class="quote mt-6 text-snow">
+          El rango de comisión se publica abierto porque preferimos que decidas con toda la información, no con
+          <span class="text-gold">sorpresas.</span>
+        </p>
+      </article>
+      <article class="card reveal flex flex-col p-8 lg:p-12" style="--reveal-delay: 120ms">
+        <p class="eyebrow">¿Qué nivel me conviene?</p>
+        <h2 class="h-card mt-4">Te lo proponemos tras analizar tu propiedad.</h2>
+        <p class="mt-3 text-muted">
+          Es el paso 2 del proceso: auditoría y propuesta. Analizamos tu propiedad y te proponemos un nivel (Basic,
+          Essentials o Iconic).
+        </p>
+        <a href="/como-funciona" class="link-arrow mt-auto pt-8">Ver cómo funciona <span aria-hidden="true">→</span></a>
+      </article>
+    </div>
+  </section>
+
+  <CtaBanner />
+</BaseLayout>
+
+<style>
+  .tier {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 2.25rem 2rem 2rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    background-color: var(--color-paper);
+    box-shadow: var(--shadow-card);
+  }
+  .tier .btn { margin-top: auto; }
+  .tier.is-featured {
+    border-color: rgb(226 88 34 / 0.6);
+    background:
+      radial-gradient(80% 50% at 50% 0%, rgb(226 88 34 / 0.22), transparent 70%),
+      var(--color-ink);
+    box-shadow: var(--shadow-lift);
+  }
+  @media (min-width: 1024px) {
+    .tier.is-featured { transform: translateY(-0.75rem); }
+  }
+  .tier-badge {
+    position: absolute;
+    top: -0.8rem;
+    left: 2rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    background-color: var(--color-fire-deep);
+    color: #fff;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .tier-price {
+    font-size: clamp(3.4rem, 2.6rem + 3vw, 4.5rem);
+    line-height: 1;
+    color: var(--color-fire-deep);
+  }
+  .is-featured .tier-price { color: var(--color-gold); }
+  .tier-feature {
+    position: relative;
+    padding-left: 1.7rem;
+    font-size: 0.975rem;
+    line-height: 1.5;
+  }
+  .tier-feature::before {
+    content: '';
+    position: absolute;
+    top: 0.45em;
+    left: 0.15rem;
+    width: 0.8rem;
+    height: 0.45rem;
+    border-bottom: 2px solid var(--color-gold);
+    border-left: 2px solid var(--color-gold);
+    transform: rotate(-45deg);
+  }
+  .tier:not(.is-featured) .tier-feature { color: var(--color-muted); }
+  .tier:not(.is-featured) .tier-feature::before { border-color: var(--color-gold-ink); }
+
+  .compare-table { border-collapse: collapse; background-color: var(--color-paper); }
+  .compare-table th,
+  .compare-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--color-line);
+    vertical-align: middle;
+    font-size: 0.95rem;
+  }
+  .compare-table thead th {
+    background-color: var(--color-sand);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  .compare-table tbody th {
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    width: 30%;
+  }
+  .compare-table td { color: var(--color-muted); }
+  .compare-table .is-featured { background-color: rgb(226 88 34 / 0.05); }
+  .compare-table thead .is-featured { background-color: rgb(226 88 34 / 0.1); }
+  .compare-table tbody tr:last-child th,
+  .compare-table tbody tr:last-child td { border-bottom: 0; }
+</style>

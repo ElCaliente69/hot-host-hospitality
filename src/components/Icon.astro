@@ -1,0 +1,25 @@
+---
+/**
+ * Icono del sprite de marca (public/icons/icons-sprite.svg, 27 iconos monolínea).
+ * Los nombres están en hot-host-context/docs/04-experiencias-amenities.md.
+ */
+interface Props {
+  name: string;
+  class?: string;
+  /** Texto accesible; sin él, el icono es decorativo. */
+  label?: string;
+}
+
+const { name, class: className, label } = Astro.props;
+---
+
+<svg
+  class:list={['icon', className]}
+  viewBox="0 0 24 24"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
+>
+  <use href={`/icons/icons-sprite.svg#ic-${name}`}></use>
+</svg>

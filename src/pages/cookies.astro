@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { SITE } from '../config';
+---
+
+<BaseLayout
+  title="Cookies"
+  description="Hot Host Hospitality no usa cookies publicitarias, analíticas ni de elaboración de perfiles."
+>
+  <PageHero
+    eyebrow="Legal"
+    title="Política de cookies"
+    lead="Este sitio no utiliza cookies publicitarias, analíticas ni de elaboración de perfiles. Por eso no te mostramos ningún banner de consentimiento."
+    crumbs={[{ label: 'Cookies' }]}
+  />
+
+  <section class="section">
+    <div class="container-x">
+      <div class="prose-hh">
+        <p class="text-sm">Última actualización: {SITE.legal.updated}.</p>
+
+        <h2>Sin seguimiento comercial</h2>
+        <p>
+          No instalamos cookies propias ni de terceros, píxeles publicitarios, herramientas de analítica, remarketing ni
+          perfiles de publicidad conductual.
+        </p>
+
+        <h2>Almacenamiento local</h2>
+        <p>
+          Los formularios no guardan tus datos en el navegador. Solo una herramienta interna de pruebas de Hot Host, que no
+          usan los visitantes, guarda en el almacenamiento local (localStorage) un contador de pruebas.
+        </p>
+
+        <h2>Servicios de terceros</h2>
+        <p>
+          El sitio está alojado en Vercel y sirve desde nuestro propio dominio las tipografías, imágenes e iconos. Al enviar
+          el formulario de contacto, la respuesta de Google Apps Script se carga en un marco oculto; Google puede aplicar sus
+          propias políticas a esa conexión, que solo se produce cuando decides enviar el formulario.
+        </p>
+
+        <h2>Cómo gestionarlo</h2>
+        <p>
+          Puedes borrar el almacenamiento local de este sitio desde la configuración de tu navegador. Para cualquier duda,
+          escríbenos a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Más información en la
+          <a href="/privacidad">política de privacidad</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

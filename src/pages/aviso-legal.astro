@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { SITE } from '../config';
+---
+
+<BaseLayout
+  title="Aviso legal"
+  description="Información de identificación, condiciones de uso y responsabilidades del sitio web de Hot Host Hospitality."
+>
+  <PageHero
+    eyebrow="Legal"
+    title="Aviso legal"
+    lead="Información de identificación, condiciones de uso y responsabilidades del sitio web de Hot Host Hospitality."
+    crumbs={[{ label: 'Aviso legal' }]}
+  />
+
+  <section class="section">
+    <div class="container-x">
+      <div class="prose-hh">
+        <p class="text-sm">Última actualización: {SITE.legal.updated}.</p>
+
+        <h2>Identificación del titular</h2>
+        <dl>
+          <dt>Titular</dt>
+          <dd>{SITE.legal.owner}</dd>
+          <dt>Nombre comercial</dt>
+          <dd>{SITE.name}</dd>
+          <dt>NIF</dt>
+          <dd>{SITE.legal.taxId}</dd>
+          <dt>Domicilio</dt>
+          <dd>{SITE.legal.address}, {SITE.legal.postalCode} {SITE.legal.city}, {SITE.legal.country}</dd>
+          <dt>Email</dt>
+          <dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
+          <dt>Teléfono</dt>
+          <dd>{SITE.phone}</dd>
+          <dt>Sitio web</dt>
+          <dd>{SITE.url.replace('https://', '')}</dd>
+        </dl>
+
+        <h2>Actividad</h2>
+        <p>
+          Hot Host Hospitality presta servicios de consultoría, gestión, coordinación operativa, experiencia del huésped y
+          rentabilidad para alojamientos turísticos.
+        </p>
+
+        <h2>Condiciones de uso</h2>
+        <p>
+          El acceso al sitio implica aceptar un uso lícito, diligente y respetuoso. No está permitido utilizar sus
+          contenidos, formularios o medios de contacto para fines ilícitos, dañinos o no autorizados.
+        </p>
+
+        <h2>Propiedad intelectual</h2>
+        <p>
+          Los textos, identidad visual, diseño, fotografías propias, logotipos y demás elementos del sitio pertenecen a su
+          titular o se utilizan con la autorización correspondiente. No pueden reproducirse o explotarse sin autorización
+          previa por escrito, salvo los usos permitidos por la ley.
+        </p>
+
+        <h2>Disponibilidad y enlaces externos</h2>
+        <p>
+          Se procura mantener la información actualizada y el sitio disponible, pero no se garantiza la ausencia de
+          interrupciones o errores. Los enlaces a servicios de terceros se facilitan para comodidad del usuario; cada
+          tercero responde de sus propios contenidos y políticas.
+        </p>
+
+        <h2>Ley aplicable</h2>
+        <p>
+          Este aviso se rige por la legislación española. Cuando la normativa lo permita, cualquier controversia se someterá
+          a los juzgados y tribunales competentes de Sevilla, España.
+        </p>
+
+        <p class="mt-10">
+          Consulta también la <a href="/privacidad">política de privacidad</a> y la <a href="/cookies">política de cookies</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,134 @@
+---
+/**
+ * "La casa Hot Host": los tres pilares apilados bajo el tejado del logo.
+ * Visualiza la idea de la copy — cada pilar se apoya en el anterior —:
+ * 01 es la planta baja; el DOM va en orden 01→03 y el CSS lo apila de abajo arriba.
+ */
+import { PILLARS } from '../data/navigation';
+
+interface Props {
+  variant?: 'compact' | 'full';
+  current?: string;
+  class?: string;
+}
+
+const { variant = 'compact', current, class: className } = Astro.props;
+const full = variant === 'full';
+---
+
+<figure class:list={['pillar-house', { 'is-full': full }, className]}>
+  <svg class="roof" viewBox="0 0 400 104" fill="none" aria-hidden="true">
+    <path d="M14 98 200 10l186 88" stroke="currentColor" stroke-width="3.2" stroke-linecap="square" />
+    <g fill="currentColor">
+      <rect x="189" y="46" width="9" height="9" />
+      <rect x="202" y="46" width="9" height="9" />
+      <rect x="189" y="59" width="9" height="9" />
+      <rect x="202" y="59" width="9" height="9" />
+    </g>
+  </svg>
+  <ol class="floors">
+    {
+      PILLARS.map((pillar) => (
+        <li class:list={['floor', { 'is-current': current === pillar.href }]}>
+          <a href={pillar.href} aria-current={current === pillar.href ? 'page' : undefined}>
+            <span class="num floor-num">{pillar.number}</span>
+            <span class="floor-text">
+              <span class="floor-name">{pillar.label}</span>
+              {full && <span class="floor-summary">{pillar.summary}</span>}
+            </span>
+            <span class="floor-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+  <div class="rule-diamond foundation" aria-hidden="true"><span></span></div>
+  <figcaption class:list={full ? 'figcaption' : 'sr-only'}>Cada pilar se apoya en el anterior.</figcaption>
+</figure>
+
+<style>
+  .pillar-house {
+    --floor-radius: 0.9rem;
+    color: var(--color-gold);
+  }
+  .roof {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-bottom: -0.25rem;
+  }
+  .floors {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+    padding-inline: 9%;
+  }
+  .floor a {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.95rem 1.15rem;
+    border: 1px solid rgb(192 159 36 / 0.3);
+    border-radius: var(--floor-radius);
+    background-color: rgb(22 21 18 / 0.85);
+    transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+  }
+  /* Planta baja: la base del método, con el brillo "fuego" de la marca */
+  .floor:first-child a {
+    border-color: rgb(226 88 34 / 0.55);
+    background:
+      linear-gradient(100deg, rgb(226 88 34 / 0.2), transparent 65%),
+      rgb(22 21 18 / 0.9);
+  }
+  .floor a:hover,
+  .floor.is-current a {
+    border-color: var(--color-gold);
+    transform: translateX(3px);
+  }
+  .floor-num {
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+  .floor-text { display: grid; gap: 0.25rem; }
+  .floor-name {
+    font-family: var(--font-display);
+    font-size: 1.08rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-snow);
+  }
+  .floor-summary {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--color-dim);
+  }
+  .floor-arrow {
+    color: var(--color-gold);
+    transition: transform 0.2s ease;
+  }
+  .floor a:hover .floor-arrow { transform: translateX(3px); }
+  .foundation {
+    margin-top: 0.9rem;
+    padding-inline: 2%;
+  }
+
+  .is-full .floors { gap: 0.8rem; padding-inline: 7%; }
+  .is-full .floor a { padding: 1.35rem 1.5rem; gap: 1.25rem; }
+  .is-full .floor-num { font-size: 2.2rem; }
+  .is-full .floor-name { font-size: 1.3rem; }
+  .figcaption {
+    margin-top: 1.1rem;
+    text-align: center;
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--color-dim);
+  }
+
+  @media (max-width: 479px) {
+    .floors, .is-full .floors { padding-inline: 4%; }
+    .floor a, .is-full .floor a { gap: 0.8rem; padding: 0.9rem 1rem; }
+    .is-full .floor-num { font-size: 1.8rem; }
+  }
+</style>

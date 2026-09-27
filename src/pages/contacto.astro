@@ -1,0 +1,459 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { APPS_SCRIPT_ENDPOINT, PRODUCTION_ORIGIN, SITE } from '../config';
+import { STEPS } from '../data/content';
+
+// Campos, ids, names y textos: los mismos del formulario de la web anterior (renderContact).
+const roles = [['owner', 'Propietario/a'], ['representative', 'Representante'], ['agency', 'Agencia o inmobiliaria']];
+const propertyTypes = [['villa', 'Villa'], ['studio', 'Estudio'], ['flat', 'Piso'], ['house', 'Casa'], ['chalet', 'Chalet'], ['other', 'Otro']];
+const rentalOptions = [['yes', 'Sí'], ['no', 'No']];
+---
+
+<BaseLayout
+  title="Contacto"
+  description="Cuéntanos tu propiedad: completa el formulario con los datos básicos de tu alojamiento y te contactamos para agendar una llamada o visita, normalmente en menos de 48 horas."
+>
+  <PageHero eyebrow="Contacto" title="Cuéntanos tu propiedad." crumbs={[{ label: 'Contacto' }]}>
+    <p class="lead mt-6 max-w-3xl">
+      Completa el formulario con los datos básicos de tu alojamiento. Lo revisamos y te contactamos para agendar una
+      llamada o visita — normalmente en menos de 48 horas.
+    </p>
+    <p class="mt-6 font-ui text-sm text-dim">
+      Email: <a href={`mailto:${SITE.email}`} class="font-semibold text-gold underline underline-offset-4">{SITE.email}</a>
+    </p>
+  </PageHero>
+
+  <!-- Herramienta interna de pruebas: solo visible con ?test=1 -->
+  <section class="contact-test-tool" aria-labelledby="contactTestTitle" hidden>
+    <div class="container-x grid gap-6 py-10 lg:grid-cols-2">
+      <div>
+        <p class="eyebrow">Pruebas internas</p>
+        <h2 id="contactTestTitle" class="h-card mt-3">Enviar solicitud numerada</h2>
+        <p class="mt-2 text-sm text-muted">
+          Genera una solicitud con enlace de anuncio para probar la aprobación automática. El límite sigue siendo 5 pruebas
+          por email cada 6 horas.
+        </p>
+      </div>
+      <div class="grid gap-3">
+        <label for="contactTestEmail" class="field-label">Email que recibirá la verificación</label>
+        <div class="flex flex-wrap gap-3">
+          <input id="contactTestEmail" class="input flex-1" type="email" autocomplete="email" required placeholder="cliente@gmail.com" />
+          <button class="btn btn-outline" id="contactTestSend" type="button">Enviar Test - test 1</button>
+        </div>
+        <p id="contactTestStatus" class="form-status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="analizar" aria-labelledby="form-title">
+    <div class="container-x grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-14">
+      <aside class="order-2 lg:order-1">
+        <div class="contact-aside grid gap-6">
+          <div class="card-dark on-dark p-7">
+            <p class="eyebrow">Qué pasa después</p>
+            <ol class="mt-5 grid gap-5">
+              {
+                STEPS.slice(0, 2).map((step, index) => (
+                  <li class="grid grid-cols-[2.25rem_1fr] gap-3">
+                    <span class="num text-2xl leading-none">{String(index + 1).padStart(2, '0')}</span>
+                    <span>
+                      <span class="block font-display font-bold text-snow">{step.title}</span>
+                      <span class="mt-1 block text-sm text-dim">{step.text}</span>
+                    </span>
+                  </li>
+                ))
+              }
+            </ol>
+            <a href="/como-funciona" class="link-arrow mt-6 text-sm">Ver los 5 pasos <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="card p-7">
+            <p class="font-ui text-xs font-semibold tracking-[0.2em] text-muted uppercase">¿Prefieres escribir?</p>
+            <a href={`mailto:${SITE.email}`} class="mt-3 block font-display text-lg font-bold break-words underline decoration-gold/50 underline-offset-4 hover:decoration-gold">{SITE.email}</a>
+          </div>
+        </div>
+      </aside>
+
+      <form
+        class="contact-form card order-1 grid gap-8 p-6 sm:p-10 lg:order-2"
+        id="contactForm"
+        novalidate
+        data-endpoint={APPS_SCRIPT_ENDPOINT}
+        data-production-origin={PRODUCTION_ORIGIN}
+      >
+        <div>
+          <h2 id="form-title" class="h-section">Analizar mi propiedad</h2>
+          <p class="mt-3 text-muted">
+            Pedimos estos datos para verificar que la solicitud es real, comunicarnos contigo y preparar la auditoría. No se
+            usan para publicidad ajena a tu solicitud.
+          </p>
+        </div>
+
+        <fieldset class="form-group">
+          <legend>Tus datos</legend>
+          <div class="field">
+            <label for="contactRole">Relación con la propiedad</label>
+            <select id="contactRole" name="contactRole" class="input" required>
+              <option value="">Selecciona una opción</option>
+              {roles.map(([value, label]) => <option value={value}>{label}</option>)}
+            </select>
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div class="field">
+              <label for="name">Nombre completo</label>
+              <input id="name" name="name" class="input" required autocomplete="name" />
+            </div>
+            <div class="field">
+              <label for="email">Correo electrónico</label>
+              <input id="email" name="email" type="email" class="input" required autocomplete="email" />
+            </div>
+          </div>
+          <div class="grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div class="field">
+              <label for="phoneCountry">País o territorio del teléfono</label>
+              <select id="phoneCountry" name="phoneCountry" class="input" required autocomplete="tel-country-code"></select>
+            </div>
+            <div class="field">
+              <label for="phone">Número de teléfono nacional</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                class="input"
+                required
+                autocomplete="tel-national"
+                inputmode="tel"
+                maxlength="24"
+                placeholder="Ej.: 600 000 000"
+                aria-describedby="phoneHelp"
+              />
+              <small class="field-help" id="phoneHelp">Escribe solo el número nacional, sin prefijo internacional ni signo +.</small>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-group">
+          <legend>Dirección exacta de la propiedad</legend>
+          <p class="field-help -mt-2">
+            La dirección exacta nos permite ubicar la propiedad en su micromercado, comparar demanda, tarifas y competencia
+            cercanas, y evitar una estimación genérica.
+          </p>
+          <div class="field">
+            <label for="streetAddress">Calle y número</label>
+            <input
+              id="streetAddress"
+              name="streetAddress"
+              class="input"
+              required
+              minlength="3"
+              autocomplete="street-address"
+              placeholder="Ej.: Calle Feria, 12, 2º B"
+              aria-describedby="streetHelp"
+            />
+            <small class="field-help" id="streetHelp">Incluye tipo de vía, nombre, número y, si corresponde, portal o puerta.</small>
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div class="field">
+              <label for="postalCode">Código postal</label>
+              <input
+                id="postalCode"
+                name="postalCode"
+                class="input"
+                required
+                minlength="2"
+                maxlength="16"
+                autocomplete="postal-code"
+                placeholder="Ej.: 41003"
+                aria-describedby="postalHelp"
+              />
+              <small class="field-help" id="postalHelp">Introduce el código postal exacto de la propiedad.</small>
+            </div>
+            <div class="field">
+              <label for="city">Ciudad o municipio</label>
+              <input id="city" name="city" class="input" required minlength="2" autocomplete="address-level2" placeholder="Ej.: Málaga" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="propertyCountry">País o territorio de la propiedad</label>
+            <select id="propertyCountry" name="propertyCountry" class="input" required autocomplete="country">
+              <option value="">Selecciona un país o territorio</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-group">
+          <legend>Características de la propiedad</legend>
+          <p class="field-help -mt-2">
+            La tipología, capacidad, planta y situación actual influyen en el huésped objetivo, la tarifa posible y la
+            complejidad operativa.
+          </p>
+          <div class="field">
+            <label for="propertyType">Tipo de propiedad</label>
+            <select id="propertyType" name="propertyType" class="input" required>
+              <option value="">Selecciona una opción</option>
+              {propertyTypes.map(([value, label]) => <option value={value}>{label}</option>)}
+            </select>
+          </div>
+          <div class="field" id="otherTypeField" hidden>
+            <label for="otherType">Especifica el tipo de propiedad</label>
+            <input id="otherType" name="otherType" class="input" placeholder="Describe brevemente la propiedad" />
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div class="field" id="bedroomsField">
+              <label for="bedrooms">Cantidad de habitaciones</label>
+              <input id="bedrooms" name="bedrooms" type="number" class="input" min="1" step="1" required inputmode="numeric" />
+            </div>
+            <div class="field">
+              <label for="bathrooms">Cantidad de baños</label>
+              <input id="bathrooms" name="bathrooms" type="number" class="input" min="1" step="1" required inputmode="numeric" />
+            </div>
+            <div class="field" id="floorField" hidden>
+              <label for="floor">Planta en la que se encuentra</label>
+              <input
+                id="floor"
+                name="floor"
+                type="number"
+                class="input"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                placeholder="0"
+                aria-describedby="floorHelp"
+              />
+              <small class="field-help" id="floorHelp">Introduce 0 para planta baja.</small>
+            </div>
+            <div class="field" id="totalFloorsField" hidden>
+              <label for="totalFloors">Número total de plantas de la propiedad</label>
+              <input id="totalFloors" name="totalFloors" type="number" class="input" min="1" step="1" inputmode="numeric" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="touristRental">¿Está actualmente en alquiler turístico?</label>
+            <select id="touristRental" name="touristRental" class="input" required>
+              <option value="">Selecciona una opción</option>
+              {rentalOptions.map(([value, label]) => <option value={value}>{label}</option>)}
+            </select>
+          </div>
+          <div class="field" id="listingUrlField" hidden>
+            <label for="listingUrl">URL del anuncio turístico</label>
+            <input id="listingUrl" name="listingUrl" type="url" class="input" placeholder="Airbnb o Booking preferiblemente" />
+          </div>
+          <div class="field property-photos-field" id="propertyPhotosField" hidden>
+            <label for="propertyPhotos">Subir fotografías de la propiedad</label>
+            <div class="property-photo-dropzone" data-photo-dropzone>
+              <input
+                id="propertyPhotos"
+                name="propertyPhotos"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                aria-describedby="propertyPhotosHelp propertyPhotosStatus"
+              />
+              <span class="property-photo-icon" aria-hidden="true">＋</span>
+              <strong>Subir fotografías de la propiedad</strong>
+              <small class="field-help" id="propertyPhotosHelp">
+                Entre 10 y 60 imágenes JPG, PNG o WebP, de menos de 20 MB cada una. Se optimizarán antes de enviarse.
+              </small>
+            </div>
+            <p class="form-status" id="propertyPhotosStatus" aria-live="polite"></p>
+            <div class="property-photo-previews" id="propertyPhotoPreviews"></div>
+            <label class="mt-3" for="photosUrl">Enlace a las fotografías <span class="font-normal text-muted">(opcional)</span></label>
+            <input id="photosUrl" name="photosUrl" type="url" class="input" placeholder="Enlace de Google Drive o Dropbox" aria-describedby="photosHelp" />
+            <small class="field-help" id="photosHelp">Asegúrate de que el enlace permita ver las fotografías.</small>
+          </div>
+          <div class="field">
+            <label for="message">Comentarios adicionales <span class="font-normal text-muted">(opcional)</span></label>
+            <textarea id="message" name="message" class="input" placeholder="Objetivos, dudas o cualquier dato relevante..."></textarea>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-group" aria-describedby="appointmentPreferenceHelp">
+          <legend>Preferencia para la primera llamada</legend>
+          <p class="field-help -mt-2" id="appointmentPreferenceHelp">
+            Elige cuándo te viene mejor hablar. Es una preferencia, no una reserva: no bloquea el horario y tenemos que
+            confirmarlo. Lunes a jueves, 11:00–14:00, hora de Madrid.
+          </p>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div class="field">
+              <label for="appointmentDate">Fecha preferida</label>
+              <select id="appointmentDate" name="appointmentDate" class="input" required>
+                <option value="">Elige una fecha</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="appointmentTime">Hora preferida</label>
+              <select id="appointmentTime" name="appointmentTime" class="input" required disabled>
+                <option value="">Elige una hora</option>
+              </select>
+            </div>
+          </div>
+          <p class="form-status" id="appointmentPreferenceStatus" aria-live="polite"></p>
+        </fieldset>
+
+        <div class="grid gap-3">
+          <label class="check" for="privacyConsent">
+            <input id="privacyConsent" name="privacyConsent" type="checkbox" required />
+            <span>Autorizo a Hot Host Hospitality a utilizar los datos y fotografías enviados únicamente para evaluar esta solicitud.</span>
+          </label>
+          <small class="field-help pl-8">
+            No incluyas personas ni documentos sensibles. Puedes solicitar la eliminación de la información escribiendo a
+            {SITE.email}. <a href="/privacidad" class="underline underline-offset-2">Privacidad y tratamiento de datos</a>
+          </small>
+        </div>
+
+        <aside class="verification-email-notice">
+          <span aria-hidden="true">@</span>
+          <div>
+            <strong>Después de enviar, revisa tu email</strong>
+            <p>
+              Te enviaremos un correo para verificar la dirección y activar la solicitud. Si no aparece en la bandeja de
+              entrada, revisa SPAM, correo no deseado y Promociones.
+            </p>
+          </div>
+        </aside>
+
+        <div class="grid gap-4">
+          <p class="field-help" id="deliveryLabel">La solicitud se enviará directamente a Hot Host Hospitality</p>
+          <div class="form-actions" aria-labelledby="deliveryLabel">
+            <button class="btn btn-primary w-full sm:w-auto" type="submit">Enviar solicitud <span aria-hidden="true">→</span></button>
+          </div>
+          <p id="formStatus" class="form-status" aria-live="polite"></p>
+        </div>
+      </form>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import '../scripts/contact-form.js';
+</script>
+
+<style>
+  @media (min-width: 1024px) {
+    .contact-aside { position: sticky; top: 7rem; }
+  }
+
+  .contact-test-tool { border-bottom: 1px solid var(--color-line); background-color: #faf3dd; }
+
+  .form-group {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+  }
+  .form-group + .form-group {
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-line);
+  }
+  /* float convierte el legend en un elemento más de la rejilla del fieldset */
+  .form-group legend {
+    float: left;
+    width: 100%;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-ink);
+  }
+
+  .property-photo-dropzone {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    padding: 1.75rem 1.25rem;
+    border: 1.5px dashed var(--color-field);
+    border-radius: var(--radius-card);
+    background-color: var(--color-cream);
+    text-align: center;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .property-photo-dropzone input[type='file'] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .property-photo-dropzone:hover,
+  .property-photo-dropzone.dragging { border-color: var(--color-fire-deep); background-color: #fff5ef; }
+  .property-photo-dropzone.invalid { border-color: var(--color-error); }
+  .property-photo-dropzone:focus-within { outline: 2px solid var(--color-fire-deep); outline-offset: 3px; }
+  .property-photo-icon {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 999px;
+    background-color: var(--color-fire-deep);
+    color: #fff;
+    font-size: 1.3rem;
+  }
+  .property-photo-previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    gap: 0.6rem;
+  }
+  .property-photo-previews:empty { display: none; }
+  .property-photo-previews :global(.property-photo-preview) {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: 0.6rem;
+    background-color: #fff;
+  }
+  .property-photo-previews :global(img) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+  .property-photo-previews :global(figcaption) {
+    overflow: hidden;
+    padding: 0.3rem 0.45rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--color-muted);
+  }
+  .property-photo-previews :global(button) {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.3rem;
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    background-color: rgb(11 11 11 / 0.75);
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .verification-email-notice {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr;
+    gap: 1rem;
+    padding: 1.25rem;
+    border: 1px solid rgb(192 159 36 / 0.45);
+    border-radius: var(--radius-card);
+    background-color: #faf3dd;
+  }
+  .verification-email-notice > span {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 999px;
+    background-color: var(--color-ink);
+    color: var(--color-gold);
+    font-family: var(--font-ui);
+    font-weight: 700;
+  }
+  .verification-email-notice strong { font-family: var(--font-ui); font-size: 0.95rem; }
+  .verification-email-notice p { margin-top: 0.25rem; font-size: 0.9rem; color: var(--color-muted); }
+</style>

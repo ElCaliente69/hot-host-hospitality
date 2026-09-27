@@ -1,0 +1,427 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Tipografía de marca — auto-hospedada (public/fonts), subsets latin + latin-ext.
+   Copiada de hot-host-context/assets/fonts/brand-fonts.css con rutas absolutas.
+   ========================================================================== */
+
+/* Playfair Display — titulares */
+@font-face { font-family: 'Playfair Display'; font-style: italic; font-weight: 600; font-display: swap; src: url(/fonts/nuFRD-vYSZviVYUb_rj3ij__anPXDTnCjmHKM4nYO7KN_naUXt_A-W2r.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Playfair Display'; font-style: italic; font-weight: 600; font-display: swap; src: url(/fonts/nuFRD-vYSZviVYUb_rj3ij__anPXDTnCjmHKM4nYO7KN_naUXtHA-Q.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Playfair Display'; font-style: normal; font-weight: 600 800; font-display: swap; src: url(/fonts/nuFiD-vYSZviVYUb_rj3ij__anPXDTLYgFE_.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Playfair Display'; font-style: normal; font-weight: 600 800; font-display: swap; src: url(/fonts/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgA.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* Cormorant Garamond — citas, subtítulos con carácter, numeración editorial */
+@font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 500 600; font-display: swap; src: url(/fonts/co3ZmX5slCNuHLi8bLeY9MK7whWMhyjYrEtGmSq17w.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 500 600; font-display: swap; src: url(/fonts/co3ZmX5slCNuHLi8bLeY9MK7whWMhyjYrEtImSo.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 500 600; font-display: swap; src: url(/fonts/co3bmX5slCNuHLi8bLeY9MK7whWMhyjYp3tKgS4.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 500 600; font-display: swap; src: url(/fonts/co3bmX5slCNuHLi8bLeY9MK7whWMhyjYqXtK.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* Montserrat — eyebrows, etiquetas, UI */
+@font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(/fonts/JTUSjIg1_i6t8kCHKm459Wdhyzbi.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 400 800; font-display: swap; src: url(/fonts/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* Lato — cuerpo de texto */
+@font-face { font-family: 'Lato'; font-style: italic; font-weight: 400; font-display: swap; src: url(/fonts/S6u8w4BMUTPHjxsAUi-qJCY.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Lato'; font-style: italic; font-weight: 400; font-display: swap; src: url(/fonts/S6u8w4BMUTPHjxsAXC-q.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Lato'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/S6uyw4BMUTPHjxAwXjeu.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Lato'; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/S6uyw4BMUTPHjx4wXg.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Lato'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/S6u9w4BMUTPHh6UVSwaPGR_p.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Lato'; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/S6u9w4BMUTPHh6UVSwiPGQ.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ==========================================================================
+   Tokens de marca (hot-host-context/docs/02-marca.md).
+   Variantes "-deep"/"-ink": mismo tono, oscurecido para cumplir WCAG AA
+   (fire #E25822 sobre crema da 3.5:1; fire-deep da 4.7:1 y 5:1 con texto blanco).
+   `static`: emite siempre todas las variables, porque los <style> de los
+   componentes Astro las usan con var(--…) y Tailwind no los escanea.
+   ========================================================================== */
+@theme static {
+  --color-ink: #0b0b0b;
+  --color-coal: #161512;
+  --color-coal-2: #1f1d19;
+  --color-gold: #c09f24;
+  --color-gold-ink: #7d6716;
+  --color-fire: #e25822;
+  --color-fire-deep: #c2461a;
+  --color-fire-darker: #a63a14;
+  --color-cream: #fbf7ee;
+  --color-sand: #f3ecdd;
+  --color-paper: #ffffff;
+  --color-muted: #5e5647;
+  --color-dim: #b9b0a0;
+  --color-snow: #f5f0e6;
+  --color-line: #e4d9c0;
+  --color-field: #8c8270;
+  --color-success: #1e6b45;
+  --color-error: #b3261e;
+  --color-warn: #8a5a00;
+
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-accent: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-ui: 'Montserrat', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Lato', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --radius-card: 1.125rem;
+  --shadow-card: 0 1px 2px rgb(11 11 11 / 0.04), 0 18px 40px -22px rgb(62 43 17 / 0.28);
+  --shadow-lift: 0 2px 4px rgb(11 11 11 / 0.05), 0 28px 60px -28px rgb(62 43 17 / 0.4);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  html.menu-open body { overflow: hidden; }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+  p, li { text-wrap: pretty; }
+  strong { font-weight: 700; }
+
+  ::selection { background-color: var(--color-fire); color: #fff; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-fire-deep);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  .on-dark :focus-visible { outline-color: var(--color-gold); }
+
+  [hidden] { display: none !important; }
+}
+
+/* ==========================================================================
+   Componentes de marca
+   ========================================================================== */
+@layer components {
+  .container-x {
+    width: 100%;
+    max-width: 76rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) { .container-x { padding-inline: 1.5rem; } }
+  @media (min-width: 1024px) { .container-x { padding-inline: 2.5rem; } }
+
+  .section { padding-block: 4.5rem; }
+  @media (min-width: 1024px) { .section { padding-block: 7rem; } }
+
+  /* Superficie oscura: portada y cierre ("libro con sobrecubierta") */
+  .on-dark {
+    background-color: var(--color-ink);
+    color: var(--color-snow);
+  }
+  .bg-ember {
+    background:
+      radial-gradient(55% 75% at 92% 108%, rgb(226 88 34 / 0.3), transparent 70%),
+      radial-gradient(45% 55% at 4% -12%, rgb(192 159 36 / 0.13), transparent 70%),
+      var(--color-ink);
+  }
+
+  /* Eyebrow: Montserrat 600, mayúsculas, con filete dorado */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-fire-deep);
+  }
+  .eyebrow::before {
+    content: '';
+    flex: none;
+    width: 1.75rem;
+    height: 1px;
+    background-color: var(--color-gold);
+  }
+  .on-dark .eyebrow { color: var(--color-fire); }
+
+  .h-display { font-size: clamp(2.35rem, 1.35rem + 4.3vw, 4.5rem); }
+  .h-page { font-size: clamp(2.15rem, 1.35rem + 3.4vw, 3.9rem); }
+  .h-section { font-size: clamp(1.85rem, 1.3rem + 2.3vw, 2.9rem); }
+  .h-card { font-size: clamp(1.3rem, 1.15rem + 0.6vw, 1.6rem); }
+
+  /* Acento en titulares: Playfair itálica */
+  .accent {
+    font-style: italic;
+    font-weight: 600;
+    color: var(--color-fire-deep);
+  }
+  .on-dark .accent { color: var(--color-gold); }
+
+  .lead {
+    font-size: clamp(1.125rem, 1.02rem + 0.45vw, 1.3rem);
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+  .on-dark .lead { color: var(--color-dim); }
+
+  /* Frase destacada: Cormorant itálica */
+  .quote {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1.55rem, 1.2rem + 1.5vw, 2.25rem);
+    line-height: 1.3;
+  }
+
+  /* Numeración editorial ("01", "02.03") */
+  .num {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 600;
+    color: var(--color-gold-ink);
+    font-variant-numeric: lining-nums;
+  }
+  .on-dark .num { color: var(--color-gold); }
+
+  /* Botones */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 3rem;
+    padding: 0.85rem 1.6rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-family: var(--font-ui);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn[disabled] { opacity: 0.6; cursor: progress; }
+  .btn-sm { min-height: 2.5rem; padding: 0.6rem 1.15rem; font-size: 0.8125rem; }
+  .btn-primary { background-color: var(--color-fire-deep); color: #fff; }
+  .btn-primary:hover { background-color: var(--color-fire-darker); }
+  .btn-ghost { border-color: rgb(192 159 36 / 0.55); color: var(--color-snow); }
+  .btn-ghost:hover { border-color: var(--color-gold); background-color: rgb(192 159 36 / 0.1); }
+  .btn-outline { border-color: var(--color-ink); color: var(--color-ink); }
+  .btn-outline:hover { background-color: var(--color-ink); color: var(--color-cream); }
+
+  /* Enlace con flecha */
+  .link-arrow {
+    display: inline-block;
+    font-family: var(--font-ui);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-fire-deep);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.35em;
+    text-decoration-color: rgb(194 70 26 / 0.35);
+    transition: text-decoration-color 0.2s ease;
+  }
+  .link-arrow:hover { text-decoration-color: currentColor; }
+  /* inline-block: el subrayado del enlace no se propaga a la flecha */
+  .link-arrow > [aria-hidden='true'] {
+    display: inline-block;
+    margin-left: 0.4em;
+    transition: transform 0.2s ease;
+  }
+  .link-arrow:hover > [aria-hidden='true'] { transform: translateX(3px); }
+  .on-dark .link-arrow { color: var(--color-gold); text-decoration-color: rgb(192 159 36 / 0.4); }
+  .on-dark .link-arrow:hover { text-decoration-color: currentColor; }
+
+  /* Tarjeta blanca con borde fino (estilo de la guía de amenities) */
+  .card {
+    background-color: var(--color-paper);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+  .card-dark {
+    background-color: var(--color-coal);
+    border: 1px solid rgb(192 159 36 / 0.28);
+    border-radius: var(--radius-card);
+  }
+
+  /* Filete dorado con rombo (motivo de la base del logo) */
+  .rule-diamond {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    color: var(--color-gold);
+  }
+  .rule-diamond::before,
+  .rule-diamond::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, currentColor 35%, currentColor 65%, transparent);
+    opacity: 0.7;
+  }
+  .rule-diamond > span {
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: currentColor;
+    transform: rotate(45deg);
+  }
+
+  /* Chips de filtros (experiencias) */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background-color: var(--color-cream);
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+  }
+
+  /* Iconos del sprite de marca: monolínea, trazo currentColor */
+  .icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Texto legal / largo */
+  .prose-hh { color: var(--color-muted); max-width: 46rem; }
+  .prose-hh h2 {
+    margin-top: 2.75rem;
+    margin-bottom: 0.9rem;
+    font-size: clamp(1.35rem, 1.2rem + 0.6vw, 1.7rem);
+    color: var(--color-ink);
+  }
+  .prose-hh h2:first-child { margin-top: 0; }
+  .prose-hh p + p { margin-top: 1rem; }
+  .prose-hh ul { margin-top: 0.75rem; padding-left: 1.2rem; list-style: disc; }
+  .prose-hh li { margin-top: 0.4rem; }
+  .prose-hh li::marker { color: var(--color-gold); }
+  .prose-hh a { color: var(--color-fire-deep); text-decoration: underline; text-underline-offset: 0.2em; }
+  .prose-hh dl { display: grid; gap: 0.35rem 1.5rem; margin-top: 0.75rem; }
+  @media (min-width: 640px) { .prose-hh dl { grid-template-columns: max-content 1fr; } }
+  .prose-hh dt { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 600; color: var(--color-ink); }
+  .prose-hh dd { margin: 0 0 0.5rem; }
+
+  /* ---------- Formularios ---------- */
+  .field { display: grid; gap: 0.45rem; align-content: start; }
+  .field-label,
+  .field > label {
+    font-family: var(--font-ui);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--color-ink);
+  }
+  .input {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.75rem 0.95rem;
+    border: 1px solid var(--color-field);
+    border-radius: 0.75rem;
+    background-color: #fff;
+    color: var(--color-ink);
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.4;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .input::placeholder { color: #8a8170; opacity: 1; }
+  .input:focus { outline: none; border-color: var(--color-fire-deep); box-shadow: 0 0 0 3px rgb(194 70 26 / 0.2); }
+  .input[aria-invalid='true'] { border-color: var(--color-error); box-shadow: 0 0 0 3px rgb(179 38 30 / 0.12); }
+  .input:disabled { background-color: var(--color-sand); color: var(--color-muted); cursor: not-allowed; }
+  select.input {
+    appearance: none;
+    padding-right: 2.6rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d6716' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 1.1rem;
+  }
+  textarea.input { min-height: 8rem; resize: vertical; }
+  .field-help { font-size: 0.8125rem; line-height: 1.5; color: var(--color-muted); }
+
+  .check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  .check input {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.15rem;
+    accent-color: var(--color-fire-deep);
+    cursor: pointer;
+  }
+
+  /* Mensajes de estado (formularios) */
+  .form-status:empty { display: none; }
+  .form-status {
+    padding: 0.85rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-line);
+    background-color: var(--color-sand);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--color-ink);
+  }
+  .form-status[data-kind='validation'],
+  .form-status[data-kind='error'] { border-color: rgb(179 38 30 / 0.35); background-color: #fbeeec; color: var(--color-error); }
+  .form-status[data-kind='warning'] { border-color: rgb(138 90 0 / 0.35); background-color: #fbf3e2; color: var(--color-warn); }
+  .form-status[data-kind='success'],
+  .form-status[data-kind='selected'] { border-color: rgb(30 107 69 / 0.35); background-color: #eaf5ee; color: var(--color-success); }
+  .form-status[data-kind='uploading'],
+  .form-status[data-kind='sending'] { border-color: rgb(192 159 36 / 0.45); background-color: #faf3dd; color: var(--color-gold-ink); }
+}
+
+/* ==========================================================================
+   Animación de entrada (solo con JS y sin "reducir movimiento")
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  html.js .reveal.is-visible { opacity: 1; transform: none; }
+}

@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import PillarHouse from '../../components/PillarHouse.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+import { PILLARS } from '../../data/navigation';
+
+const steps = [
+  {
+    lead: 'Primero sistematizamos lo operativo',
+    pillar: PILLARS[0],
+    rest: 'para que la base sea sólida antes de construir nada encima.',
+  },
+  {
+    lead: 'Después construimos el canal propio',
+    pillar: PILLARS[1],
+    rest: 'para que no dependas para siempre de lo que decidan las plataformas.',
+  },
+  {
+    lead: 'Y sobre esa base, añadimos experiencias y detalles',
+    pillar: PILLARS[2],
+    rest: 'que suben el valor percibido, la reputación, y con ella, lo que tu propiedad puede cobrar por noche.',
+  },
+];
+---
+
+<BaseLayout
+  title="Pilares"
+  description="Tu propiedad no es un activo estático: es una inversión que se puede hacer crecer. Método con toque humano, Canal Directo y Motor de Experiencias."
+>
+  <PageHero eyebrow="Los 3 pilares" crumbs={[{ label: 'Pilares' }]}>
+    <Fragment slot="title">
+      Tu propiedad no es un activo estático. <span class="accent">Es una inversión que se puede hacer crecer.</span>
+    </Fragment>
+  </PageHero>
+
+  <section class="section" aria-label="Valor con el tiempo">
+    <div class="container-x">
+      <div class="grid gap-6 lg:grid-cols-2 lg:gap-8">
+        <article class="card reveal bg-sand p-8 lg:p-10">
+          <p class="font-ui text-xs font-semibold tracking-[0.2em] text-muted uppercase">Sin método</p>
+          <p class="mt-4 font-display text-[1.45rem] leading-snug font-semibold">
+            Un piso vacacional gestionado de cualquier manera pierde valor con el tiempo:
+          </p>
+          <p class="mt-4 text-muted">se desgasta, se queda anticuado, pierde posición frente a la competencia.</p>
+        </article>
+        <article class="card reveal p-8 lg:p-10" style="--reveal-delay: 120ms">
+          <p class="font-ui text-xs font-semibold tracking-[0.2em] text-fire-deep uppercase">Con método</p>
+          <p class="mt-4 font-display text-[1.45rem] leading-snug font-semibold">
+            Un piso gestionado con método gana valor con el tiempo:
+          </p>
+          <p class="mt-4 text-muted">
+            cada temporada mejora un poco, cada detalle que se añade se queda, cada experiencia que funciona se repite.
+          </p>
+        </article>
+      </div>
+
+      <blockquote class="reveal mx-auto mt-16 max-w-4xl text-center lg:mt-24">
+        <p class="quote">
+          En Hot Host no vemos tu propiedad como una habitación que hay que llenar. La vemos como una inversión que hay que
+          proteger y hacer crecer, temporada tras temporada.
+        </p>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="on-dark section bg-ember" aria-labelledby="como-lo-hacemos">
+    <div class="container-x grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
+      <div>
+        <p class="eyebrow">¿Cómo lo hacemos?</p>
+        <h2 id="como-lo-hacemos" class="h-section mt-4 text-snow">Añadiendo valor de forma sistemática, no de golpe.</h2>
+        <ol class="mt-10 grid gap-8">
+          {
+            steps.map((step) => (
+              <li class="reveal grid grid-cols-[3rem_1fr] gap-4">
+                <span class="num text-4xl leading-none">{step.pillar.number}</span>
+                {/* En una sola línea: con saltos, compressHTML metería espacios dentro del paréntesis. */}
+                <p class="text-dim">
+                  <span class="text-snow">{step.lead}</span> (<a href={step.pillar.href} class="font-semibold text-gold underline decoration-gold/40 underline-offset-4 hover:decoration-gold">{step.pillar.label}</a>) — {step.rest}
+                </p>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <PillarHouse variant="full" />
+    </div>
+  </section>
+
+  <section class="section" aria-label="Valor que se acumula">
+    <div class="container-x">
+      <div class="reveal mx-auto max-w-3xl text-center">
+        <div class="rule-diamond mx-auto max-w-xs" aria-hidden="true"><span></span></div>
+        <p class="mt-8 font-display text-[clamp(1.6rem,1.2rem+1.6vw,2.4rem)] leading-tight font-bold">
+          Cada pilar se apoya en el anterior.
+        </p>
+        <p class="lead mt-5">
+          No es una lista de extras — es una forma de construir valor que se acumula con el tiempo, en vez de agotarse.
+        </p>
+      </div>
+      <ul class="mt-14 grid gap-5 md:grid-cols-3">
+        {
+          PILLARS.map((pillar, index) => (
+            <li class="reveal" style={`--reveal-delay: ${index * 100}ms`}>
+              <a href={pillar.href} class="pillar-link">
+                <span class="num text-3xl">{pillar.number}</span>
+                <span class="font-display text-xl font-bold">{pillar.label}</span>
+                <span class="link-arrow mt-auto pt-6 text-sm">
+                  Ver pilar <span aria-hidden="true">→</span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBanner />
+</BaseLayout>
+
+<style>
+  .pillar-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    height: 100%;
+    padding: 1.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    background-color: var(--color-paper);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .pillar-link:hover {
+    border-color: var(--color-gold);
+    box-shadow: var(--shadow-lift);
+    transform: translateY(-3px);
+  }
+</style>

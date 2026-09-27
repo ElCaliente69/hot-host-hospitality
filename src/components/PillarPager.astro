@@ -1,0 +1,67 @@
+---
+/** Navegación anterior/siguiente entre las tres subpáginas de Pilares. */
+import { PILLARS } from '../data/navigation';
+
+interface Props {
+  current: string;
+}
+
+const { current } = Astro.props;
+const index = PILLARS.findIndex((pillar) => pillar.href === current);
+const prev = index > 0 ? PILLARS[index - 1] : undefined;
+const next = index < PILLARS.length - 1 ? PILLARS[index + 1] : undefined;
+---
+
+<nav aria-label="Otros pilares" class="container-x pb-20 lg:pb-28">
+  <div class="grid gap-4 border-t border-line pt-10 sm:grid-cols-2">
+    {
+      prev ? (
+        <a href={prev.href} class="pager-link">
+          <span class="font-ui text-xs font-semibold tracking-[0.2em] text-muted uppercase">← Pilar anterior</span>
+          <span class="mt-2 flex items-baseline gap-3">
+            <span class="num text-2xl">{prev.number}</span>
+            <span class="font-display text-xl font-bold">{prev.label}</span>
+          </span>
+        </a>
+      ) : (
+        <a href="/pilares" class="pager-link">
+          <span class="font-ui text-xs font-semibold tracking-[0.2em] text-muted uppercase">← Visión general</span>
+          <span class="mt-2 font-display text-xl font-bold">Los 3 pilares</span>
+        </a>
+      )
+    }
+    {
+      next ? (
+        <a href={next.href} class="pager-link sm:text-right">
+          <span class="font-ui text-xs font-semibold tracking-[0.2em] text-muted uppercase">Siguiente pilar →</span>
+          <span class="mt-2 flex items-baseline gap-3 sm:justify-end">
+            <span class="num text-2xl">{next.number}</span>
+            <span class="font-display text-xl font-bold">{next.label}</span>
+          </span>
+        </a>
+      ) : (
+        <a href="/como-funciona" class="pager-link sm:text-right">
+          <span class="font-ui text-xs font-semibold tracking-[0.2em] text-muted uppercase">Siguiente →</span>
+          <span class="mt-2 font-display text-xl font-bold">Cómo funciona</span>
+        </a>
+      )
+    }
+  </div>
+</nav>
+
+<style>
+  .pager-link {
+    display: grid;
+    align-content: start;
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    background-color: var(--color-paper);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .pager-link:hover {
+    border-color: var(--color-gold);
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+  }
+</style>
