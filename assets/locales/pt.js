@@ -36,10 +36,6 @@ window.HOT_HOST_LOCALES.pt = {
     ctaEyebrow: "Uma conversa franca, sem compromisso",
     ctaTitle: "O seu alojamento poderia render mais e dar-lhe muito menos trabalho?",
     ctaButton: "Pedir uma auditoria →",
-    offerKicker: "Oferta por tempo limitado",
-    offerTitle: "Auditoria de rentabilidade gratuita",
-    offerDeadline: "GRÁTIS ATÉ 30 DE SETEMBRO",
-    navOffer: "GRÁTIS ATÉ 30 DE SETEMBRO",
     carouselRole: "carrossel",
     previousImage: "Imagem anterior",
     nextImage: "Imagem seguinte",
@@ -60,12 +56,8 @@ window.HOT_HOST_LOCALES.pt = {
     lead: "A Hot Host transforma alojamentos com potencial em operações mais rentáveis, memoráveis e fáceis de gerir, onde quer que estejam. Cuidamos dos detalhes para que recupere tempo e controlo.",
     discover: "Ver como fazemos →",
     analyse: "Pedir uma auditoria",
-    auditPromptLead: "Descubra quanto poderia render o seu alojamento com uma análise clara dos preços, da ocupação e das oportunidades. Gratuita e sem compromisso.",
-    auditPromptButton: "Quero a minha auditoria gratuita →",
-    auditPromptClose: "Fechar esta oferta",
     years: "Anos em hospitalidade",
     support: "Apoio ao hóspede",
-    starsLabel: "Cinco estrelas",
     experiences: "Experiências que deixam marca",
     logoAlt: "Logótipo da Hot Host Hospitality com três letras H",
     heroPropertyAlts: [
@@ -73,7 +65,6 @@ window.HOT_HOST_LOCALES.pt = {
       "Casa contemporânea iluminada ao entardecer entre árvores",
       "Villa branca contemporânea com piscina exterior"
     ],
-    badge: "Premium com personalidade",
     servicesEyebrow: "Estratégia, operações e hospitalidade",
     servicesTitle: "Tudo o que faz um alojamento funcionar de verdade.",
     servicesLead: "A Hot Host conseguiria vender gelo a um esquimó ou leite a uma vaca. Mas preferimos vender melhor o seu alojamento: com estratégia, serviço e sem conversa fiada.",
@@ -86,46 +77,7 @@ window.HOT_HOST_LOCALES.pt = {
       ["Conceção", "Definimos as operações, os padrões e a experiência do hóspede.", "Transformamos o diagnóstico em padrões, mensagens, preços, automatizações e numa experiência coerente com a identidade do alojamento."],
       ["Execução", "Coordenamos hóspedes, calendários e fornecedores.", "Colocamos o plano em prática e ligamos calendários, hóspedes e fornecedores para que cada tarefa tenha um responsável e um momento definido."],
       ["Otimização", "Medimos, aprendemos e melhoramos continuamente.", "Analisamos os resultados, detetamos desvios e ajustamos a estratégia. Reforçamos o que funciona; corrigimos o que não funciona, sem dramatizar."]
-    ],
-    comparison: {
-      eyebrow: "Comparação de receitas",
-      title: "Compare três formas de rentabilizar a sua propriedade.",
-      lead: "Selecione o seu modelo de arrendamento atual e introduza apenas o preço que pratica atualmente. Os restantes pressupostos são calculados automaticamente.",
-      inputsTitle: "A sua situação atual",
-      modelLabel: "Como arrenda atualmente a propriedade?",
-      currencyLabel: "Selecionar moeda",
-      assumptionsTitle: "Pressupostos calculados",
-      traditionalRent: "Renda mensal tradicional",
-      touristRate: "Tarifa turística média por noite",
-      touristOccupancy: "Ocupação do mercado/outra agência",
-      hotHostRate: "Tarifa por noite da Hot Host",
-      hotHostOccupancy: "Ocupação da Hot Host",
-      metric: "Indicador",
-      traditional: "Arrendamento tradicional",
-      tourist: "Outra agência turística",
-      hotHost: "Com a Hot Host",
-      monthlyIncome: "Rendimento bruto mensal",
-      annualIncome: "Rendimento bruto anual",
-      occupiedNights: "Noites ocupadas por ano",
-      averageRate: "Preço médio por noite",
-      ownerTime: "Tempo exigido ao proprietário",
-      pricing: "Definição de preços",
-      guestCare: "Apoio ao hóspede",
-      traditionalNights: "100% de ocupação",
-      traditionalRate: "Renda mensal fixa",
-      ownerTimeHigh: "Baixo",
-      ownerTimeLow: "Reduzido",
-      pricingFixed: "Preço fixo",
-      pricingManual: "Gerida pela agência",
-      pricingDynamic: "Otimização dinâmica",
-      guestCareTenant: "Autonomia do inquilino",
-      guestCareOwner: "Coordenado pela agência",
-      guestCareHotHost: "A cargo da Hot Host",
-      resultLabel: "Rendimento bruto anual estimado com a Hot Host",
-      versusTraditional: "face ao arrendamento tradicional",
-      versusTourist: "face a outra agência turística",
-      disclaimer: "Estimativa indicativa do rendimento bruto com base nos dados introduzidos e em critérios internos de desempenho. Valores antes de impostos, custos e comissões; não constituem qualquer garantia."
-    }
+    ]
   },
   servicesPage: {
     eyebrow: "Uma solução para cada dor de cabeça operacional",
@@ -142,7 +94,7 @@ window.HOT_HOST_LOCALES.pt = {
   about: {
     breadcrumb: "Sobre a Hot Host",
     eyebrow: "Hospitalidade aprendida no terreno",
-    title: ["Hospitalidade genuína.", "Padrões hoteleiros ★★★★★"],
+    title: ["Hospitalidade genuína.", "Padrões hoteleiros"],
     lead: "A Hot Host leva a disciplina de um grande hotel a cada alojamento, com a proximidade de quem sabe que por trás de cada reserva há um hóspede e, por trás de cada propriedade, alguém que gostaria de dormir descansado.",
     prose: [
       {
@@ -181,14 +133,6 @@ window.HOT_HOST_LOCALES.pt = {
       ["♡", "Hospitalidade", "Escutar, antecipar e resolver com empatia.", "A verdadeira hospitalidade começa antes da chegada e prolonga-se para além da partida. Observamos o contexto de cada hóspede, adaptamos a comunicação e resolvemos imprevistos com proximidade, para que a atenção pareça pessoal sem comprometer a eficiência da operação."],
       ["↗", "Rentabilidade", "Cada decisão operacional deve criar valor sustentável.", "Rentabilidade não significa apenas cobrar mais ou ocupar todas as noites. Equilibramos preço, custos, conservação da propriedade e qualidade da experiência para melhorar a margem de forma responsável, com decisões mensuráveis que protegem tanto o desempenho imediato como o valor do ativo a longo prazo."],
       ["✦", "Personalidade", "Experiências com brilho, sem transformar o alojamento num circo.", "Cada propriedade deve ter uma identidade reconhecível e coerente com o lugar, o público e a promessa do anúncio. Criamos detalhes memoráveis com intenção e bom senso, evitando artifícios gratuitos para que a personalidade acrescente valor à estadia em vez de distrair do essencial."]
-    ],
-    voicesEyebrow: "Nas palavras dos nossos clientes",
-    voicesTitle: "Uma tranquilidade que se sente.",
-    voicesLead: "Proprietários que recuperaram tempo, controlo e confiança no seu alojamento.",
-    quotes: [
-      ["Desde que a Hot Host assumiu a gestão, deixei de viver agarrada ao telefone. A ocupação melhorou, os hóspedes chegam mais bem informados e a propriedade voltou a parecer um investimento, em vez de um segundo emprego.", "Laura Benítez", "Proprietária de dois apartamentos · Sevilha"],
-      ["Aperfeiçoaram detalhes que nunca tínhamos considerado: o tom de cada mensagem, a chegada e as recomendações do bairro. As nossas avaliações mais recentes mencionam precisamente esses aspetos, e a diferença sente-se em cada estadia.", "Daniel Ferrer", "Anfitrião de alojamento turístico · Valência"],
-      ["Tivemos um incidente num sábado à noite e resolveram-no antes de afetar o hóspede. Recebemos informação clara, uma solução e o devido acompanhamento. Esse nível de tranquilidade era exatamente o que procurávamos.", "Marta Rossi", "Proprietária internacional · Madrid / Milão"]
     ]
   },
   contact: {
@@ -314,7 +258,7 @@ window.HOT_HOST_LOCALES.pt = {
       title: "Gestão integral",
       imageAlt: "Lista de verificação da gestão operacional disposta sobre uma secretária",
       summary: "O seu alojamento gerido do princípio ao fim com experiência hoteleira, controlo operacional e comunicação transparente.",
-      price: ["18% da receita do alojamento", "Mín. 220 EUR/mês · Inclui experiência do hóspede, gestão de receitas e coordenação operacional remota"],
+      price: ["Desde 20% da receita do alojamento", ""],
       tag: "Controlo total, verdadeira tranquilidade",
       intro: "Centralizamos as operações do alojamento para que os proprietários mantenham a visibilidade sem suportar o peso da gestão diária.",
       benefits: ["Configuração e otimização dos anúncios", "Gestão de reservas e calendários", "Comunicação com os hóspedes antes, durante e depois de cada estadia", "Coordenação de limpeza, lavandaria e manutenção", "Acompanhamento operacional e relatórios para o proprietário"],
@@ -409,7 +353,7 @@ window.HOT_HOST_LOCALES.pt = {
       title: "Auditoria de rentabilidade",
       imageAlt: "Gráficos, calculadora e lápis sobre uma mesa de análise",
       summary: "Um diagnóstico comercial e operacional para identificar perdas, oportunidades e prioridades de melhoria.",
-      price: ["249 EUR", "Grátis até 30 de setembro"],
+      price: ["249 EUR", ""],
       tag: "Primeiro compreender, depois melhorar",
       intro: "Analisamos o alojamento como produto, operação e ativo para identificar as ações com maior impacto potencial.",
       benefits: ["Diagnóstico do anúncio", "Comparação com a concorrência", "Revisão de custos e processos", "Mapa de oportunidades", "Plano prioritário para 30–90 dias"],

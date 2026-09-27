@@ -10,12 +10,6 @@
   const COOKIE_NOTICE_STORAGE_KEY = "hotHostCookieNoticeSeen";
   const SUPPORTED_LANGUAGES = ["es", "en", "fr", "it", "de", "pl", "nl", "pt", "el"];
   const LANGUAGE_NAMES = { es: "Español", en: "English", fr: "Français", it: "Italiano", de: "Deutsch", pl: "Polski", nl: "Nederlands", pt: "Português", el: "Ελληνικά" };
-  const SUPPORTED_CURRENCIES = ["EUR", "USD", "GBP", "CHF", "PLN"];
-  const CURRENCY_SYMBOLS = { EUR: "€", USD: "$", GBP: "£", CHF: "CHF", PLN: "zł" };
-  const EXCHANGE_RATES_ENDPOINT = "https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD,GBP,CHF,PLN";
-  // ECB reference fallback from 2026-07-21; live public rates replace it when available.
-  const FALLBACK_RATES_PER_EUR = { EUR: 1, USD: 1.1418, GBP: 0.85205, CHF: 0.9259, PLN: 4.3305 };
-  const MAX_EARNINGS_SCALE = 100;
   const CONTACT_EMAIL = "direccion@hhosthospitality.com";
   const MIN_PROPERTY_PHOTOS = 10;
   const MAX_PROPERTY_PHOTOS = 60;
@@ -30,31 +24,7 @@
   const APPOINTMENT_MIN_LEAD_HOURS = 24;
   const APPOINTMENT_WEEKDAYS = [1, 2, 3, 4];
   const APPOINTMENT_TIMES = ["11:00", "12:00", "13:00"];
-  const AUDIT_OFFER_END = Date.parse("2026-09-30T23:59:59+02:00");
-  const MARKET_OCCUPANCY = 63;
-  const HOT_HOST_OCCUPANCY = 72;
-  const HOT_HOST_RATE_MULTIPLIER = 1.30;
-  const HOT_HOST_MANAGEMENT_FEE = 0.20;
-  const DEFAULT_EARNINGS = {
-    rentalModel: "traditional",
-    currency: "EUR",
-    traditionalRent: 1200,
-    touristRate: 110,
-    touristOccupancy: MARKET_OCCUPANCY,
-    hotHostRate: 110 * HOT_HOST_RATE_MULTIPLIER,
-    hotHostOccupancy: HOT_HOST_OCCUPANCY
-  };
-  const DEFAULT_PROFITABILITY = {
-    situation: "traditional",
-    currency: "EUR",
-    traditionalRent: 1200,
-    nightlyRate: "",
-    occupancy: "",
-    externalFee: 20
-  };
-  let exchangeRatesPerEur = Object.assign({}, FALLBACK_RATES_PER_EUR);
-  let exchangeRatesRequest = null;
-  let profitabilityState = Object.assign({}, DEFAULT_PROFITABILITY);
+  const AUDIT_PROMOTION_END = Date.parse("2026-10-30T23:59:59+01:00");
 
   const favicon = document.createElement("link");
   favicon.rel = "icon";
@@ -107,6 +77,32 @@
     ]
   };
 
+  const OFFER_MODEL_IMAGES = [
+    { id: "photo-1542314831-068cd1dbfeeb", position: "center" },
+    { id: "photo-1460925895917-afdab827c52f", position: "center" },
+    { id: "photo-1500530855697-b586d89ba3ee", position: "center" }
+  ];
+  const COMMITMENT_IMAGES = [
+    { id: "photo-1521737711867-e3b97375f902", position: "center" },
+    { id: "photo-1618221195710-dd6b41faaea6", position: "center" }
+  ];
+  const PROFITABILITY_METHOD_IMAGES = [
+    { id: "photo-1551288049-bebda4e38f71", position: "center" },
+    { id: "photo-1741156386380-0236c72eb6f9", position: "center" },
+    { id: "photo-1554224155-8d04cb21cd6c", position: "center" }
+  ];
+  const ARCHITECTURE_PAGE_IMAGES = {
+    "web-direct": {
+      hero: { id: "photo-1460925895917-afdab827c52f", position: "center" },
+      detail: { id: "photo-1600566753051-f0b89df2dd90", position: "center" }
+    },
+    experiences: {
+      hero: { id: "photo-1500530855697-b586d89ba3ee", position: "center" },
+      detail: { id: "photo-1600210492486-724fe5c67fb0", position: "center" }
+    }
+  };
+  const CASE_EXAMPLE_IMAGE = { id: "photo-1600585154340-be6161a56a0c", position: "center" };
+
   const SERVICE_DEFINITIONS = [
     { key: "gestion-integral", path: "gestion-integral.html", icon: "⌂", imageId: "photo-1484480974693-6ca0a78fb36b", imagePosition: "center" },
     { key: "guest-experience", path: "guest-experience.html", icon: "✦", imageId: "photo-1600210492486-724fe5c67fb0", imagePosition: "center" },
@@ -132,37 +128,6 @@
 
   function imageUrl(photoId, width, height) {
     return `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=${width}&h=${height}&q=85`;
-  }
-
-  function loadExchangeRates() {
-    if (exchangeRatesRequest) return exchangeRatesRequest;
-    if (!window.fetch) return Promise.resolve(exchangeRatesPerEur);
-
-    exchangeRatesRequest = window.fetch(EXCHANGE_RATES_ENDPOINT, { headers: { Accept: "application/json" } })
-      .then(function (response) {
-        if (!response.ok) throw new Error("Exchange-rate request failed");
-        return response.json();
-      })
-      .then(function (data) {
-        const nextRates = { EUR: 1 };
-        SUPPORTED_CURRENCIES.slice(1).forEach(function (currency) {
-          const rate = Number(data && data.rates && data.rates[currency]);
-          if (!Number.isFinite(rate) || rate <= 0) throw new Error("Invalid exchange rate");
-          nextRates[currency] = rate;
-        });
-        exchangeRatesPerEur = nextRates;
-        return exchangeRatesPerEur;
-      })
-      .catch(function () {
-        exchangeRatesRequest = null;
-        return exchangeRatesPerEur;
-      });
-
-    return exchangeRatesRequest;
-  }
-
-  function isAuditOfferActive() {
-    return Date.now() <= AUDIT_OFFER_END;
   }
 
   // ISO 3166-1 coverage plus Kosovo, with local fallback names and international dialling codes.
@@ -431,20 +396,20 @@
         descriptions: {
           home: "Gestión premium para alojamientos turísticos más rentables, memorables y fáciles de operar.",
           services: "Servicios de gestión, operaciones, experiencia del huésped y rentabilidad para alojamientos turísticos.",
-          about: "Más de una década de experiencia hotelera entre América y Europa al servicio de tu alojamiento.",
+          about: "Más de una década de trayectoria del fundador en hospitalidad entre América y Europa.",
           contact: "Descubre el potencial de tu alojamiento con una primera auditoría de rentabilidad y operación de Hot Host Hospitality."
         }
       },
       shell: {
         nav: { home: "Inicio", services: "Servicios", about: "Sobre Hot Host", contact: "Contacto" },
-        assess: "Auditar mi propiedad",
+        assess: "Analizar mi propiedad",
         openMenu: "Abrir menú",
         closeMenu: "Cerrar menú",
         languageLabel: "Seleccionar idioma del sitio",
-        footerText: "Hacemos que los alojamientos funcionen mejor, rindan más y se recuerden de verdad.",
+        footerText: "Gestión, web propia, reservas directas y desarrollo de alojamientos turísticos.",
         explore: "Explorar",
         services: "Servicios",
-        location: "Europa y América · Hospitalidad sin fronteras"
+        location: "Base en Sevilla · Alcance geográfico sujeto a disponibilidad y propuesta."
       },
       common: {
         home: "Inicio",
@@ -452,15 +417,11 @@
         exploreService: "Explorar servicio →",
         viewDetail: "Ver detalle →",
         includes: "Incluye",
-        requestAssessment: "Solicitar auditoría",
+        requestAssessment: "Analizar mi propiedad",
         priceDisclaimer: "Los precios no incluyen impuestos ni costes de terceros.",
         ctaEyebrow: "Hablemos claro, sin compromiso",
         ctaTitle: "¿Tu alojamiento podría ganar más y darte bastante menos trabajo?",
-        ctaButton: "Solicitar auditoría →",
-        offerKicker: "Oferta por tiempo limitado",
-        offerTitle: "Auditoría de rentabilidad gratis",
-        offerDeadline: "Gratis hasta 30 de septiembre",
-        navOffer: "Gratis hasta 30 de septiembre",
+        ctaButton: "Analizar mi propiedad →",
         carouselRole: "carrusel",
         previousImage: "Imagen anterior",
         nextImage: "Imagen siguiente",
@@ -479,11 +440,15 @@
         title: "Más rentabilidad.",
         titleAccent: "Mejores estancias. Menos líos.",
         lead: "Hot Host convierte alojamientos con potencial en operaciones más rentables, memorables y fáciles de llevar, estén donde estén. Nosotros cuidamos el detalle; tú recuperas tiempo y control.",
-        discover: "Ver cómo lo hacemos →",
-        analyse: "Solicitar auditoría",
+        discover: "Conocer cómo trabajamos",
+        analyse: "Analizar mi propiedad",
+        credibility: [
+          ["Más de 10 años", "Trayectoria del fundador en hospitalidad"],
+          ["Un solo criterio", "Estrategia y operación conectadas"],
+          ["Plan personalizado", "Alcance definido para cada propiedad"]
+        ],
         years: "Años en hospitalidad",
         support: "Atención al huésped",
-        starsLabel: "Cinco estrellas",
         experiences: "Experiencias que dejan huella",
         logoAlt: "Logotipo de Hot Host Hospitality con tres haches",
         heroPropertyAlts: [
@@ -491,53 +456,10 @@
           "Casa contemporánea iluminada al atardecer entre árboles",
           "Villa blanca contemporánea con piscina exterior"
         ],
-        badge: "Premium con personalidad",
-        auditPromptLead: "Descubre cuánto podría rendir tu propiedad con una revisión clara de precio, ocupación y oportunidades. Gratis y sin compromiso.",
-        auditPromptButton: "Quiero mi auditoría gratis →",
-        auditPromptClose: "Cerrar esta oferta",
         servicesEyebrow: "Estrategia, operación y hospitalidad",
         servicesTitle: "Todo lo que hace que un alojamiento funcione de verdad.",
         servicesLead: "Hot Host es capaz de vender hielo a un esquimal o leche a una vaca. Pero preferimos vender mejor tu alojamiento: con estrategia, servicio y cero humo.",
         allServices: "Ver todos los servicios",
-        comparison: {
-          eyebrow: "Comparador de ingresos",
-          title: "Tres formas de rentabilizar la misma propiedad.",
-          lead: "Selecciona tu modelo de alquiler actual e introduce solo el precio que cobras. El resto de los supuestos se calcula automáticamente.",
-          inputsTitle: "Tu situación actual",
-          modelLabel: "¿Cómo alquilas actualmente la propiedad?",
-          currencyLabel: "Seleccionar moneda",
-          assumptionsTitle: "Supuestos calculados",
-          traditionalRent: "Alquiler tradicional al mes",
-          touristRate: "Tarifa turística media por noche",
-          touristOccupancy: "Ocupación media de otra agencia",
-          hotHostRate: "Tarifa por noche con Hot Host",
-          hotHostOccupancy: "Ocupación con Hot Host",
-          metric: "Indicador",
-          traditional: "Alquiler tradicional",
-          tourist: "Otra agencia turística",
-          hotHost: "Gestión Hot Host",
-          monthlyIncome: "Ingreso bruto mensual",
-          annualIncome: "Ingreso bruto anual",
-          occupiedNights: "Noches ocupadas al año",
-          averageRate: "Precio medio por noche",
-          ownerTime: "Dedicación del propietario",
-          pricing: "Estrategia de precios",
-          guestCare: "Atención al huésped",
-          traditionalNights: "100% de ocupación",
-          traditionalRate: "Renta fija",
-          ownerTimeHigh: "Baja",
-          ownerTimeLow: "Muy baja",
-          pricingFixed: "Fija",
-          pricingManual: "Gestionada por la agencia",
-          pricingDynamic: "Dinámica y supervisada",
-          guestCareTenant: "Relación con el inquilino",
-          guestCareOwner: "Coordinada por la agencia",
-          guestCareHotHost: "Coordinada por Hot Host",
-          resultLabel: "Ingreso bruto anual estimado con Hot Host",
-          versusTraditional: "frente al alquiler tradicional",
-          versusTourist: "frente a otra agencia turística",
-          disclaimer: "Estimación orientativa de ingresos brutos a partir de los datos introducidos y criterios internos de rendimiento. Valores antes de impuestos, financiación, mantenimiento, plataformas y honorarios; no constituyen una garantía."
-        },
         methodEyebrow: "Método Hot Host",
         methodTitle: ["La magia existe.", "Pero lleva checklist."],
         methodLead: "Combinamos empatía, tecnología, operación y medición. El huésped siente cercanía; tú conservas el control y recibes bastantes menos mensajes a deshoras.",
@@ -563,13 +485,13 @@
       about: {
         breadcrumb: "Sobre Hot Host",
         eyebrow: "Hospitalidad aprendida en primera línea",
-        title: ["Hospitalidad real.", "Estándares ★★★★★"],
+        title: ["Hospitalidad real.", "Plan adaptado a cada propiedad."],
         lead: "Hot Host lleva la disciplina de un gran hotel a cada alojamiento, con la cercanía de quien sabe que detrás de cada reserva hay una persona y detrás de cada propiedad, alguien que quiere dormir tranquilo.",
         prose: [
           {
             title: "Experiencia en primera línea",
             paragraphs: [
-              "Más de una década trabajando entre recepción, operaciones, servicio, atención al cliente y animación turística nos enseñó algo esencial: una estancia excelente no ocurre por casualidad. Se diseña, se coordina y se cuida.",
+              "Más de una década de trayectoria del fundador entre recepción, operaciones, servicio, atención al cliente y animación turística sustentan el criterio de Hot Host. Una estancia excelente no ocurre por casualidad: se diseña, se coordina y se cuida.",
               "Nuestra trayectoria une hoteles vacacionales de gran volumen en el Caribe con hotelería urbana y de costa en el Mediterráneo. Es experiencia entre América y Europa, con la exigencia operativa y el componente humano que convierten una reserva en un recuerdo."
             ]
           },
@@ -580,19 +502,19 @@
             ]
           }
         ],
-        credentialsTitle: "Experiencia que se convierte en resultados",
-        credentialsLead: "Experiencia hotelera real, visión comercial y ejecución diaria: la combinación que convierte potencial en reservas, reputación y tranquilidad para el propietario.",
+        credentialsTitle: "Trayectoria aplicada con criterio",
+        credentialsLead: "La experiencia hotelera del fundador, la visión comercial y los procesos documentados orientan cada propuesta sin prometer resultados antes de analizar la propiedad.",
         credentials: [
-          ["Más de una década en hospitalidad", "Experiencia operativa real en recepción, servicio, coordinación y resolución de incidencias. No teoría de manual: criterio probado frente al huésped."],
+          ["Más de una década de trayectoria del fundador", "Experiencia operativa real en recepción, servicio, coordinación y resolución de incidencias. No teoría de manual: criterio desarrollado frente al huésped."],
           ["Visión 360° del alojamiento", "Conectamos experiencia, costes, procesos, reputación y rentabilidad para que cada decisión sume y ninguna oportunidad se pierda entre departamentos."],
           ["Criterio internacional, atención cercana", "Trayectoria entre Caribe y Mediterráneo, Europa y América, adaptada al mercado, al entorno y a la personalidad de cada propiedad."],
-          ["Nueve idiomas, una comunicación impecable", "Reducimos malentendidos y acompañamos a propietarios y huéspedes con mensajes claros antes, durante y después de cada estancia."],
+          ["Atención en nueve idiomas", "Preparamos comunicaciones claras para propietarios y huéspedes antes, durante y después de cada estancia."],
           ["Booking, Airbnb y revenue con intención", "Optimizamos anuncios, precios y calendario para competir por valor y rentabilidad, no simplemente por ser la opción más barata."],
           ["Conversión y reputación que se impulsan", "Alineamos fotografía, texto del anuncio, experiencia y reseñas para que cada estancia excelente ayude a conseguir la siguiente reserva."],
           ["Operación documentada, control visible", "Protocolos, responsables claros, proveedores coordinados y seguimiento de incidencias dan al propietario visibilidad sin devolverle la carga diaria."],
           ["Decisiones con datos, hospitalidad con personas", "Medimos precios, ocupación, conversión y feedback para actuar con criterio y empatía. La tecnología apoya el cuidado; nunca lo sustituye."]
         ],
-        credentialsCta: "Quiero saber cuánto puede rendir mi propiedad →",
+        credentialsCta: "Analizar mi propiedad →",
         credentialsExpand: "Ver todas las credenciales",
         credentialsCollapse: "Ocultar credenciales",
         pillarsEyebrow: "Nuestros pilares",
@@ -603,13 +525,12 @@
           ["↗", "Rentabilidad", "Cada decisión operativa debe aportar valor sostenible.", "Analizamos precio, ocupación, costes, conversión y reputación como partes de una misma ecuación. Buscamos mejorar el beneficio sin deteriorar el activo ni la experiencia: vender mejor, evitar fugas operativas e invertir solo donde el retorno puede medirse."],
           ["✦", "Personalidad", "Experiencias con chispa, sin convertir el alojamiento en un circo.", "Encontramos aquello que hace reconocible a cada propiedad y lo convertimos en una experiencia coherente: tono, detalles, recomendaciones y pequeños gestos memorables. La personalidad diferencia el alojamiento sin artificios y ayuda a atraer al huésped que realmente encaja con él."]
         ],
-        voicesEyebrow: "Lo cuentan nuestros clientes",
-        voicesTitle: "La tranquilidad también se nota.",
-        voicesLead: "Propietarios que recuperaron tiempo, control y confianza en su alojamiento.",
-        quotes: [
-          ["Desde que Hot Host se ocupa de la gestión, ya no vivo pendiente del teléfono. La ocupación ha mejorado, los huéspedes llegan mejor informados y la propiedad vuelve a sentirse como una inversión, no como un segundo trabajo.", "Laura Benítez", "Propietaria de dos apartamentos · Sevilla"],
-          ["Cuidaron detalles que nunca habíamos considerado: el tono de los mensajes, la llegada y las recomendaciones del barrio. Las últimas reseñas mencionan justo eso y la diferencia se nota en cada estancia.", "Daniel Ferrer", "Anfitrión de vivienda turística · Valencia"],
-          ["Tuvimos una incidencia un sábado por la noche y la resolvieron antes de que afectara al huésped. Recibimos información clara, una solución y seguimiento. Ese nivel de tranquilidad era exactamente lo que buscábamos.", "Marta Rossi", "Propietaria internacional · Madrid / Milán"]
+        commitmentsEyebrow: "Atención directa y alcance controlado",
+        commitmentsTitle: "Tu propiedad no debe convertirse en un número dentro de una cartera.",
+        commitmentsLead: "Cada incorporación se valora individualmente para asegurar criterio, seguimiento y una ejecución responsable.",
+        commitments: [
+          ["Claridad y responsabilidad", "Definiremos qué hacemos, qué necesitamos de ti, quién responde por cada tarea y cómo se revisará cada decisión."],
+          ["Alcance personalizado", "Adaptaremos servicios, prioridades y seguimiento a los objetivos, la ubicación y la operación real de la propiedad."]
         ]
       },
       contact: {
@@ -619,7 +540,7 @@
         heading: "Hablemos de tu propiedad",
         lead: "Cuéntanos lo esencial y realizaremos una primera auditoría clara y concreta de rentabilidad y operación. No hace falta una presentación de 40 diapositivas; con datos honestos nos basta.",
         serviceAreaLabel: "Área de servicio",
-        serviceArea: "Gestión presencial según proyecto · Coordinación remota internacional",
+        serviceArea: "Servicio mundial · Gestión presencial según disponibilidad y propuesta",
         emailLabel: "Correo",
         hoursLabel: "Horario comercial",
         hours: "Lunes a viernes · 09:00–19:00"
@@ -735,7 +656,7 @@
           title: "Gestión integral",
           imageAlt: "Checklist de gestión operativa preparado sobre una mesa",
           summary: "Tu alojamiento, gestionado de principio a fin con visión hotelera, control operativo y comunicación transparente.",
-          price: ["18% de los ingresos del alojamiento", "Mínimo 220 €/mes · Incluye Guest Experience, Revenue Management y coordinación operativa remota"],
+          price: ["Desde el 20% de los ingresos del alojamiento", ""],
           tag: "Control total, tranquilidad real",
           intro: "Centralizamos la operación del alojamiento para que el propietario conserve visibilidad sin cargar con la gestión diaria.",
           benefits: ["Configuración y optimización de anuncios", "Gestión de reservas y calendario", "Comunicación con huéspedes antes, durante y después", "Coordinación de limpieza, lavandería y mantenimiento", "Seguimiento operativo e informes al propietario"],
@@ -830,7 +751,7 @@
           title: "Auditoría de rentabilidad",
           imageAlt: "Gráficos, calculadora y lápiz sobre una mesa de análisis",
           summary: "Diagnóstico comercial y operativo para detectar fugas, oportunidades y prioridades de mejora.",
-          price: ["249 €", "Gratis hasta el 30 de septiembre"],
+          price: ["249 €", ""],
           tag: "Primero entender, luego mejorar",
           intro: "Analizamos el alojamiento como producto, operación y activo para identificar las acciones con mayor impacto potencial.",
           benefits: ["Diagnóstico del anuncio", "Benchmark competitivo", "Revisión de costes y procesos", "Mapa de oportunidades", "Plan priorizado de 30–90 días"],
@@ -880,10 +801,6 @@
         ctaEyebrow: "A straight conversation, no commitment",
         ctaTitle: "Could your accommodation earn more while giving you far less work?",
         ctaButton: "Request an audit →",
-        offerKicker: "Limited-time offer",
-        offerTitle: "Free profitability audit",
-        offerDeadline: "Free until 30 September",
-        navOffer: "Free until 30 September",
         carouselRole: "carousel",
         previousImage: "Previous image",
         nextImage: "Next image",
@@ -906,7 +823,6 @@
         analyse: "Request an audit",
         years: "Years in hospitality",
         support: "Guest support",
-        starsLabel: "Five stars",
         experiences: "Experiences that leave a mark",
         logoAlt: "Hot Host Hospitality logo with three letter Hs",
         heroPropertyAlts: [
@@ -914,53 +830,10 @@
           "Contemporary house illuminated at dusk among trees",
           "Contemporary white villa with an outdoor pool"
         ],
-        badge: "Premium with personality",
-        auditPromptLead: "Discover how much your property could earn with a clear review of pricing, occupancy and opportunities. Free and with no obligation.",
-        auditPromptButton: "I want my free audit →",
-        auditPromptClose: "Close this offer",
         servicesEyebrow: "Strategy, operations and hospitality",
         servicesTitle: "Everything that makes accommodation work properly.",
         servicesLead: "Hot Host could sell ice to an Eskimo or milk to a cow. We would rather sell your accommodation better: with strategy, service and no hot air.",
         allServices: "View all services",
-        comparison: {
-          eyebrow: "Income comparison",
-          title: "Three ways to earn from the same property.",
-          lead: "Select your current rental model and enter only the price you charge. All remaining assumptions are calculated automatically.",
-          inputsTitle: "Your current situation",
-          modelLabel: "How do you currently rent the property?",
-          currencyLabel: "Select currency",
-          assumptionsTitle: "Calculated assumptions",
-          traditionalRent: "Traditional monthly rent",
-          touristRate: "Average tourist nightly rate",
-          touristOccupancy: "Other-agency market occupancy",
-          hotHostRate: "Nightly rate with Hot Host",
-          hotHostOccupancy: "Occupancy with Hot Host",
-          metric: "Metric",
-          traditional: "Traditional rental",
-          tourist: "Other tourist agency",
-          hotHost: "Hot Host management",
-          monthlyIncome: "Gross monthly income",
-          annualIncome: "Gross annual income",
-          occupiedNights: "Occupied nights per year",
-          averageRate: "Average nightly rate",
-          ownerTime: "Owner involvement",
-          pricing: "Pricing strategy",
-          guestCare: "Guest support",
-          traditionalNights: "100% occupancy",
-          traditionalRate: "Fixed rent",
-          ownerTimeHigh: "Low",
-          ownerTimeLow: "Very low",
-          pricingFixed: "Fixed",
-          pricingManual: "Managed by the agency",
-          pricingDynamic: "Dynamic and supervised",
-          guestCareTenant: "Tenant relationship",
-          guestCareOwner: "Coordinated by the agency",
-          guestCareHotHost: "Coordinated by Hot Host",
-          resultLabel: "Estimated annual gross income with Hot Host",
-          versusTraditional: "versus traditional rental",
-          versusTourist: "versus another tourist agency",
-          disclaimer: "Illustrative gross-income estimate based on the information entered and internal performance criteria. Figures are before taxes, financing, maintenance, platform costs and management fees and do not guarantee results."
-        },
         methodEyebrow: "The Hot Host method",
         methodTitle: ["Magic exists.", "But it comes with a checklist."],
         methodLead: "We combine empathy, technology, operations and measurement. Guests feel the personal touch; you stay in control and receive far fewer late-night messages.",
@@ -986,7 +859,7 @@
       about: {
         breadcrumb: "About Hot Host",
         eyebrow: "Hospitality learned on the front line",
-        title: ["Genuine hospitality.", "Hotel standards ★★★★★"],
+        title: ["Genuine hospitality.", "Hotel standards"],
         lead: "Hot Host brings the discipline of a great hotel to every accommodation, with the warmth of people who know that every booking has a guest behind it and every property has an owner who would quite like to sleep well.",
         prose: [
           {
@@ -1025,14 +898,6 @@
           ["♡", "Hospitality", "Listen, anticipate and solve with empathy.", "We design every interaction around the person arriving tired, celebrating something important or needing help without knowing how to ask. We anticipate questions, personalise the welcome and handle surprises with warmth so guests feel genuinely cared for, never processed."],
           ["↗", "Profitability", "Every operational decision should create sustainable value.", "We treat pricing, occupancy, costs, conversion and reputation as parts of the same equation. The aim is to improve profit without weakening the asset or the experience: sell better, remove operational leakage and invest only where the return can be measured."],
           ["✦", "Personality", "Experiences with a spark, without turning the accommodation into a circus.", "We uncover what makes each property recognisable and turn it into a coherent experience through tone, details, recommendations and small memorable gestures. Personality sets an accommodation apart without gimmicks and attracts the guests who truly fit it."]
-        ],
-        voicesEyebrow: "In our clients' words",
-        voicesTitle: "Peace of mind you can feel.",
-        voicesLead: "Property owners who regained time, control and confidence in their accommodation.",
-        quotes: [
-          ["Since Hot Host took over the management, I no longer live by my phone. Occupancy has improved, guests arrive better informed and the property feels like an investment again, rather than a second job.", "Laura Benítez", "Owner of two apartments · Seville"],
-          ["They refined details we had never considered: the tone of each message, the arrival and the neighbourhood recommendations. Our latest reviews mention exactly those things, and the difference shows in every stay.", "Daniel Ferrer", "Holiday-home host · Valencia"],
-          ["We had an issue on a Saturday night and they solved it before it affected the guest. We received clear information, a solution and proper follow-up. That level of peace of mind was exactly what we wanted.", "Marta Rossi", "International property owner · Madrid / Milan"]
         ]
       },
       contact: {
@@ -1158,7 +1023,7 @@
           title: "Full management",
           imageAlt: "Operational management checklist laid out on a desk",
           summary: "Your accommodation managed from start to finish with hotel expertise, operational control and transparent communication.",
-          price: ["18% of accommodation revenue", "Minimum €220/month · Includes Guest Experience, Revenue Management and remote operational coordination"],
+          price: ["From 20% of accommodation revenue", ""],
           tag: "Total control, genuine peace of mind",
           intro: "We centralise accommodation operations so owners retain visibility without carrying the burden of day-to-day management.",
           benefits: ["Listing setup and optimisation", "Booking and calendar management", "Guest communication before, during and after each stay", "Cleaning, laundry and maintenance coordination", "Operational monitoring and owner reports"],
@@ -1253,7 +1118,7 @@
           title: "Profitability audit",
           imageAlt: "Charts, calculator and pencil on an analysis desk",
           summary: "A commercial and operational diagnosis to identify leakage, opportunities and improvement priorities.",
-          price: ["€249", "Free until 30 September"],
+          price: ["€249", ""],
           tag: "Understand first, then improve",
           intro: "We analyse the accommodation as a product, an operation and an asset to identify the actions with the greatest potential impact.",
           benefits: ["Listing diagnosis", "Competitive benchmarking", "Cost and process review", "Opportunity map", "Prioritised 30–90 day plan"],
@@ -1303,10 +1168,6 @@
         ctaEyebrow: "Parlons franchement, sans engagement",
         ctaTitle: "Votre hébergement pourrait-il rapporter plus tout en vous donnant bien moins de travail ?",
         ctaButton: "Demander un audit →",
-        offerKicker: "Offre à durée limitée",
-        offerTitle: "Audit de rentabilité offert",
-        offerDeadline: "Offert jusqu’au 30 septembre",
-        navOffer: "Offert jusqu’au 30 septembre",
         carouselRole: "carrousel",
         previousImage: "Image précédente",
         nextImage: "Image suivante",
@@ -1329,7 +1190,6 @@
         analyse: "Demander un audit",
         years: "Années dans l’hospitalité",
         support: "Assistance voyageurs",
-        starsLabel: "Cinq étoiles",
         experiences: "Des expériences qui marquent",
         logoAlt: "Logo Hot Host Hospitality composé de trois lettres H",
         heroPropertyAlts: [
@@ -1337,53 +1197,10 @@
           "Maison contemporaine éclairée au crépuscule parmi les arbres",
           "Villa blanche contemporaine avec piscine extérieure"
         ],
-        badge: "Premium avec personnalité",
-        auditPromptLead: "Découvrez le potentiel de votre bien grâce à une analyse claire des tarifs, de l’occupation et des opportunités. Offerte et sans engagement.",
-        auditPromptButton: "Je veux mon audit offert →",
-        auditPromptClose: "Fermer cette offre",
         servicesEyebrow: "Stratégie, opérations et hospitalité",
         servicesTitle: "Tout ce qui fait vraiment fonctionner un hébergement.",
         servicesLead: "Hot Host pourrait vendre de la glace à un Esquimau ou du lait à une vache. Nous préférons mieux vendre votre hébergement : avec stratégie, service et sans poudre aux yeux.",
         allServices: "Voir tous les services",
-        comparison: {
-          eyebrow: "Comparaison des revenus",
-          title: "Trois façons de rentabiliser le même bien.",
-          lead: "Sélectionnez votre modèle de location actuel et indiquez uniquement le prix pratiqué. Les autres hypothèses sont calculées automatiquement.",
-          inputsTitle: "Votre situation actuelle",
-          modelLabel: "Comment louez-vous actuellement le bien ?",
-          currencyLabel: "Sélectionner la devise",
-          assumptionsTitle: "Hypothèses calculées",
-          traditionalRent: "Loyer traditionnel mensuel",
-          touristRate: "Tarif touristique moyen par nuit",
-          touristOccupancy: "Occupation du marché / d’une autre agence",
-          hotHostRate: "Prix par nuit avec Hot Host",
-          hotHostOccupancy: "Occupation avec Hot Host",
-          metric: "Indicateur",
-          traditional: "Location traditionnelle",
-          tourist: "Autre agence touristique",
-          hotHost: "Gestion Hot Host",
-          monthlyIncome: "Revenu brut mensuel",
-          annualIncome: "Revenu brut annuel",
-          occupiedNights: "Nuits occupées par an",
-          averageRate: "Prix moyen par nuit",
-          ownerTime: "Implication du propriétaire",
-          pricing: "Stratégie tarifaire",
-          guestCare: "Assistance voyageur",
-          traditionalNights: "100 % d’occupation",
-          traditionalRate: "Loyer fixe",
-          ownerTimeHigh: "Faible",
-          ownerTimeLow: "Très faible",
-          pricingFixed: "Fixe",
-          pricingManual: "Gérée par l’agence",
-          pricingDynamic: "Dynamique et supervisée",
-          guestCareTenant: "Relation avec le locataire",
-          guestCareOwner: "Coordonnée par l’agence",
-          guestCareHotHost: "Coordonnée par Hot Host",
-          resultLabel: "Revenu brut annuel estimé avec Hot Host",
-          versusTraditional: "par rapport à la location traditionnelle",
-          versusTourist: "par rapport à une autre agence touristique",
-          disclaimer: "Estimation indicative des revenus bruts fondée sur les informations saisies et des critères de performance internes. Montants avant impôts, financement, entretien, plateformes et honoraires, sans garantie de résultat."
-        },
         methodEyebrow: "Méthode Hot Host",
         methodTitle: ["La magie existe.", "Mais elle suit une checklist."],
         methodLead: "Nous combinons empathie, technologie, opérations et mesure. Le voyageur ressent la proximité ; vous gardez le contrôle et recevez beaucoup moins de messages tard le soir.",
@@ -1409,7 +1226,7 @@
       about: {
         breadcrumb: "À propos de Hot Host",
         eyebrow: "L’hospitalité apprise sur le terrain",
-        title: ["Une hospitalité authentique.", "Des standards ★★★★★"],
+        title: ["Une hospitalité authentique.", "Des standards"],
         lead: "Hot Host apporte la discipline d’un grand hôtel à chaque hébergement, avec la proximité de ceux qui savent que derrière chaque réservation se trouve un voyageur et derrière chaque bien, un propriétaire qui aimerait dormir tranquille.",
         prose: [
           {
@@ -1448,14 +1265,6 @@
           ["♡", "Hospitalité", "Écouter, anticiper et résoudre avec empathie.", "Nous concevons chaque contact en pensant à la personne qui arrive fatiguée, célèbre un moment important ou a besoin d’aide sans savoir comment la demander. Nous anticipons les questions, personnalisons l’accueil et gérons les imprévus avec chaleur pour que le voyageur se sente considéré, jamais traité à la chaîne."],
           ["↗", "Rentabilité", "Chaque décision opérationnelle doit créer une valeur durable.", "Nous analysons prix, occupation, coûts, conversion et réputation comme les éléments d’une même équation. Nous cherchons à améliorer le bénéfice sans dégrader le bien ni l’expérience : mieux vendre, supprimer les pertes opérationnelles et investir uniquement là où le retour peut être mesuré."],
           ["✦", "Personnalité", "Des expériences pétillantes, sans transformer l’hébergement en cirque.", "Nous révélons ce qui rend chaque bien reconnaissable et le traduisons en une expérience cohérente : ton, détails, recommandations et petites attentions mémorables. La personnalité différencie l’hébergement sans artifices et attire les voyageurs qui lui correspondent vraiment."]
-        ],
-        voicesEyebrow: "Nos clients en parlent",
-        voicesTitle: "Une tranquillité qui se ressent.",
-        voicesLead: "Des propriétaires qui ont retrouvé du temps, du contrôle et de la confiance dans leur hébergement.",
-        quotes: [
-          ["Depuis que Hot Host gère mes biens, je ne vis plus les yeux rivés sur mon téléphone. Le taux d’occupation a progressé, les voyageurs arrivent mieux informés et la propriété redevient un investissement, pas un second métier.", "Laura Benítez", "Propriétaire de deux appartements · Séville"],
-          ["Ils ont soigné des détails auxquels nous n’avions jamais pensé : le ton des messages, l’arrivée et les recommandations du quartier. Nos derniers avis les citent précisément, et la différence se ressent à chaque séjour.", "Daniel Ferrer", "Hôte d’une location saisonnière · Valence"],
-          ["Un incident est survenu un samedi soir et ils l’ont résolu avant qu’il n’affecte le voyageur. Nous avons reçu des informations claires, une solution et un vrai suivi. C’est exactement la sérénité que nous recherchions.", "Marta Rossi", "Propriétaire internationale · Madrid / Milan"]
         ]
       },
       contact: {
@@ -1581,7 +1390,7 @@
           title: "Gestion intégrale",
           imageAlt: "Checklist de gestion opérationnelle posée sur un bureau",
           summary: "Votre hébergement géré de bout en bout avec une vision hôtelière, un contrôle opérationnel et une communication transparente.",
-          price: ["18 % des revenus de l’hébergement", "Minimum 220 €/mois · Inclut la Guest Experience, le Revenue Management et la coordination opérationnelle à distance"],
+          price: ["À partir de 20 % des revenus de l’hébergement", ""],
           tag: "Contrôle total, sérénité réelle",
           intro: "Nous centralisons les opérations de l’hébergement afin que le propriétaire conserve une visibilité complète sans supporter la gestion quotidienne.",
           benefits: ["Configuration et optimisation des annonces", "Gestion des réservations et du calendrier", "Communication avec les voyageurs avant, pendant et après", "Coordination du nettoyage, de la blanchisserie et de la maintenance", "Suivi opérationnel et rapports au propriétaire"],
@@ -1676,7 +1485,7 @@
           title: "Audit de rentabilité",
           imageAlt: "Graphiques, calculatrice et crayon sur une table d’analyse",
           summary: "Un diagnostic commercial et opérationnel pour détecter les fuites, les opportunités et les priorités d’amélioration.",
-          price: ["249 €", "Offert jusqu’au 30 septembre"],
+          price: ["249 €", ""],
           tag: "Comprendre d’abord, améliorer ensuite",
           intro: "Nous analysons l’hébergement comme produit, opération et actif afin d’identifier les actions au plus fort impact potentiel.",
           benefits: ["Diagnostic de l’annonce", "Benchmark concurrentiel", "Révision des coûts et processus", "Carte des opportunités", "Plan priorisé sur 30 à 90 jours"],
@@ -1726,10 +1535,6 @@
         ctaEyebrow: "Parliamone con chiarezza, senza impegno",
         ctaTitle: "Il tuo alloggio potrebbe rendere di più e darti molto meno lavoro?",
         ctaButton: "Richiedi un audit →",
-        offerKicker: "Offerta a tempo limitato",
-        offerTitle: "Audit di redditività gratuito",
-        offerDeadline: "Gratis fino al 30 settembre",
-        navOffer: "Gratis fino al 30 settembre",
         carouselRole: "carosello",
         previousImage: "Immagine precedente",
         nextImage: "Immagine successiva",
@@ -1752,7 +1557,6 @@
         analyse: "Richiedi un audit",
         years: "Anni nell’ospitalità",
         support: "Assistenza agli ospiti",
-        starsLabel: "Cinque stelle",
         experiences: "Esperienze che lasciano il segno",
         logoAlt: "Logo Hot Host Hospitality con tre lettere H",
         heroPropertyAlts: [
@@ -1760,53 +1564,10 @@
           "Casa contemporanea illuminata al tramonto tra gli alberi",
           "Villa bianca contemporanea con piscina esterna"
         ],
-        badge: "Premium con personalità",
-        auditPromptLead: "Scopri quanto potrebbe rendere la tua proprietà con un’analisi chiara di prezzi, occupazione e opportunità. Gratuita e senza impegno.",
-        auditPromptButton: "Voglio il mio audit gratuito →",
-        auditPromptClose: "Chiudi questa offerta",
         servicesEyebrow: "Strategia, operazioni e ospitalità",
         servicesTitle: "Tutto ciò che fa funzionare davvero un alloggio.",
         servicesLead: "Hot Host saprebbe vendere ghiaccio a un eschimese o latte a una mucca. Preferiamo vendere meglio il tuo alloggio: con strategia, servizio e zero fumo.",
         allServices: "Vedi tutti i servizi",
-        comparison: {
-          eyebrow: "Confronto dei ricavi",
-          title: "Tre modi per far rendere la stessa proprietà.",
-          lead: "Seleziona il modello di affitto attuale e inserisci solo il prezzo applicato. Le altre ipotesi vengono calcolate automaticamente.",
-          inputsTitle: "La tua situazione attuale",
-          modelLabel: "Come affitti attualmente la proprietà?",
-          currencyLabel: "Seleziona valuta",
-          assumptionsTitle: "Ipotesi calcolate",
-          traditionalRent: "Affitto tradizionale mensile",
-          touristRate: "Tariffa turistica media per notte",
-          touristOccupancy: "Occupazione di mercato / altra agenzia",
-          hotHostRate: "Prezzo per notte con Hot Host",
-          hotHostOccupancy: "Occupazione con Hot Host",
-          metric: "Indicatore",
-          traditional: "Affitto tradizionale",
-          tourist: "Altra agenzia turistica",
-          hotHost: "Gestione Hot Host",
-          monthlyIncome: "Ricavo lordo mensile",
-          annualIncome: "Ricavo lordo annuale",
-          occupiedNights: "Notti occupate all’anno",
-          averageRate: "Prezzo medio per notte",
-          ownerTime: "Impegno del proprietario",
-          pricing: "Strategia tariffaria",
-          guestCare: "Assistenza agli ospiti",
-          traditionalNights: "Occupazione al 100%",
-          traditionalRate: "Canone fisso",
-          ownerTimeHigh: "Basso",
-          ownerTimeLow: "Molto basso",
-          pricingFixed: "Fissa",
-          pricingManual: "Gestita dall’agenzia",
-          pricingDynamic: "Dinamica e supervisionata",
-          guestCareTenant: "Rapporto con l’inquilino",
-          guestCareOwner: "Coordinata dall’agenzia",
-          guestCareHotHost: "Coordinata da Hot Host",
-          resultLabel: "Ricavo lordo annuale stimato con Hot Host",
-          versusTraditional: "rispetto all’affitto tradizionale",
-          versusTourist: "rispetto a un’altra agenzia turistica",
-          disclaimer: "Stima indicativa dei ricavi lordi basata sui dati inseriti e su criteri interni di rendimento. Valori prima di imposte, finanziamento, manutenzione, piattaforme e commissioni, senza garanzia di risultati."
-        },
         methodEyebrow: "Metodo Hot Host",
         methodTitle: ["La magia esiste.", "Ma richiede una checklist."],
         methodLead: "Uniamo empatia, tecnologia, operazioni e misurazione. L’ospite percepisce vicinanza; tu mantieni il controllo e ricevi molti meno messaggi a tarda notte.",
@@ -1832,7 +1593,7 @@
       about: {
         breadcrumb: "Chi è Hot Host",
         eyebrow: "Ospitalità imparata sul campo",
-        title: ["Ospitalità autentica.", "Standard ★★★★★"],
+        title: ["Ospitalità autentica.", "Standard"],
         lead: "Hot Host porta la disciplina di un grande hotel in ogni alloggio, con la vicinanza di chi sa che dietro ogni prenotazione c’è un ospite e dietro ogni proprietà, qualcuno che vorrebbe dormire tranquillo.",
         prose: [
           {
@@ -1871,14 +1632,6 @@
           ["♡", "Ospitalità", "Ascoltare, anticipare e risolvere con empatia.", "Progettiamo ogni contatto pensando a chi arriva stanco, festeggia un momento importante o ha bisogno di aiuto senza sapere come chiederlo. Anticipiamo le domande, personalizziamo l’accoglienza e gestiamo gli imprevisti con calore affinché l’ospite si senta seguito, mai trattato come un numero."],
           ["↗", "Redditività", "Ogni decisione operativa deve creare valore sostenibile.", "Analizziamo prezzo, occupazione, costi, conversione e reputazione come parti della stessa equazione. Vogliamo migliorare il profitto senza indebolire l’immobile o l’esperienza: vendere meglio, eliminare le inefficienze e investire solo dove il ritorno è misurabile."],
           ["✦", "Personalità", "Esperienze vivaci, senza trasformare l’alloggio in un circo.", "Individuiamo ciò che rende riconoscibile ogni proprietà e lo trasformiamo in un’esperienza coerente attraverso tono, dettagli, consigli e piccoli gesti memorabili. La personalità differenzia l’alloggio senza artifici e attira gli ospiti davvero adatti."]
-        ],
-        voicesEyebrow: "Lo raccontano i nostri clienti",
-        voicesTitle: "La tranquillità si vede.",
-        voicesLead: "Proprietari che hanno ritrovato tempo, controllo e fiducia nel proprio alloggio.",
-        quotes: [
-          ["Da quando Hot Host si occupa della gestione, non vivo più con il telefono in mano. L’occupazione è migliorata, gli ospiti arrivano più informati e la proprietà è tornata a essere un investimento, non un secondo lavoro.", "Laura Benítez", "Proprietaria di due appartamenti · Siviglia"],
-          ["Hanno curato dettagli a cui non avevamo mai pensato: il tono dei messaggi, l’arrivo e i consigli sul quartiere. Le ultime recensioni citano proprio questi aspetti e la differenza si nota in ogni soggiorno.", "Daniel Ferrer", "Host di una casa vacanze · Valencia"],
-          ["Abbiamo avuto un problema di sabato sera e lo hanno risolto prima che coinvolgesse l’ospite. Abbiamo ricevuto informazioni chiare, una soluzione e un vero follow-up. Era esattamente la serenità che cercavamo.", "Marta Rossi", "Proprietaria internazionale · Madrid / Milano"]
         ]
       },
       contact: {
@@ -2004,7 +1757,7 @@
           title: "Gestione completa",
           imageAlt: "Checklist di gestione operativa disposta su una scrivania",
           summary: "Il tuo alloggio gestito dall’inizio alla fine con visione alberghiera, controllo operativo e comunicazione trasparente.",
-          price: ["18% dei ricavi dell’alloggio", "Minimo 220 €/mese · Include Guest Experience, Revenue Management e coordinamento operativo da remoto"],
+          price: ["Dal 20% dei ricavi dell’alloggio", ""],
           tag: "Controllo totale, vera serenità",
           intro: "Centralizziamo le operazioni dell’alloggio affinché il proprietario mantenga piena visibilità senza il peso della gestione quotidiana.",
           benefits: ["Configurazione e ottimizzazione degli annunci", "Gestione di prenotazioni e calendario", "Comunicazione con gli ospiti prima, durante e dopo", "Coordinamento di pulizia, lavanderia e manutenzione", "Monitoraggio operativo e report al proprietario"],
@@ -2099,7 +1852,7 @@
           title: "Audit di redditività",
           imageAlt: "Grafici, calcolatrice e matita su un tavolo di analisi",
           summary: "Una diagnosi commerciale e operativa per individuare perdite, opportunità e priorità di miglioramento.",
-          price: ["249 €", "Gratis fino al 30 settembre"],
+          price: ["249 €", ""],
           tag: "Prima capire, poi migliorare",
           intro: "Analizziamo l’alloggio come prodotto, operazione e bene per individuare le azioni con il maggiore impatto potenziale.",
           benefits: ["Diagnosi dell’annuncio", "Benchmark competitivo", "Revisione di costi e processi", "Mappa delle opportunità", "Piano prioritario di 30–90 giorni"],
@@ -2126,9 +1879,6 @@
   let languageMenuOutsideHandler = null;
   let navigationMenuOutsideHandler = null;
   let credentialsEscapeHandler = null;
-  let auditPromptScrollHandler = null;
-  let auditPromptSeenInMemory = false;
-  let earningsCalculatorState = Object.assign({}, DEFAULT_EARNINGS);
   let selectedPropertyPhotos = [];
 
   applyTheme(activeTheme);
@@ -2313,153 +2063,6 @@
     });
   }
 
-  function getProfitabilityCtaLabel() {
-    const labels = {
-      es: "¿Cuánto podría ganar?",
-      en: "How much could I earn?",
-      fr: "Combien pourrais-je gagner ?",
-      it: "Quanto potrei guadagnare?",
-      de: "Wie viel könnte ich verdienen?",
-      pl: "Ile mógłbym zarobić?",
-      nl: "Hoeveel zou ik kunnen verdienen?",
-      pt: "Quanto poderia ganhar?",
-      el: "Πόσα θα μπορούσα να κερδίσω;"
-    };
-    return labels[activeLanguage] || labels.es;
-  }
-
-  function getGuaranteeContent() {
-    const content = {
-      es: {
-        eyebrow: "Garantía de rendimiento",
-        title: "Más ingresos. Responsabilidad por escrito.",
-        lead: "Para propiedades elegibles bajo gestión integral, definimos antes de empezar una base anual comparable y el plan necesario para mejorarla.",
-        promiseLabel: "Nuestro compromiso",
-        promise: "Si la propiedad no mejora sus ingresos brutos anuales comparables tras aplicar el plan acordado, activamos el periodo sin honorarios de gestión definido en la propuesta y ejecutamos el plan correctivo.",
-        details: [
-          ["Propiedad elegible", "La auditoría inicial confirma la viabilidad y la propuesta deja por escrito el alcance de la garantía."],
-          ["Comparación equivalente", "Comparamos 12 meses completos con los 12 meses anteriores o con una base anual acordada antes de iniciar la gestión."],
-          ["Plan ejecutable", "La disponibilidad, el mantenimiento, los datos, los precios y las recomendaciones aprobadas deben permitir aplicar la estrategia."]
-        ],
-        note: "Sujeta al contrato y a la propuesta aceptada. No garantiza una cifra concreta y excluye impuestos, costes de terceros, cierres, obras, fuerza mayor y decisiones del propietario contrarias al plan.",
-        cta: "Comprobar si mi propiedad es elegible →"
-      },
-      en: {
-        eyebrow: "Performance guarantee",
-        title: "More revenue. Accountability in writing.",
-        lead: "For eligible properties under full management, we agree a comparable annual baseline and the plan needed to improve it before work begins.",
-        promiseLabel: "Our commitment",
-        promise: "If the property does not improve its comparable annual gross revenue after the agreed plan is applied, we activate the management-fee-free period set out in the proposal and carry out the corrective plan.",
-        details: [
-          ["Eligible property", "The initial audit confirms viability and the proposal records the scope of the guarantee in writing."],
-          ["Like-for-like comparison", "We compare 12 complete months with the previous 12 months or with an annual baseline agreed before management begins."],
-          ["Executable plan", "Availability, maintenance, data, pricing and approved recommendations must allow the strategy to be implemented."]
-        ],
-        note: "Subject to the signed contract and accepted proposal. It does not guarantee a specific figure and excludes taxes, third-party costs, closures, building works, force majeure and owner decisions contrary to the plan.",
-        cta: "Check whether my property is eligible →"
-      },
-      fr: {
-        eyebrow: "Garantie de performance",
-        title: "Plus de revenus. Un engagement écrit.",
-        lead: "Pour les biens éligibles en gestion intégrale, nous fixons avant le démarrage une base annuelle comparable et le plan nécessaire pour l’améliorer.",
-        promiseLabel: "Notre engagement",
-        promise: "Si le bien n’améliore pas ses revenus bruts annuels comparables après application du plan convenu, nous activons la période sans honoraires de gestion prévue dans la proposition et exécutons le plan correctif.",
-        details: [
-          ["Bien éligible", "L’audit initial confirme la viabilité et la proposition précise par écrit la portée de la garantie."],
-          ["Comparaison équivalente", "Nous comparons 12 mois complets aux 12 mois précédents ou à une base annuelle convenue avant le début de la gestion."],
-          ["Plan exécutable", "La disponibilité, l’entretien, les données, les tarifs et les recommandations approuvées doivent permettre d’appliquer la stratégie."]
-        ],
-        note: "Sous réserve du contrat signé et de la proposition acceptée. Aucune somme précise n’est garantie. Sont exclus les impôts, frais de tiers, fermetures, travaux, cas de force majeure et décisions du propriétaire contraires au plan.",
-        cta: "Vérifier l’éligibilité de mon bien →"
-      },
-      it: {
-        eyebrow: "Garanzia di rendimento",
-        title: "Più ricavi. Responsabilità per iscritto.",
-        lead: "Per le proprietà idonee in gestione completa, definiamo prima dell’inizio una base annua comparabile e il piano necessario per migliorarla.",
-        promiseLabel: "Il nostro impegno",
-        promise: "Se la proprietà non migliora i ricavi lordi annui comparabili dopo l’applicazione del piano concordato, attiviamo il periodo senza commissioni di gestione previsto nella proposta ed eseguiamo il piano correttivo.",
-        details: [
-          ["Proprietà idonea", "L’audit iniziale conferma la fattibilità e la proposta definisce per iscritto l’ambito della garanzia."],
-          ["Confronto equivalente", "Confrontiamo 12 mesi completi con i 12 mesi precedenti o con una base annua concordata prima dell’avvio della gestione."],
-          ["Piano attuabile", "Disponibilità, manutenzione, dati, prezzi e raccomandazioni approvate devono consentire l’applicazione della strategia."]
-        ],
-        note: "Soggetta al contratto firmato e alla proposta accettata. Non garantisce un importo specifico ed esclude imposte, costi di terzi, chiusure, lavori, forza maggiore e decisioni del proprietario contrarie al piano.",
-        cta: "Verifica se la mia proprietà è idonea →"
-      },
-      de: {
-        eyebrow: "Leistungsgarantie",
-        title: "Mehr Ertrag. Klare Zusage.",
-        lead: "Für geeignete Objekte in der Komplettverwaltung vereinbaren wir vor Beginn eine vergleichbare Jahresbasis und den Plan zu ihrer Verbesserung.",
-        promiseLabel: "Unser Versprechen",
-        promise: "Steigen die vergleichbaren jährlichen Bruttoeinnahmen nach Umsetzung des vereinbarten Plans nicht, aktivieren wir den im Angebot festgelegten Zeitraum ohne Managementhonorar und setzen den Korrekturplan um.",
-        details: [
-          ["Geeignetes Objekt", "Das Erstaudit bestätigt die Eignung; der Umfang der Garantie wird im Angebot schriftlich festgehalten."],
-          ["Vergleichbare Grundlage", "Wir vergleichen 12 vollständige Monate mit den vorherigen 12 Monaten oder mit einer vor Verwaltungsbeginn vereinbarten Jahresbasis."],
-          ["Umsetzbarer Plan", "Verfügbarkeit, Instandhaltung, Daten, Preisgestaltung und freigegebene Empfehlungen müssen die Umsetzung der Strategie ermöglichen."]
-        ],
-        note: "Es gelten der unterzeichnete Vertrag und das angenommene Angebot. Keine bestimmte Einnahmensumme wird garantiert. Ausgenommen sind Steuern, Drittkosten, Schließungen, Bauarbeiten, höhere Gewalt und Entscheidungen entgegen dem Plan.",
-        cta: "Eignung meiner Unterkunft prüfen →"
-      },
-      pl: {
-        eyebrow: "Gwarancja wyników",
-        title: "Wyższe przychody. Jasne zobowiązanie.",
-        lead: "Dla kwalifikujących się nieruchomości objętych pełnym zarządzaniem przed rozpoczęciem ustalamy porównywalną bazę roczną i plan jej poprawy.",
-        promiseLabel: "Nasze zobowiązanie",
-        promise: "Jeśli po wdrożeniu uzgodnionego planu nieruchomość nie poprawi porównywalnych rocznych przychodów brutto, uruchamiamy określony w ofercie okres bez opłat za zarządzanie i realizujemy plan naprawczy.",
-        details: [
-          ["Kwalifikująca się nieruchomość", "Audyt początkowy potwierdza wykonalność, a zakres gwarancji zostaje zapisany w ofercie."],
-          ["Równoważne porównanie", "Porównujemy pełne 12 miesięcy z poprzednimi 12 miesiącami lub z roczną bazą uzgodnioną przed rozpoczęciem zarządzania."],
-          ["Plan możliwy do wdrożenia", "Dostępność, utrzymanie, dane, ceny i zatwierdzone zalecenia muszą umożliwiać realizację strategii."]
-        ],
-        note: "Obowiązują podpisana umowa i przyjęta oferta. Gwarancja nie określa konkretnej kwoty i nie obejmuje podatków, kosztów zewnętrznych, zamknięć, remontów, siły wyższej ani decyzji właściciela sprzecznych z planem.",
-        cta: "Sprawdź, czy nieruchomość się kwalifikuje →"
-      },
-      nl: {
-        eyebrow: "Prestatiegarantie",
-        title: "Meer omzet. Duidelijke afspraken.",
-        lead: "Voor geschikte accommodaties in volledig beheer leggen we vooraf een vergelijkbare jaarbasis en het benodigde verbeterplan vast.",
-        promiseLabel: "Onze toezegging",
-        promise: "Als de vergelijkbare jaarlijkse bruto-omzet na uitvoering van het afgesproken plan niet verbetert, activeren we de in het voorstel vastgelegde periode zonder beheervergoeding en voeren we het herstelplan uit.",
-        details: [
-          ["Geschikte accommodatie", "De eerste audit bevestigt de haalbaarheid en het voorstel legt de reikwijdte van de garantie schriftelijk vast."],
-          ["Gelijkwaardige vergelijking", "We vergelijken 12 volledige maanden met de voorgaande 12 maanden of met een jaarbasis die vóór de start van het beheer is afgesproken."],
-          ["Uitvoerbaar plan", "Beschikbaarheid, onderhoud, gegevens, prijsbeleid en goedgekeurde aanbevelingen moeten uitvoering van de strategie mogelijk maken."]
-        ],
-        note: "Onder voorbehoud van de ondertekende overeenkomst en het geaccepteerde voorstel. Er wordt geen specifiek bedrag gegarandeerd. Belastingen, externe kosten, sluitingen, werkzaamheden, overmacht en afwijkende beslissingen van de eigenaar zijn uitgesloten.",
-        cta: "Controleer of mijn accommodatie geschikt is →"
-      },
-      pt: {
-        eyebrow: "Garantia de desempenho",
-        title: "Mais receita. Compromisso por escrito.",
-        lead: "Para propriedades elegíveis em gestão integral, definimos antes do início uma base anual comparável e o plano necessário para a melhorar.",
-        promiseLabel: "O nosso compromisso",
-        promise: "Se a propriedade não melhorar a receita bruta anual comparável após a aplicação do plano acordado, ativamos o período sem honorários de gestão definido na proposta e executamos o plano corretivo.",
-        details: [
-          ["Propriedade elegível", "A auditoria inicial confirma a viabilidade e a proposta regista por escrito o âmbito da garantia."],
-          ["Comparação equivalente", "Comparamos 12 meses completos com os 12 meses anteriores ou com uma base anual acordada antes do início da gestão."],
-          ["Plano executável", "A disponibilidade, manutenção, dados, preços e recomendações aprovadas devem permitir a aplicação da estratégia."]
-        ],
-        note: "Sujeita ao contrato assinado e à proposta aceite. Não garante um valor específico e exclui impostos, custos de terceiros, encerramentos, obras, força maior e decisões do proprietário contrárias ao plano.",
-        cta: "Verificar se a minha propriedade é elegível →"
-      },
-      el: {
-        eyebrow: "Εγγύηση απόδοσης",
-        title: "Περισσότερα έσοδα. Σαφής δέσμευση.",
-        lead: "Για επιλέξιμα ακίνητα με πλήρη διαχείριση, συμφωνούμε πριν από την έναρξη μια συγκρίσιμη ετήσια βάση και το σχέδιο βελτίωσής της.",
-        promiseLabel: "Η δέσμευσή μας",
-        promise: "Αν τα συγκρίσιμα ετήσια ακαθάριστα έσοδα δεν βελτιωθούν μετά την εφαρμογή του συμφωνημένου σχεδίου, ενεργοποιούμε την περίοδο χωρίς αμοιβή διαχείρισης που ορίζεται στην πρόταση και εφαρμόζουμε το διορθωτικό σχέδιο.",
-        details: [
-          ["Επιλέξιμο ακίνητο", "Ο αρχικός έλεγχος επιβεβαιώνει τη βιωσιμότητα και η πρόταση καταγράφει γραπτώς το εύρος της εγγύησης."],
-          ["Ισοδύναμη σύγκριση", "Συγκρίνουμε 12 πλήρεις μήνες με τους προηγούμενους 12 ή με ετήσια βάση που συμφωνήθηκε πριν από την έναρξη της διαχείρισης."],
-          ["Εφαρμόσιμο σχέδιο", "Η διαθεσιμότητα, η συντήρηση, τα δεδομένα, οι τιμές και οι εγκεκριμένες συστάσεις πρέπει να επιτρέπουν την εφαρμογή της στρατηγικής."]
-        ],
-        note: "Ισχύουν η υπογεγραμμένη σύμβαση και η αποδεκτή πρόταση. Δεν διασφαλίζεται συγκεκριμένο ποσό. Εξαιρούνται φόροι, έξοδα τρίτων, κλείσιμο, εργασίες, ανωτέρα βία και αποφάσεις του ιδιοκτήτη αντίθετες με το σχέδιο.",
-        cta: "Έλεγχος επιλεξιμότητας ακινήτου →"
-      }
-    };
-    return content[activeLanguage] || content.es;
-  }
-
   function getCurrentPageFile() {
     const path = window.location.pathname.split("/").pop();
     return path && path.endsWith(".html") ? path : "index.html";
@@ -2550,13 +2153,6 @@
     return lines.map(escapeHtml).join("<br>");
   }
 
-  function renderStarredLines(lines, starsLabel) {
-    const stars = `<span class="about-stars" aria-label="${escapeHtml(starsLabel)}">★★★★★</span>`;
-    return lines.map(function (line) {
-      return String(line).split("★★★★★").map(escapeHtml).join(stars);
-    }).join("<br>");
-  }
-
   function renderOptions(options, placeholder) {
     const initialOption = placeholder === undefined
       ? ""
@@ -2574,18 +2170,18 @@
 
   function renderServicePrice(service, locale, detailed) {
     const updatedPrices = getExperienceContent(activeLanguage).prices || {};
-    const price = updatedPrices[service.key] || service.price;
+    const price = updatedPrices[service.key];
     if (!Array.isArray(price) || price.length < 2) return "";
-    const isAuditPromotion = service.key === "auditoria-rentabilidad" && isAuditOfferActive();
-    const promotionClass = isAuditPromotion ? " service-price-promo" : "";
     const detailClass = detailed ? " service-price-detail" : "";
-    const priceDetail = service.key === "auditoria-rentabilidad" && !isAuditPromotion
-      ? ""
-      : `<span>${escapeHtml(price[1])}</span>`;
+    const auditPromotionActive = service.key === "auditoria-rentabilidad" && Date.now() <= AUDIT_PROMOTION_END;
+    const promotionClass = auditPromotionActive ? " service-price-promotion" : "";
+    const priceContent = auditPromotionActive
+      ? `<del>${escapeHtml(price[0])}</del><strong>${escapeHtml(price[1])}</strong><span>${escapeHtml(price[2] || "")}</span>`
+      : `<strong>${escapeHtml(price[0])}</strong>${service.key === "auditoria-rentabilidad" ? "" : `<span>${escapeHtml(price[1])}</span>`}`;
     const disclaimer = detailed
       ? `<small class="service-price-disclaimer">${escapeHtml(locale.common.priceDisclaimer)}</small>`
       : "";
-    return `<div class="service-price${promotionClass}${detailClass}"><strong>${escapeHtml(price[0])}</strong>${priceDetail}${disclaimer}</div>`;
+    return `<div class="service-price${detailClass}${promotionClass}">${priceContent}${disclaimer}</div>`;
   }
 
   function renderHeroVisual(home) {
@@ -2596,7 +2192,7 @@
       return `<figure class="hero-property-photo hero-property-photo-${index + 1}"><img src="${imageUrl(photo.id, width, height)}" alt="${escapeHtml(home.heroPropertyAlts[index])}" width="${width}" height="${height}" ${isPrimary ? "fetchpriority=\"high\"" : "loading=\"eager\""} decoding="async" style="object-position:${escapeHtml(photo.position)}"></figure>`;
     }).join("");
 
-    return `<div class="hero-brand-visual"><div class="hero-property-collage">${photos}</div><div class="hero-logo-seal"><img class="hero-logo" src="assets/logo-mark.svg" alt="${escapeHtml(home.logoAlt)}" width="180" height="180"></div><div class="visual-badge">${escapeHtml(home.badge)}</div></div>`;
+    return `<div class="hero-brand-visual"><div class="hero-property-collage">${photos}</div></div>`;
   }
 
   function renderServiceCard(service, locale) {
@@ -2642,176 +2238,13 @@
     return `<section class="section service-gallery-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(service.galleryEyebrow)}</div><h2>${escapeHtml(service.galleryTitle)}</h2></div><p>${escapeHtml(service.galleryLead)}</p></div><div class="property-carousel" data-carousel role="region" aria-roledescription="${escapeHtml(locale.common.carouselRole)}" aria-label="${escapeHtml(service.galleryTitle)}" tabindex="0"><div class="carousel-viewport"><div class="carousel-track">${slides}</div></div><div class="carousel-controls"><button class="carousel-button" type="button" data-carousel-previous aria-label="${escapeHtml(locale.common.previousImage)}">←</button><span class="carousel-status" data-carousel-status aria-live="polite">${escapeHtml(renderCounter(locale.common.imageCounter, 1, total))}</span><button class="carousel-button" type="button" data-carousel-next aria-label="${escapeHtml(locale.common.nextImage)}">→</button></div></div></div></section>`;
   }
 
+  function getPrimaryCta(locale, withArrow) {
+    const label = activeLanguage === "es" ? "Analizar mi propiedad" : locale.shell.assess;
+    return `${label}${withArrow ? " →" : ""}`;
+  }
+
   function renderCta(locale) {
-    const offer = isAuditOfferActive()
-      ? `<div class="cta-offer"><span>${escapeHtml(locale.common.offerKicker)}</span><strong>${escapeHtml(locale.common.offerTitle)}</strong><small>${escapeHtml(locale.common.offerDeadline)}</small></div>`
-      : "";
-    return `<section class="section"><div class="wrap"><div class="cta"><div class="cta-copy">${offer}<div class="eyebrow">${escapeHtml(locale.common.ctaEyebrow)}</div><h2>${escapeHtml(locale.common.ctaTitle)}</h2></div><a class="btn primary" style="background:#e7c46a;color:#171717;border-color:#e7c46a" href="contacto.html">${escapeHtml(locale.common.ctaButton)}</a></div></div></section>`;
-  }
-
-  function renderGuarantee(context) {
-    const guarantee = getGuaranteeContent();
-    const details = guarantee.details.map(function (detail, index) {
-      return `<li><span>${String(index + 1).padStart(2, "0")}</span><div><strong>${escapeHtml(detail[0])}</strong><p>${escapeHtml(detail[1])}</p></div></li>`;
-    }).join("");
-    return `<section class="section guarantee-section guarantee-${escapeHtml(context)}" aria-labelledby="guaranteeTitle"><div class="wrap"><div class="guarantee-shell"><div class="guarantee-copy"><div class="guarantee-brand"><img src="assets/logo-mark.svg" alt="" width="72" height="72"><span>${escapeHtml(guarantee.eyebrow)}</span></div><h2 id="guaranteeTitle">${escapeHtml(guarantee.title)}</h2><p class="guarantee-lead">${escapeHtml(guarantee.lead)}</p><div class="guarantee-promise"><span>${escapeHtml(guarantee.promiseLabel)}</span><strong>${escapeHtml(guarantee.promise)}</strong></div></div><div class="guarantee-terms"><ol>${details}</ol><p class="guarantee-note">${escapeHtml(guarantee.note)}</p><a class="btn guarantee-cta" href="contacto.html">${escapeHtml(guarantee.cta)}</a></div></div></div></section>`;
-  }
-
-  function renderEarningsComparison(locale) {
-    const comparison = locale.home.comparison;
-    const values = earningsCalculatorState;
-    return `<section class="section earnings-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(comparison.eyebrow)}</div><h2>${escapeHtml(comparison.title)}</h2></div><p>${escapeHtml(comparison.lead)}</p></div><div class="earnings-layout" data-earnings-calculator><aside class="earnings-inputs" aria-labelledby="earningsInputsTitle"><h3 id="earningsInputsTitle">${escapeHtml(comparison.inputsTitle)}</h3><label>${escapeHtml(comparison.traditionalRent)}<span class="earnings-control"><input data-earnings-input="traditionalRent" type="number" min="0" max="100000" step="50" value="${escapeHtml(values.traditionalRent)}"><span>€</span></span></label><label>${escapeHtml(comparison.touristRate)}<span class="earnings-control"><input data-earnings-input="touristRate" type="number" min="0" max="2000" step="5" value="${escapeHtml(values.touristRate)}"><span>€</span></span></label><label>${escapeHtml(comparison.touristOccupancy)}<span class="earnings-control"><input data-earnings-input="touristOccupancy" type="number" min="0" max="100" step="1" value="${escapeHtml(values.touristOccupancy)}"><span>%</span></span></label><label>${escapeHtml(comparison.hotHostRate)}<span class="earnings-control"><input data-earnings-input="hotHostRate" type="number" min="0" max="2000" step="5" value="${escapeHtml(values.hotHostRate)}"><span>€</span></span></label><label>${escapeHtml(comparison.hotHostOccupancy)}<span class="earnings-control"><input data-earnings-input="hotHostOccupancy" type="number" min="0" max="100" step="1" value="${escapeHtml(values.hotHostOccupancy)}"><span>%</span></span></label></aside><div class="earnings-comparison"><div class="earnings-table-scroll"><table><thead><tr><th scope="col">${escapeHtml(comparison.metric)}</th><th scope="col">${escapeHtml(comparison.traditional)}</th><th scope="col">${escapeHtml(comparison.tourist)}</th><th scope="col" class="hot-host-column">${escapeHtml(comparison.hotHost)}</th></tr></thead><tbody><tr><th scope="row">${escapeHtml(comparison.monthlyIncome)}</th><td data-earnings-output="traditionalMonthly"></td><td data-earnings-output="touristMonthly"></td><td class="hot-host-column" data-earnings-output="hotHostMonthly"></td></tr><tr><th scope="row">${escapeHtml(comparison.annualIncome)}</th><td data-earnings-output="traditionalAnnual"></td><td data-earnings-output="touristAnnual"></td><td class="hot-host-column" data-earnings-output="hotHostAnnual"></td></tr><tr><th scope="row">${escapeHtml(comparison.occupiedNights)}</th><td>${escapeHtml(comparison.traditionalNights)}</td><td data-earnings-output="touristNights"></td><td class="hot-host-column" data-earnings-output="hotHostNights"></td></tr><tr><th scope="row">${escapeHtml(comparison.averageRate)}</th><td>${escapeHtml(comparison.traditionalRate)}</td><td data-earnings-output="touristRate"></td><td class="hot-host-column" data-earnings-output="hotHostRate"></td></tr><tr><th scope="row">${escapeHtml(comparison.ownerTime)}</th><td>${escapeHtml(comparison.ownerTimeLow)}</td><td>${escapeHtml(comparison.ownerTimeHigh)}</td><td class="hot-host-column">${escapeHtml(comparison.ownerTimeLow)}</td></tr><tr><th scope="row">${escapeHtml(comparison.pricing)}</th><td>${escapeHtml(comparison.pricingFixed)}</td><td>${escapeHtml(comparison.pricingManual)}</td><td class="hot-host-column">${escapeHtml(comparison.pricingDynamic)}</td></tr><tr><th scope="row">${escapeHtml(comparison.guestCare)}</th><td>${escapeHtml(comparison.guestCareTenant)}</td><td>${escapeHtml(comparison.guestCareOwner)}</td><td class="hot-host-column">${escapeHtml(comparison.guestCareHotHost)}</td></tr></tbody></table></div><div class="earnings-result" aria-live="polite"><span>${escapeHtml(comparison.resultLabel)}</span><strong data-earnings-output="hotHostResult"></strong><div><b data-earnings-output="versusTraditional"></b> ${escapeHtml(comparison.versusTraditional)} · <b data-earnings-output="versusTourist"></b> ${escapeHtml(comparison.versusTourist)}</div></div><p class="earnings-disclaimer" id="earningsDisclaimer">${escapeHtml(comparison.disclaimer)}</p></div></div></div></section>`;
-  }
-
-  function renderProfitabilityPage(locale) {
-    const page = getExperienceContent(activeLanguage).profitability || {};
-    const values = profitabilityState;
-    const labels = Object.assign({
-      breadcrumb: "Rentabilidad",
-      eyebrow: "Decide con números claros",
-      title: "Tu alojamiento, visto desde el neto.",
-      lead: "Compara modelos sin impuestos ni costes variables: solo ingresos, gestión y lo que queda para ti.",
-      situation: "¿Cuál es tu punto de partida?",
-      traditional: "Alquilo de forma tradicional",
-      selfManaged: "Ya me gestiono por mi cuenta",
-      external: "Trabajo con una gestora externa",
-      newProperty: "Aún no he alquilado",
-      monthlyRent: "Renta mensual actual",
-      nightlyRate: "Tarifa media por noche",
-      occupancy: "Ocupación estimada",
-      externalFee: "Comisión de la gestora externa",
-      inputsTitle: "Tus datos",
-      gross: "Ingresos brutos anuales",
-      management: "Coste de gestión",
-      net: "Neto anual para ti",
-      monthlyNet: "Neto mensual para ti",
-      traditionalColumn: "Alquiler tradicional",
-      selfColumn: "Gestión propia",
-      externalColumn: "Gestora externa",
-      hotHostColumn: "Hot Host",
-      traditionalDetail: "Sin gestión turística",
-      selfDetail: "Tu tiempo, tus operaciones",
-      externalDetail: "Comisión editable",
-      hotHostDetail: "20% de ingresos",
-      note: "Estimación orientativa antes de impuestos y de costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.",
-      missingValue: "Introduce los datos para ver esta estimación.",
-      current: "Tu situación actual",
-      perMonth: "/ mes",
-      requestAudit: "Solicitar auditoría"
-    }, page);
-    const value = function (key) { return values[key] === "" ? "" : escapeHtml(values[key]); };
-    return `<main class="profitability-page"><section class="page-hero profitability-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(labels.breadcrumb)}</div><div class="eyebrow">${escapeHtml(labels.eyebrow)}</div><h1>${escapeHtml(labels.title)}</h1><p class="lead">${escapeHtml(labels.lead)}</p></div></section><section class="section profitability-section" id="comparador"><div class="wrap"><div class="profitability-layout" data-profitability-calculator><aside class="profitability-inputs" aria-labelledby="profitabilityInputsTitle"><h2 id="profitabilityInputsTitle">${escapeHtml(labels.inputsTitle)}</h2><label for="profitabilitySituation">${escapeHtml(labels.situation)}<select id="profitabilitySituation" data-profitability-input="situation"><option value="traditional">${escapeHtml(labels.traditional)}</option><option value="self-managed">${escapeHtml(labels.selfManaged)}</option><option value="external">${escapeHtml(labels.external)}</option><option value="new-property">${escapeHtml(labels.newProperty)}</option></select></label><label data-profitability-field="traditionalRent">${escapeHtml(labels.monthlyRent)}<span class="profitability-control"><input data-profitability-input="traditionalRent" type="number" min="0" max="100000" step="50" inputmode="decimal" value="${value("traditionalRent")}"><span>€</span></span></label><label data-profitability-field="nightlyRate">${escapeHtml(labels.nightlyRate)}<span class="profitability-control"><input data-profitability-input="nightlyRate" type="number" min="0" max="5000" step="5" inputmode="decimal" value="${value("nightlyRate")}"><span>€</span></span></label><label data-profitability-field="occupancy">${escapeHtml(labels.occupancy)}<span class="profitability-control"><input data-profitability-input="occupancy" type="number" min="0" max="100" step="1" inputmode="decimal" value="${value("occupancy")}"><span>%</span></span></label><label data-profitability-field="externalFee">${escapeHtml(labels.externalFee)}<span class="profitability-control"><input data-profitability-input="externalFee" type="number" min="0" max="100" step="1" inputmode="decimal" value="${value("externalFee")}"><span>%</span></span></label><p class="profitability-note">${escapeHtml(labels.note)}</p></aside><div class="profitability-results"><div class="profitability-table-scroll"><table><thead><tr><th scope="col"></th><th scope="col" data-profitability-column="traditional"><span>${escapeHtml(labels.traditionalColumn)}</span><small>${escapeHtml(labels.traditionalDetail)}</small></th><th scope="col" data-profitability-column="self-managed"><span>${escapeHtml(labels.selfColumn)}</span><small>${escapeHtml(labels.selfDetail)}</small></th><th scope="col" data-profitability-column="external"><span>${escapeHtml(labels.externalColumn)}</span><small>${escapeHtml(labels.externalDetail)}</small></th><th scope="col" data-profitability-column="hot-host"><span>${escapeHtml(labels.hotHostColumn)}</span><small>${escapeHtml(labels.hotHostDetail)}</small></th></tr></thead><tbody><tr><th scope="row">${escapeHtml(labels.gross)}</th><td data-profitability-output="traditionalGross">—</td><td data-profitability-output="selfGross">—</td><td data-profitability-output="externalGross">—</td><td data-profitability-output="hotHostGross">—</td></tr><tr><th scope="row">${escapeHtml(labels.management)}</th><td data-profitability-output="traditionalFee">—</td><td data-profitability-output="selfFee">—</td><td data-profitability-output="externalFee">—</td><td data-profitability-output="hotHostFee">—</td></tr><tr class="profitability-net-row"><th scope="row">${escapeHtml(labels.net)}</th><td data-profitability-output="traditionalNet">—</td><td data-profitability-output="selfNet">—</td><td data-profitability-output="externalNet">—</td><td data-profitability-output="hotHostNet">—</td></tr><tr><th scope="row">${escapeHtml(labels.monthlyNet)}</th><td data-profitability-output="traditionalMonthly">—</td><td data-profitability-output="selfMonthly">—</td><td data-profitability-output="externalMonthly">—</td><td data-profitability-output="hotHostMonthly">—</td></tr></tbody></table></div><p class="profitability-missing" data-profitability-missing hidden>${escapeHtml(labels.missingValue)}</p><div class="profitability-cta"><span>${escapeHtml(labels.note)}</span><a class="btn primary" href="contacto.html">${escapeHtml(labels.requestAudit)}</a></div></div></div></div></section>${renderCta(locale)}</main>`;
-  }
-
-  function getProfitabilityComparisonTerms(locale) {
-    const extensions = {
-      es: { situation: "¿Cómo alquilas ahora?", selfManaged: "Me gestiono por mi cuenta", external: "Trabajo con otra gestora", newProperty: "Aún no he alquilado", externalFee: "Comisión de tu gestora", management: "Coste de gestión", net: "Neto anual para ti", monthlyNet: "Neto mensual para ti", externalColumn: "Gestora externa", newColumn: "Escenario propio", currentDetail: "Tus datos", estimatedDetail: "Estimación automática", externalDetail: "Comisión editable", estimatedNote: "A partir de tu renta actual estimamos la tarifa y la ocupación de los escenarios turísticos. Una auditoría permite afinarlo con los datos reales de tu vivienda.", directNote: "Usamos la tarifa y ocupación que indiques para tu modelo actual. La proyección Hot Host es orientativa y no incluye impuestos ni costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.", noData: "Introduce los datos para ver la estimación.", versusCurrent: "frente a tu gestión actual" },
-      en: { situation: "How do you rent now?", selfManaged: "I manage it myself", external: "I work with another manager", newProperty: "I have not rented it yet", externalFee: "Your manager's commission", management: "Management cost", net: "Your annual net income", monthlyNet: "Your monthly net income", externalColumn: "External manager", newColumn: "Own scenario", currentDetail: "Your figures", estimatedDetail: "Automatic estimate", externalDetail: "Editable commission", estimatedNote: "We estimate the tourist rates and occupancy from your current monthly rent. An audit can refine the figures using your property's real data.", directNote: "We use the rate and occupancy you enter for your current model. The Hot Host projection is indicative and excludes taxes and variable costs such as cleaning, linen, utilities, maintenance or platforms.", noData: "Enter your figures to see the estimate.", versusCurrent: "compared with your current management" },
-      fr: { situation: "Comment louez-vous actuellement ?", selfManaged: "Je gère moi-même", external: "Je travaille avec un autre gestionnaire", newProperty: "Je n'ai pas encore loué", externalFee: "Commission de votre gestionnaire", management: "Coût de gestion", net: "Votre net annuel", monthlyNet: "Votre net mensuel", externalColumn: "Gestionnaire externe", newColumn: "Scénario propre", currentDetail: "Vos données", estimatedDetail: "Estimation automatique", externalDetail: "Commission modifiable", estimatedNote: "Nous estimons le tarif et l'occupation touristiques à partir de votre loyer actuel. Un audit permet d'affiner les chiffres avec les données réelles du logement.", directNote: "Nous utilisons le tarif et l'occupation indiqués pour votre modèle actuel. La projection Hot Host est indicative et exclut impôts et coûts variables tels que ménage, linge, fournitures, maintenance ou plateformes.", noData: "Saisissez vos données pour voir l'estimation.", versusCurrent: "par rapport à votre gestion actuelle" },
-      it: { situation: "Come affitti ora?", selfManaged: "Gestisco in autonomia", external: "Lavoro con un altro gestore", newProperty: "Non ho ancora affittato", externalFee: "Commissione del tuo gestore", management: "Costo di gestione", net: "Il tuo netto annuale", monthlyNet: "Il tuo netto mensile", externalColumn: "Gestore esterno", newColumn: "Scenario proprio", currentDetail: "I tuoi dati", estimatedDetail: "Stima automatica", externalDetail: "Commissione modificabile", estimatedNote: "Stimiamo tariffa e occupazione turistica dal tuo canone attuale. Un audit consente di perfezionare le cifre con i dati reali dell'alloggio.", directNote: "Usiamo la tariffa e l'occupazione indicate per il tuo modello attuale. La proiezione Hot Host è indicativa ed esclude imposte e costi variabili come pulizia, biancheria, utenze, manutenzione o piattaforme.", noData: "Inserisci i dati per vedere la stima.", versusCurrent: "rispetto alla tua gestione attuale" },
-      de: { situation: "Wie vermieten Sie derzeit?", selfManaged: "Ich verwalte selbst", external: "Ich arbeite mit einer anderen Verwaltung", newProperty: "Ich habe noch nicht vermietet", externalFee: "Provision Ihrer Verwaltung", management: "Verwaltungskosten", net: "Ihr jährlicher Nettobetrag", monthlyNet: "Ihr monatlicher Nettobetrag", externalColumn: "Externe Verwaltung", newColumn: "Eigenes Szenario", currentDetail: "Ihre Daten", estimatedDetail: "Automatische Schätzung", externalDetail: "Anpassbare Provision", estimatedNote: "Wir schätzen den touristischen Preis und die Auslastung anhand Ihrer aktuellen Monatsmiete. Ein Audit kann die Werte mit den tatsächlichen Objektdaten verfeinern.", directNote: "Wir verwenden den von Ihnen angegebenen Preis und die Auslastung für Ihr aktuelles Modell. Die Hot-Host-Prognose ist unverbindlich und enthält keine Steuern oder variablen Kosten wie Reinigung, Wäsche, Nebenkosten, Wartung oder Plattformen.", noData: "Geben Sie Ihre Daten ein, um die Schätzung zu sehen.", versusCurrent: "gegenüber Ihrer aktuellen Verwaltung" },
-      pl: { situation: "Jak obecnie wynajmujesz?", selfManaged: "Zarządzam samodzielnie", external: "Współpracuję z innym zarządcą", newProperty: "Jeszcze nie wynajmowałem", externalFee: "Prowizja zarządcy", management: "Koszt zarządzania", net: "Twój roczny dochód netto", monthlyNet: "Twój miesięczny dochód netto", externalColumn: "Zewnętrzny zarządca", newColumn: "Własny scenariusz", currentDetail: "Twoje dane", estimatedDetail: "Automatyczna estymacja", externalDetail: "Edytowalna prowizja", estimatedNote: "Szacujemy stawkę turystyczną i obłożenie na podstawie obecnego czynszu. Audyt pozwala doprecyzować dane na podstawie rzeczywistych danych obiektu.", directNote: "Używamy stawki i obłożenia podanych dla obecnego modelu. Projekcja Hot Host jest orientacyjna i nie obejmuje podatków ani kosztów zmiennych, takich jak sprzątanie, pranie, media, utrzymanie czy platformy.", noData: "Wprowadź dane, aby zobaczyć estymację.", versusCurrent: "w porównaniu z obecnym zarządzaniem" },
-      nl: { situation: "Hoe verhuurt u nu?", selfManaged: "Ik beheer het zelf", external: "Ik werk met een andere beheerder", newProperty: "Ik heb nog niet verhuurd", externalFee: "Commissie van uw beheerder", management: "Beheerkosten", net: "Uw jaarlijkse netto-opbrengst", monthlyNet: "Uw maandelijkse netto-opbrengst", externalColumn: "Externe beheerder", newColumn: "Eigen scenario", currentDetail: "Uw gegevens", estimatedDetail: "Automatische schatting", externalDetail: "Aanpasbare commissie", estimatedNote: "We schatten het toeristische tarief en de bezetting op basis van uw huidige maandhuur. Een audit kan de cijfers verfijnen met echte gegevens van uw accommodatie.", directNote: "We gebruiken het tarief en de bezetting die u voor uw huidige model invoert. De Hot Host-projectie is indicatief en is exclusief belastingen en variabele kosten zoals schoonmaak, linnengoed, nutsvoorzieningen, onderhoud of platforms.", noData: "Vul uw gegevens in om de schatting te zien.", versusCurrent: "vergeleken met uw huidige beheer" },
-      pt: { situation: "Como arrenda atualmente?", selfManaged: "Faço a gestão por conta própria", external: "Trabalho com outro gestor", newProperty: "Ainda não arrendei", externalFee: "Comissão do seu gestor", management: "Custo de gestão", net: "O seu líquido anual", monthlyNet: "O seu líquido mensal", externalColumn: "Gestor externo", newColumn: "Cenário próprio", currentDetail: "Os seus dados", estimatedDetail: "Estimativa automática", externalDetail: "Comissão editável", estimatedNote: "Estimamos a tarifa turística e a ocupação a partir da sua renda atual. Uma auditoria permite afinar os valores com os dados reais do alojamento.", directNote: "Usamos a tarifa e a ocupação indicadas para o seu modelo atual. A projeção Hot Host é indicativa e não inclui impostos nem custos variáveis como limpeza, lavandaria, consumos, manutenção ou plataformas.", noData: "Introduza os dados para ver a estimativa.", versusCurrent: "face à sua gestão atual" },
-      el: { situation: "Πώς νοικιάζετε τώρα;", selfManaged: "Διαχειρίζομαι μόνος μου", external: "Συνεργάζομαι με άλλο διαχειριστή", newProperty: "Δεν έχω νοικιάσει ακόμη", externalFee: "Προμήθεια διαχειριστή", management: "Κόστος διαχείρισης", net: "Το ετήσιο καθαρό σας ποσό", monthlyNet: "Το μηνιαίο καθαρό σας ποσό", externalColumn: "Εξωτερικός διαχειριστής", newColumn: "Δικό σας σενάριο", currentDetail: "Τα στοιχεία σας", estimatedDetail: "Αυτόματη εκτίμηση", externalDetail: "Επεξεργάσιμη προμήθεια", estimatedNote: "Εκτιμούμε την τουριστική τιμή και πληρότητα από το τρέχον μηνιαίο μίσθωμά σας. Ένας έλεγχος μπορεί να βελτιώσει τα στοιχεία με πραγματικά δεδομένα του καταλύματος.", directNote: "Χρησιμοποιούμε την τιμή και την πληρότητα που δηλώνετε για το τρέχον μοντέλο σας. Η προβολή Hot Host είναι ενδεικτική και δεν περιλαμβάνει φόρους ή μεταβλητά κόστη όπως καθαρισμό, λινά, κοινόχρηστα, συντήρηση ή πλατφόρμες.", noData: "Συμπληρώστε τα στοιχεία για να δείτε την εκτίμηση.", versusCurrent: "σε σύγκριση με την τρέχουσα διαχείρισή σας" }
-    };
-    const externalIndicators = {
-      es: { externalOwnerTime: "Baja", externalPricing: "Según tu gestora", externalGuestCare: "Tu gestora" },
-      en: { externalOwnerTime: "Low", externalPricing: "Set by your manager", externalGuestCare: "Your manager" },
-      fr: { externalOwnerTime: "Faible", externalPricing: "Selon votre gestionnaire", externalGuestCare: "Votre gestionnaire" },
-      it: { externalOwnerTime: "Bassa", externalPricing: "Secondo il tuo gestore", externalGuestCare: "Il tuo gestore" },
-      de: { externalOwnerTime: "Niedrig", externalPricing: "Durch Ihre Verwaltung", externalGuestCare: "Ihre Verwaltung" },
-      pl: { externalOwnerTime: "Niska", externalPricing: "Według zarządcy", externalGuestCare: "Twój zarządca" },
-      nl: { externalOwnerTime: "Laag", externalPricing: "Volgens uw beheerder", externalGuestCare: "Uw beheerder" },
-      pt: { externalOwnerTime: "Baixa", externalPricing: "Segundo o seu gestor", externalGuestCare: "O seu gestor" },
-      el: { externalOwnerTime: "Χαμηλή", externalPricing: "Σύμφωνα με τον διαχειριστή", externalGuestCare: "Ο διαχειριστής σας" }
-    };
-    const comparison = (locale.home && locale.home.comparison) || {};
-    const terms = Object.assign({}, extensions[activeLanguage] || extensions.es, externalIndicators[activeLanguage] || externalIndicators.es, {
-      traditionalNights: "—",
-      traditionalRate: "—",
-      traditionalOccupancy: "—"
-    });
-    const comparisonTerms = [
-      ["tableEyebrow", "eyebrow"], ["tableTitle", "title"], ["tableLead", "lead"], ["inputsTitle", "inputsTitle"], ["currencyLabel", "currencyLabel"],
-      ["monthlyRent", "traditionalRent"], ["nightlyRate", "touristRate"], ["occupancy", "touristOccupancy"],
-      ["metric", "metric"], ["traditionalColumn", "traditional"], ["selfColumn", "tourist"], ["currentColumn", "tourist"], ["hotHostColumn", "hotHost"],
-      ["gross", "annualIncome"], ["nights", "occupiedNights"], ["averageRate", "averageRate"], ["occupancyMetric", "touristOccupancy"],
-      ["ownerTime", "ownerTime"], ["pricing", "pricing"], ["guestCare", "guestCare"], ["traditionalOwnerTime", "ownerTimeLow"],
-      ["selfOwnerTime", "ownerTimeHigh"], ["hotHostOwnerTime", "ownerTimeLow"], ["traditionalPricing", "pricingFixed"],
-      ["selfPricing", "pricingManual"], ["hotHostPricing", "pricingDynamic"], ["traditionalGuestCare", "guestCareTenant"],
-      ["selfGuestCare", "guestCareOwner"], ["hotHostGuestCare", "guestCareHotHost"], ["resultLabel", "resultLabel"], ["versusTraditional", "versusTraditional"]
-    ];
-    comparisonTerms.forEach(function (term) {
-      if (comparison[term[1]]) terms[term[0]] = comparison[term[1]];
-    });
-    return terms;
-  }
-
-  function renderProfitabilityComparison(locale) {
-    const page = getExperienceContent(activeLanguage).profitability || {};
-    const labels = Object.assign({
-      breadcrumb: "Rentabilidad",
-      tableEyebrow: "Comparativa práctica",
-      tableTitle: "Compara lo que entra y lo que queda.",
-      tableLead: "Partimos de tu situación actual y mostramos el neto antes de impuestos y costes variables.",
-      inputsTitle: "Tu punto de partida",
-      situation: "¿Cómo alquilas ahora?",
-      traditional: "Alquilo de forma tradicional",
-      selfManaged: "Me gestiono por mi cuenta",
-      external: "Trabajo con otra gestora",
-      newProperty: "Aún no he alquilado",
-      selfColumn: "Gestión propia",
-      externalColumn: "Tu gestora actual",
-      newColumn: "Escenario propio",
-      monthlyRent: "Renta mensual actual",
-      nightlyRate: "Tarifa media por noche",
-      occupancy: "Ocupación actual",
-      externalFee: "Comisión de tu gestora",
-      traditionalColumn: "Alquiler tradicional",
-      currentColumn: "Gestión propia",
-      hotHostColumn: "Hot Host",
-      metric: "Concepto",
-      gross: "Ingresos brutos anuales",
-      management: "Coste de gestión",
-      net: "Neto anual para ti",
-      monthlyNet: "Neto mensual para ti",
-      nights: "Noches ocupadas",
-      averageRate: "Tarifa media",
-      occupancyMetric: "Ocupación",
-      ownerTime: "Dedicación del propietario",
-      pricing: "Estrategia de precios",
-      guestCare: "Atención al huésped",
-      traditionalNights: "No aplica",
-      traditionalRate: "No aplica",
-      traditionalOccupancy: "No aplica",
-      traditionalOwnerTime: "Muy baja",
-      traditionalPricing: "Fijo",
-      traditionalGuestCare: "Inquilino",
-      selfOwnerTime: "Alta",
-      externalOwnerTime: "Baja",
-      hotHostOwnerTime: "Muy baja",
-      selfPricing: "Manual",
-      externalPricing: "Según tu gestora",
-      hotHostPricing: "Dinámica",
-      selfGuestCare: "Tú",
-      externalGuestCare: "Tu gestora",
-      hotHostGuestCare: "Hot Host",
-      currentDetail: "Tus datos",
-      estimatedDetail: "Estimación automática",
-      externalDetail: "Comisión editable",
-      estimatedNote: "A partir de tu renta actual estimamos la tarifa y la ocupación de los escenarios turísticos. Puedes solicitar una auditoría para afinarlo con los datos reales de tu vivienda.",
-      directNote: "Usamos la tarifa y ocupación que indiques. La comparación no incluye impuestos ni costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.",
-      resultLabel: "Neto anual estimado con Hot Host",
-      noData: "Introduce los datos para ver la estimación.",
-      requestAudit: "Solicitar auditoría"
-    }, page);
-    Object.assign(labels, getProfitabilityComparisonTerms(locale));
-    const values = profitabilityState;
-    const inputValue = function (key) {
-      return values[key] === "" ? "" : escapeHtml(values[key]);
-    };
-    return `<main class="profitability-page"><section class="page-hero profitability-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(labels.breadcrumb)}</div><div class="eyebrow">${escapeHtml(page.eyebrow || "Decide con números claros")}</div><h1>${escapeHtml(page.title || "Tu alojamiento, visto desde el neto.")}</h1><p class="lead">${escapeHtml(page.lead || "Compara modelos sin impuestos ni costes variables: solo ingresos, gestión y lo que queda para ti.")}</p></div></section><section class="section earnings-section profitability-section" id="comparador"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(labels.tableEyebrow)}</div><h2>${escapeHtml(labels.tableTitle)}</h2></div><p>${escapeHtml(labels.tableLead)}</p></div><div class="earnings-layout" data-profitability-comparison><aside class="earnings-inputs" aria-labelledby="profitabilityInputsTitle"><h3 id="profitabilityInputsTitle">${escapeHtml(labels.inputsTitle)}</h3><label class="earnings-model-field" for="profitabilitySituation">${escapeHtml(labels.situation)}<select id="profitabilitySituation" data-profitability-input="situation"><option value="traditional">${escapeHtml(labels.traditional)}</option><option value="self-managed">${escapeHtml(labels.selfManaged)}</option><option value="external">${escapeHtml(labels.external)}</option><option value="new-property">${escapeHtml(labels.newProperty)}</option></select></label><label class="earnings-value-field" data-profitability-field="traditionalRent">${escapeHtml(labels.monthlyRent)}<span class="earnings-control"><input data-profitability-input="traditionalRent" type="number" min="0" max="100000" step="50" inputmode="decimal" value="${inputValue("traditionalRent")}"><span>€</span></span></label><label class="earnings-value-field" data-profitability-field="nightlyRate">${escapeHtml(labels.nightlyRate)}<span class="earnings-control"><input data-profitability-input="nightlyRate" type="number" min="0" max="5000" step="5" inputmode="decimal" value="${inputValue("nightlyRate")}"><span>€</span></span></label><label class="earnings-value-field" data-profitability-field="occupancy">${escapeHtml(labels.occupancy)}<span class="earnings-control"><input data-profitability-input="occupancy" type="number" min="0" max="100" step="1" inputmode="decimal" value="${inputValue("occupancy")}"><span>%</span></span></label><label class="earnings-value-field" data-profitability-field="externalFee">${escapeHtml(labels.externalFee)}<span class="earnings-control"><input data-profitability-input="externalFee" type="number" min="0" max="100" step="1" inputmode="decimal" value="${inputValue("externalFee")}"><span>%</span></span></label><p class="earnings-disclaimer" data-profitability-note></p></aside><div class="earnings-comparison"><div class="earnings-table-scroll"><table><thead><tr><th scope="col">${escapeHtml(labels.metric)}</th><th scope="col" data-profitability-column="traditional">${escapeHtml(labels.traditionalColumn)}</th><th scope="col" data-profitability-column="current"><span data-profitability-current-heading>${escapeHtml(labels.currentColumn)}</span><small data-profitability-current-detail>${escapeHtml(labels.currentDetail)}</small></th><th scope="col" class="hot-host-column">${escapeHtml(labels.hotHostColumn)}</th></tr></thead><tbody><tr><th scope="row">${escapeHtml(labels.gross)}</th><td data-profitability-output="traditionalGross">—</td><td data-profitability-output="currentGross">—</td><td class="hot-host-column" data-profitability-output="hotHostGross">—</td></tr><tr><th scope="row">${escapeHtml(labels.management)}</th><td data-profitability-output="traditionalFee">—</td><td data-profitability-output="currentFee">—</td><td class="hot-host-column" data-profitability-output="hotHostFee">—</td></tr><tr><th scope="row">${escapeHtml(labels.net)}</th><td data-profitability-output="traditionalNet">—</td><td data-profitability-output="currentNet">—</td><td class="hot-host-column" data-profitability-output="hotHostNet">—</td></tr><tr><th scope="row">${escapeHtml(labels.monthlyNet)}</th><td data-profitability-output="traditionalMonthly">—</td><td data-profitability-output="currentMonthly">—</td><td class="hot-host-column" data-profitability-output="hotHostMonthly">—</td></tr><tr><th scope="row">${escapeHtml(labels.nights)}</th><td data-profitability-output="traditionalNights">${escapeHtml(labels.traditionalNights)}</td><td data-profitability-output="currentNights">—</td><td class="hot-host-column" data-profitability-output="hotHostNights">—</td></tr><tr><th scope="row">${escapeHtml(labels.averageRate)}</th><td data-profitability-output="traditionalRate">${escapeHtml(labels.traditionalRate)}</td><td data-profitability-output="currentRate">—</td><td class="hot-host-column" data-profitability-output="hotHostRate">—</td></tr><tr><th scope="row">${escapeHtml(labels.occupancyMetric)}</th><td data-profitability-output="traditionalOccupancy">${escapeHtml(labels.traditionalOccupancy)}</td><td data-profitability-output="currentOccupancy">—</td><td class="hot-host-column" data-profitability-output="hotHostOccupancy">—</td></tr><tr><th scope="row">${escapeHtml(labels.ownerTime)}</th><td data-profitability-output="traditionalOwnerTime">${escapeHtml(labels.traditionalOwnerTime)}</td><td data-profitability-output="currentOwnerTime">—</td><td class="hot-host-column" data-profitability-output="hotHostOwnerTime">${escapeHtml(labels.hotHostOwnerTime)}</td></tr><tr><th scope="row">${escapeHtml(labels.pricing)}</th><td data-profitability-output="traditionalPricing">${escapeHtml(labels.traditionalPricing)}</td><td data-profitability-output="currentPricing">—</td><td class="hot-host-column" data-profitability-output="hotHostPricing">${escapeHtml(labels.hotHostPricing)}</td></tr><tr><th scope="row">${escapeHtml(labels.guestCare)}</th><td data-profitability-output="traditionalGuestCare">${escapeHtml(labels.traditionalGuestCare)}</td><td data-profitability-output="currentGuestCare">—</td><td class="hot-host-column" data-profitability-output="hotHostGuestCare">${escapeHtml(labels.hotHostGuestCare)}</td></tr></tbody></table></div><div class="earnings-result" aria-live="polite"><span data-profitability-result-label>${escapeHtml(labels.resultLabel)}</span><strong data-profitability-output="hotHostResult">—</strong><div><b data-profitability-output="difference">—</b> <span data-profitability-output="differenceLabel">${escapeHtml(labels.noData)}</span></div></div><p class="earnings-disclaimer">${escapeHtml(labels.directNote)}</p></div></div></div></section>${renderCta(locale)}</main>`;
+    return `<section class="section"><div class="wrap"><div class="cta"><div class="cta-copy"><div class="eyebrow">${escapeHtml(locale.common.ctaEyebrow)}</div><h2>${escapeHtml(locale.common.ctaTitle)}</h2></div><a class="btn primary" style="background:#e7c46a;color:#171717;border-color:#e7c46a" href="contacto.html">${escapeHtml(getPrimaryCta(locale, true))}</a></div></div></section>`;
   }
 
   function renderFounderPage(locale) {
@@ -2826,11 +2259,12 @@
   function renderCommercialStory(story, context) {
     if (!Array.isArray(story) || !story.length) return "";
     const visuals = COMMERCIAL_STORY_IMAGES[context] || COMMERCIAL_STORY_IMAGES.home;
-    const cards = story.map(function (item, index) {
+    const visibleStory = story.slice(0, 2);
+    const cards = visibleStory.map(function (item, index) {
       const visual = visuals[index] || visuals[0];
       return `<article class="commercial-story-card commercial-story-card-${index + 1}" style="--story-background:url('${escapeHtml(imageUrl(visual.background, 1000, 1320))}')"><div class="commercial-story-card-content"><div class="eyebrow">${escapeHtml(item.label)}</div><figure class="commercial-story-visual" aria-hidden="true"><img src="${escapeHtml(imageUrl(visual.detail, 520, 340))}" alt="" width="520" height="340" loading="lazy" decoding="async"></figure><h2 class="commercial-story-title">${escapeHtml(item.title)}</h2><p>${escapeHtml(item.text)}</p></div></article>`;
     }).join("");
-    return `<section class="section commercial-story commercial-story-${escapeHtml(context)}"><div class="wrap commercial-story-grid">${cards}</div></section>`;
+    return `<section class="section commercial-story commercial-story-${escapeHtml(context)}"><div class="wrap commercial-story-grid commercial-story-grid-${visibleStory.length}">${cards}</div></section>`;
   }
 
   function renderLegalHub(locale) {
@@ -2845,24 +2279,167 @@
     return `<main class="legal-hub"><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(page.breadcrumb || "Información legal y privacidad")}</div><div class="eyebrow">${escapeHtml(page.eyebrow || "Transparencia")}</div><h1>${escapeHtml(page.title || "Información legal y privacidad")}</h1><p class="lead">${escapeHtml(page.lead || "Accede a las condiciones legales, al tratamiento de datos y a las preferencias de esta web.")}</p></div></section><section class="section"><div class="wrap legal-hub-grid">${cards.map(function (card) { return `<a class="legal-hub-card" href="${escapeHtml(card[0])}"><span class="legal-hub-card-index" aria-hidden="true">↗</span><h2>${escapeHtml(card[1] || "")}</h2><p>${escapeHtml(card[2] || "")}</p><span>${escapeHtml(page.open || "Ver información")}</span></a>`; }).join("")}</div></section></main>`;
   }
 
-  function renderHome(locale, services) {
+  function getExperienceSection(contentKey) {
+    const spanish = getExperienceContent("es")[contentKey] || {};
+    const localized = getExperienceContent(activeLanguage)[contentKey] || {};
+    return Object.assign({}, spanish, localized);
+  }
+
+  function getArchitecturePage(pageKey) {
+    return getExperienceSection(pageKey === "web-direct" ? "webDirectPage" : "experiencesPage");
+  }
+
+  function renderOfferModel() {
+    const offer = getExperienceSection("offerModel");
+    if (!Array.isArray(offer.pillars) || !offer.pillars.length) return "";
+    const pillars = offer.pillars.map(function (pillar, index) {
+      const visual = OFFER_MODEL_IMAGES[index] || OFFER_MODEL_IMAGES[0];
+      const items = (pillar.items || []).map(function (item) {
+        return `<li>${escapeHtml(item)}</li>`;
+      }).join("");
+      return `<article class="offer-pillar"><figure class="offer-pillar-media"><img src="${escapeHtml(imageUrl(visual.id, 860, 560))}" alt="${escapeHtml(pillar.imageAlt)}" width="860" height="560" loading="lazy" decoding="async" style="object-position:${escapeHtml(visual.position)}"></figure><div class="offer-pillar-body"><span class="offer-pillar-index" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><h3>${escapeHtml(pillar.title)}</h3><p>${escapeHtml(pillar.text)}</p><ul>${items}</ul><a href="${escapeHtml(pillar.path)}">${escapeHtml(pillar.action)} <span aria-hidden="true">→</span></a></div></article>`;
+    }).join("");
+    return `<section class="section offer-model-section" id="modelo"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(offer.eyebrow)}</div><h2>${escapeHtml(offer.title)}</h2></div><p>${escapeHtml(offer.lead)}</p></div><div class="offer-model-grid">${pillars}</div></div></section>`;
+  }
+
+  function renderHomeMethod() {
+    const method = getExperienceSection("homeMethod");
+    if (!Array.isArray(method.steps) || !method.steps.length) return "";
+    const steps = method.steps.map(function (step, index) {
+      return `<li><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><strong>${escapeHtml(step[0])}</strong><p>${escapeHtml(step[1])}</p></li>`;
+    }).join("");
+    return `<section class="section soft home-method-section" id="metodo"><div class="wrap home-method-layout"><div class="home-method-copy"><div class="eyebrow">${escapeHtml(method.eyebrow)}</div><h2>${escapeHtml(method.title)}</h2><p>${escapeHtml(method.lead)}</p></div><ol class="home-method-steps">${steps}</ol></div></section>`;
+  }
+
+  function renderHomeTrust(locale) {
+    const trust = getExperienceSection("homeTrust");
+    if (!Array.isArray(trust.commitments) || !trust.commitments.length) return "";
+    const commitments = trust.commitments.map(function (commitment, index) {
+      return `<li><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><div><strong>${escapeHtml(commitment[0])}</strong><p>${escapeHtml(commitment[1])}</p></div></li>`;
+    }).join("");
+    return `<section class="section home-trust-section"><div class="wrap home-trust-layout"><div class="home-trust-copy"><div class="eyebrow">${escapeHtml(trust.eyebrow)}</div><h2>${escapeHtml(trust.title)}</h2><p>${escapeHtml(trust.lead)}</p><strong class="home-trust-note">${escapeHtml(trust.note)}</strong><a class="btn primary" href="contacto.html">${escapeHtml(getPrimaryCta(locale, false))}</a></div><div class="home-commitments"><div class="eyebrow">${escapeHtml(trust.commitmentsEyebrow)}</div><h3>${escapeHtml(trust.commitmentsTitle)}</h3><ol>${commitments}</ol></div></div></section>`;
+  }
+
+  function renderHomeClosing(locale) {
+    const closing = getExperienceSection("homeClosing");
+    if (!closing.title) return "";
+    return `<section class="section home-closing-section"><div class="wrap"><div class="home-closing-panel"><div><div class="eyebrow">${escapeHtml(closing.eyebrow)}</div><h2>${escapeHtml(closing.title)}</h2><p>${escapeHtml(closing.text)}</p></div><a class="btn primary" href="contacto.html">${escapeHtml(getPrimaryCta(locale, true))}</a></div></div></section>`;
+  }
+
+  function renderCaseExample(locale) {
+    const example = getExperienceSection("caseExample");
+    if (!Array.isArray(example.steps) || !example.steps.length) return "";
+    const steps = example.steps.map(function (step, index) {
+      return `<li><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><div><strong>${escapeHtml(step[0])}</strong><p>${escapeHtml(step[1])}</p></div></li>`;
+    }).join("");
+    return `<section class="section case-example-section" id="caso-tipo"><div class="wrap case-example-layout"><figure class="case-example-media"><img src="${escapeHtml(imageUrl(CASE_EXAMPLE_IMAGE.id, 1100, 1280))}" alt="${escapeHtml(example.imageAlt)}" width="1100" height="1280" loading="lazy" decoding="async" style="object-position:${escapeHtml(CASE_EXAMPLE_IMAGE.position)}"><figcaption>${escapeHtml(example.eyebrow)}</figcaption></figure><article class="case-example-copy"><div class="eyebrow">${escapeHtml(example.eyebrow)}</div><h2>${escapeHtml(example.title)}</h2><p class="lead">${escapeHtml(example.lead)}</p><ol>${steps}</ol><div class="case-example-value"><strong>${escapeHtml(example.valueTitle)}</strong><p>${escapeHtml(example.valueText)}</p></div><small>${escapeHtml(example.note)}</small><a class="btn primary" href="contacto.html">${escapeHtml(getPrimaryCta(locale, true))}</a></article></div></section>`;
+  }
+
+  function renderFaqSection(page, modifier) {
+    if (!Array.isArray(page.faqs) || !page.faqs.length) return "";
+    const items = page.faqs.map(function (item) {
+      return `<details><summary><span>${escapeHtml(item[0])}</span><span class="faq-toggle" aria-hidden="true">+</span></summary><p>${escapeHtml(item[1])}</p></details>`;
+    }).join("");
+    return `<section class="section architecture-faq-section ${escapeHtml(modifier)}-faq-section"><div class="wrap architecture-faq-layout"><div><div class="eyebrow">${escapeHtml(page.faqEyebrow)}</div><h2>${escapeHtml(page.faqTitle)}</h2></div><div class="architecture-faq-list">${items}</div></div></section>`;
+  }
+
+  function renderWebDirectExtras(page) {
+    const levels = Array.isArray(page.levels) ? page.levels.map(function (level, index) {
+      return `<li><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><div><strong>${escapeHtml(level[0])}</strong><p>${escapeHtml(level[1])}</p></div><small><b>${escapeHtml(page.levelsProposalLabel)}</b> ${escapeHtml(level[2])}</small></li>`;
+    }).join("") : "";
+    const levelsSection = levels
+      ? `<section class="section web-levels-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(page.levelsEyebrow)}</div><h2>${escapeHtml(page.levelsTitle)}</h2></div><p>${escapeHtml(page.levelsLead)}</p></div><ol class="web-levels-list">${levels}</ol></div></section>`
+      : "";
+    return `${levelsSection}${renderFaqSection(page, "web-direct")}`;
+  }
+
+  function appendMainSections(markup, sections) {
+    return sections ? markup.replace(/<\/main>$/, `${sections}</main>`) : markup;
+  }
+
+  function renderWebDirectPage(locale) {
+    const pageKey = "web-direct";
+    const page = getArchitecturePage(pageKey);
+    const pageClass = pageKey === "web-direct" ? "web-direct-page" : "experiences-page";
+    const visuals = ARCHITECTURE_PAGE_IMAGES[pageKey];
+    const paragraphs = (page.detailParagraphs || []).map(function (paragraph) {
+      return `<p>${escapeHtml(paragraph)}</p>`;
+    }).join("");
+    const deliverables = (page.deliverables || []).map(function (item, index) {
+      return `<li><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><div><strong>${escapeHtml(item[0])}</strong><p>${escapeHtml(item[1])}</p></div></li>`;
+    }).join("");
+    const scopeItems = (page.scopeItems || []).map(function (item) {
+      return `<li>${escapeHtml(item)}</li>`;
+    }).join("");
+    const caseExample = pageKey === "experiences" ? renderCaseExample(locale) : "";
+    return `<main class="architecture-page ${pageClass}"><section class="page-hero architecture-page-hero"><div class="wrap architecture-hero-grid"><div class="architecture-hero-copy"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(page.breadcrumb)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${escapeHtml(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p><div class="hero-actions architecture-page-actions"><a class="btn primary" href="contacto.html">${escapeHtml(getPrimaryCta(locale, false))}</a><a class="btn ghost" href="servicios.html">${escapeHtml(page.secondaryAction)}</a></div></div><figure class="architecture-hero-media"><img src="${escapeHtml(imageUrl(visuals.hero.id, 1050, 900))}" alt="" width="1050" height="900" fetchpriority="high" decoding="async" style="object-position:${escapeHtml(visuals.hero.position)}"></figure></div></section><section class="section architecture-detail-section"><div class="wrap architecture-detail-grid"><figure class="architecture-detail-media"><img src="${escapeHtml(imageUrl(visuals.detail.id, 980, 1180))}" alt="${escapeHtml(page.detailImageAlt)}" width="980" height="1180" loading="lazy" decoding="async" style="object-position:${escapeHtml(visuals.detail.position)}"></figure><article class="architecture-detail-copy"><div class="eyebrow">${escapeHtml(page.detailEyebrow)}</div><h2>${escapeHtml(page.detailTitle)}</h2><div class="architecture-detail-intro">${paragraphs}</div><ol class="architecture-deliverables">${deliverables}</ol></article></div></section><section class="section soft architecture-scope-section"><div class="wrap architecture-scope-layout"><div class="architecture-scope-copy"><div class="eyebrow">${escapeHtml(page.scopeEyebrow)}</div><h2>${escapeHtml(page.scopeTitle)}</h2><p>${escapeHtml(page.scopeText)}</p><a class="btn primary" href="contacto.html">${escapeHtml(getPrimaryCta(locale, true))}</a></div><ul class="architecture-scope-list">${scopeItems}</ul></div></section>${caseExample}</main>`;
+  }
+
+  function renderExperiencesPage(locale) {
+    const page = getArchitecturePage("experiences");
+    const visuals = ARCHITECTURE_PAGE_IMAGES.experiences;
+    const coordinates = (page.coordinates || []).map(function (item, index) {
+      return `<div><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><strong>${escapeHtml(item[0])}</strong><p>${escapeHtml(item[1])}</p></div>`;
+    }).join("");
+    const paragraphs = (page.detailParagraphs || []).map(function (paragraph) {
+      return `<p>${escapeHtml(paragraph)}</p>`;
+    }).join("");
+    const stages = (page.deliverables || []).map(function (item, index) {
+      return `<li><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><h3>${escapeHtml(item[0])}</h3><p>${escapeHtml(item[1])}</p></li>`;
+    }).join("");
+    const agreements = (page.scopeItems || []).map(function (item, index) {
+      return `<li><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><p>${escapeHtml(item)}</p></li>`;
+    }).join("");
+
+    return `<main class="experiences-page"><section class="experience-hero"><figure class="experience-hero-media"><img src="${escapeHtml(imageUrl(visuals.hero.id, 1800, 1200))}" alt="" width="1800" height="1200" fetchpriority="high" decoding="async" style="object-position:${escapeHtml(visuals.hero.position)}"></figure><div class="wrap experience-hero-layout"><div class="experience-hero-copy"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(page.breadcrumb)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${escapeHtml(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p><div class="hero-actions"><a class="btn primary" href="contacto.html">${escapeHtml(getPrimaryCta(locale, false))}</a><a class="btn ghost" href="#caso-tipo">${escapeHtml(page.secondaryAction)}</a></div></div><aside class="experience-hero-principle"><span>${escapeHtml(page.principleEyebrow)}</span><strong>${escapeHtml(page.principleTitle)}</strong><p>${escapeHtml(page.principleText)}</p></aside></div><div class="wrap experience-coordinates" aria-label="${escapeHtml(page.coordinatesLabel)}">${coordinates}</div></section><section class="section experience-path-section"><div class="wrap"><div class="experience-path-heading"><div><div class="eyebrow">${escapeHtml(page.detailEyebrow)}</div><h2>${escapeHtml(page.detailTitle)}</h2></div><div class="experience-path-intro">${paragraphs}</div></div><ol class="experience-path">${stages}</ol></div></section><section class="section experience-model-section"><div class="wrap experience-model-layout"><div class="experience-model-copy"><div class="eyebrow">${escapeHtml(page.scopeEyebrow)}</div><h2>${escapeHtml(page.scopeTitle)}</h2><p>${escapeHtml(page.scopeText)}</p><a class="btn" href="contacto.html">${escapeHtml(getPrimaryCta(locale, true))}</a></div><ol class="experience-agreement">${agreements}</ol></div></section>${renderCaseExample(locale)}</main>`;
+  }
+
+  function renderProfitabilityMethod(locale) {
+    const defaults = {
+      breadcrumb: "Rentabilidad",
+      eyebrow: "Decidir con datos reales",
+      title: "La rentabilidad no se adivina. Se analiza propiedad por propiedad.",
+      lead: "Revisamos ingresos, tarifas, ocupación, disponibilidad, costes, reputación, operación y posicionamiento para identificar oportunidades y construir escenarios realistas.",
+      methodEyebrow: "Análisis individual",
+      methodTitle: "Tres bloques para entender qué puede mejorar y qué conviene proteger.",
+      methodLead: "No aplicamos una proyección automática: revisamos la situación real antes de proponer cambios.",
+      stages: [
+        ["Situación y mercado", "Revisamos ingresos, comercialización, demanda, competencia, eventos, temporada, contenido y reputación."],
+        ["Operación y oportunidades", "Ordenamos costes, tiempos, incidencias, proveedores, precios, distribución, web, reserva directa y presencia digital."],
+        ["Escenarios y plan", "Ordenamos opciones conservadoras, prioridades y próximos pasos sin prometer una cifra concreta."]
+      ],
+      transparencyTitle: "Del análisis a un plan de acción claro.",
+      transparencyText: "Presentamos los datos revisados, las oportunidades detectadas y los próximos pasos adaptados a lo que el propietario decida ejecutar. No es una garantía de ingresos.",
+      requestAudit: "Analizar mi propiedad →"
+    };
+    const labels = Object.assign({}, defaults, getExperienceContent(activeLanguage).profitability || {});
+    const stages = (labels.stages || defaults.stages).map(function (stage, index) {
+      const visual = PROFITABILITY_METHOD_IMAGES[index] || PROFITABILITY_METHOD_IMAGES[0];
+      return `<article class="profitability-method-card"><figure class="profitability-method-media"><img src="${escapeHtml(imageUrl(visual.id, 520, 620))}" alt="" width="520" height="620" loading="lazy" decoding="async" style="object-position:${escapeHtml(visual.position)}"></figure><div class="profitability-method-copy"><span aria-hidden="true">${String(index + 1).padStart(2, "0")}</span><h3>${escapeHtml(stage[0])}</h3><p>${escapeHtml(stage[1])}</p></div></article>`;
+    }).join("");
+    return `<main class="profitability-page profitability-method-page"><section class="page-hero profitability-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(labels.breadcrumb)}</div><div class="eyebrow">${escapeHtml(labels.eyebrow)}</div><h1>${escapeHtml(labels.title)}</h1><p class="lead">${escapeHtml(labels.lead)}</p><a class="btn primary profitability-hero-cta" href="contacto.html">${escapeHtml(getPrimaryCta(locale, true))}</a></div></section><section class="section profitability-method-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(labels.methodEyebrow)}</div><h2>${escapeHtml(labels.methodTitle)}</h2></div><p>${escapeHtml(labels.methodLead)}</p></div><div class="profitability-method-grid">${stages}</div><aside class="profitability-transparency"><div><span>Transparencia</span><h2>${escapeHtml(labels.transparencyTitle)}</h2><p>${escapeHtml(labels.transparencyText)}</p></div><a class="btn primary" href="contacto.html">${escapeHtml(getPrimaryCta(locale, true))}</a></aside></div></section></main>`;
+  }
+
+  function renderHome(locale) {
     const marketing = getSupplementalContent(activeLanguage).marketing || {};
     const home = Object.assign({}, locale.home, marketing.home || {});
-    const serviceCards = services.map(function (service) { return renderServiceCard(service, locale); }).join("");
-    const initialVisibleServices = Math.min(3, services.length);
+    const credibility = Array.isArray(home.credibility)
+      ? `<div class="hero-proof">${home.credibility.map(function (item) { return `<div><strong>${escapeHtml(item[0])}</strong><span>${escapeHtml(item[1])}</span></div>`; }).join("")}</div>`
+      : "";
 
     return `<main class="home-page">
-      <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="sobre-hot-host.html#recorrido">${escapeHtml(home.discover)}</a><a class="btn ghost" href="rentabilidad.html#comparador">${escapeHtml(getProfitabilityCtaLabel())}</a></div><div class="hero-proof"><div><strong>10+</strong><span>${escapeHtml(home.years)}</span></div><div><strong>24/7</strong><span>${escapeHtml(home.support)}</span></div><div class="hero-rating"><strong aria-label="${escapeHtml(home.starsLabel)}">★★★★★</strong><span>${escapeHtml(home.experiences)}</span></div></div></div>${renderHeroVisual(home)}</div></section>
-      ${renderCommercialStory(home.story, "home")}
-      <section class="section home-services-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(home.servicesEyebrow)}</div><h2>${escapeHtml(home.servicesTitle)}</h2></div><p>${escapeHtml(home.servicesLead)}</p></div><div class="services-carousel" data-services-carousel role="region" aria-roledescription="${escapeHtml(locale.common.carouselRole)}" aria-label="${escapeHtml(home.servicesTitle)}" tabindex="0"><div class="services-carousel-viewport" data-services-viewport><div class="services-carousel-track">${serviceCards}</div></div><div class="carousel-controls services-carousel-controls"><button class="carousel-button" type="button" data-services-previous aria-label="${escapeHtml(locale.common.previousServices)}">←</button><span class="carousel-status" data-services-status aria-live="polite">${escapeHtml(renderServiceCounter(locale.common.serviceCounter, 1, initialVisibleServices, services.length))}</span><button class="carousel-button" type="button" data-services-next aria-label="${escapeHtml(locale.common.nextServices)}">→</button></div></div><div style="text-align:center;margin-top:26px"><a class="btn ghost" href="servicios.html">${escapeHtml(home.allServices)}</a></div></div></section>
-      ${renderGuarantee("home")}
-      ${renderCta(locale)}
+      <section class="hero hero-luxe"><div class="wrap hero-luxe-grid"><div class="hero-copy"><div class="eyebrow">${escapeHtml(home.eyebrow)}</div><h1>${escapeHtml(home.title)}<span>${escapeHtml(home.titleAccent)}</span></h1><p class="lead">${escapeHtml(home.lead)}</p><div class="hero-actions"><a class="btn primary" href="contacto.html">${escapeHtml(getPrimaryCta(locale, false))}</a><a class="btn ghost" href="#metodo">${escapeHtml(home.discover)}</a></div>${credibility}</div>${renderHeroVisual(home)}</div></section>
+      ${renderOfferModel()}
+      ${renderHomeMethod()}
+      ${renderCaseExample(locale)}
+      ${renderHomeTrust(locale)}
+      ${renderHomeClosing(locale)}
     </main>`;
   }
 
   function renderServices(locale, services) {
     const page = locale.servicesPage;
-    return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderGuarantee("services")}${renderCta(locale)}</main>`;
+    return `<main><section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(locale.common.services)}</div><div class="eyebrow">${escapeHtml(page.eyebrow)}</div><h1>${renderLines(page.title)}</h1><p class="lead">${escapeHtml(page.lead)}</p></div></section><section class="section"><div class="wrap">${services.map(function (service) { return renderServiceRow(service, locale); }).join("")}</div></section>${renderCta(locale)}</main>`;
   }
 
   function renderFounderStory() {
@@ -2903,22 +2480,26 @@
         locale
       );
     }).join("");
-    const quotes = about.quotes.map(function (quote) {
-      const initials = quote[1].split(/\s+/).map(function (name) { return name.charAt(0); }).slice(0, 2).join("");
-      return `<article class="quote client-quote"><span class="client-quote-mark" aria-hidden="true">“</span><blockquote>${escapeHtml(quote[0])}</blockquote><footer class="client-quote-author"><span class="client-initials" aria-hidden="true">${escapeHtml(initials)}</span><span><strong>${escapeHtml(quote[1])}</strong><small>${escapeHtml(quote[2])}</small></span></footer></article>`;
+    const commitments = (about.commitments || []).map(function (commitment, index) {
+      const number = String(index + 1).padStart(2, "0");
+      const visual = COMMITMENT_IMAGES[index] || COMMITMENT_IMAGES[0];
+      return `<article class="commitment-card"><figure class="commitment-card-media"><img src="${escapeHtml(imageUrl(visual.id, 620, 620))}" alt="" width="620" height="620" loading="lazy" decoding="async" style="object-position:${escapeHtml(visual.position)}"></figure><div class="commitment-card-content"><span aria-hidden="true">${number}</span><h3>${escapeHtml(commitment[0])}</h3><p>${escapeHtml(commitment[1])}</p></div></article>`;
     }).join("");
+    const commitmentsSection = commitments
+      ? `<section class="section commitments-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.commitmentsEyebrow)}</div><h2>${escapeHtml(about.commitmentsTitle)}</h2></div><p>${escapeHtml(about.commitmentsLead)}</p></div><div class="commitments-grid">${commitments}</div><div class="commitments-action"><div><strong>Objetivos y responsabilidades por escrito.</strong><p>Antes de empezar, definimos la situación de partida, las prioridades, el alcance del trabajo y las métricas con las que revisaremos la evolución.</p></div><a class="btn primary" href="contacto.html">${escapeHtml(getPrimaryCta(locale, true))}</a></div></div></section>`
+      : "";
 
     const founderTeaser = founder ? `<section class="section about-founder-teaser"><div class="wrap"><a class="about-founder-link" href="fundador.html"><span class="about-founder-link-copy"><span class="eyebrow">${escapeHtml(founder.eyebrow)}</span><strong>${escapeHtml(founderPage.title || founder.title)}</strong><small>${escapeHtml(founderPage.intro || founder.lead)}</small></span><span class="about-founder-link-action">${escapeHtml(founderPage.breadcrumb || "Fundador")} <span aria-hidden="true">↗</span></span></a></div></section>` : "";
     const journey = `<section class="section process-section" id="recorrido"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(servicesPage.processLabel)}</div><h2>${escapeHtml(getExperienceContent(activeLanguage).journeyTitle || servicesPage.title.join(" "))}</h2></div><p>${escapeHtml(getExperienceContent(activeLanguage).journeyLead || servicesPage.lead)}</p></div><div class="infographic infographic-journey">${journeyStages}</div></div></section>`;
 
     return `<main>
-      <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(about.breadcrumb)}</div><div class="eyebrow">${escapeHtml(about.eyebrow)}</div><h1>${renderStarredLines(about.title, locale.home.starsLabel)}</h1><p class="lead">${escapeHtml(about.lead)}</p></div></section>
+      <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(about.breadcrumb)}</div><div class="eyebrow">${escapeHtml(about.eyebrow)}</div><h1>${renderLines(about.title)}</h1><p class="lead">${escapeHtml(about.lead)}</p></div></section>
       ${renderCommercialStory(about.story, "about")}
       ${journey}
       ${founderTeaser}
-      <section class="section"><div class="wrap service-detail"><div class="prose">${prose}</div><aside class="side-panel credentials-panel" aria-labelledby="credentialsTitle"><h3 id="credentialsTitle">${escapeHtml(about.credentialsTitle)}</h3><p class="credentials-lead">${escapeHtml(about.credentialsLead)}</p><ul class="credentials-list credentials-primary-list">${primaryCredential}</ul><button class="credentials-toggle" type="button" data-credentials-toggle data-expand-label="${escapeHtml(about.credentialsExpand)}" data-collapse-label="${escapeHtml(about.credentialsCollapse)}" aria-expanded="false" aria-controls="credentialsDetails"><span data-credentials-toggle-label>${escapeHtml(about.credentialsExpand)}</span><span class="credentials-toggle-icon" aria-hidden="true">⌄</span></button><div class="credentials-hover-preview" aria-hidden="true"><ul class="credentials-list credentials-preview-list">${extraCredentials}</ul></div><div class="credentials-details" id="credentialsDetails" aria-hidden="true"><ul class="credentials-list credentials-extra-list">${extraCredentials}</ul></div><a class="credentials-cta" href="contacto.html">${escapeHtml(about.credentialsCta)}</a></aside></div></section>
+      <section class="section"><div class="wrap service-detail"><div class="prose">${prose}</div><aside class="side-panel credentials-panel" aria-labelledby="credentialsTitle"><h3 id="credentialsTitle">${escapeHtml(about.credentialsTitle)}</h3><p class="credentials-lead">${escapeHtml(about.credentialsLead)}</p><ul class="credentials-list credentials-primary-list">${primaryCredential}</ul><button class="credentials-toggle" type="button" data-credentials-toggle data-expand-label="${escapeHtml(about.credentialsExpand)}" data-collapse-label="${escapeHtml(about.credentialsCollapse)}" aria-expanded="false" aria-controls="credentialsDetails"><span data-credentials-toggle-label>${escapeHtml(about.credentialsExpand)}</span><span class="credentials-toggle-icon" aria-hidden="true">⌄</span></button><div class="credentials-hover-preview" aria-hidden="true"><ul class="credentials-list credentials-preview-list">${extraCredentials}</ul></div><div class="credentials-details" id="credentialsDetails" aria-hidden="true"><ul class="credentials-list credentials-extra-list">${extraCredentials}</ul></div><a class="credentials-cta" href="contacto.html">${escapeHtml(getPrimaryCta(locale, true))}</a></aside></div></section>
       <section class="section soft"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.pillarsEyebrow)}</div><h2>${escapeHtml(about.pillarsTitle)}</h2></div></div><div class="grid grid-4 pillars-grid">${pillars}</div></div></section>
-      <section class="section testimonials-section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">${escapeHtml(about.voicesEyebrow)}</div><h2>${escapeHtml(about.voicesTitle)}</h2></div><p>${escapeHtml(about.voicesLead)}</p></div><div class="grid grid-3 testimonials-grid">${quotes}</div></div></section>
+      ${commitmentsSection}
       ${renderCta(locale)}
     </main>`;
   }
@@ -2935,9 +2516,6 @@
     const contact = locale.contact;
     const form = locale.form;
     const driveUploadAvailable = Boolean(getGoogleAppsScriptEndpoint());
-    const offer = isAuditOfferActive()
-      ? `<div class="contact-offer"><span>${escapeHtml(locale.common.offerKicker)}</span><strong>${escapeHtml(locale.common.offerTitle)}</strong><small>${escapeHtml(locale.common.offerDeadline)}</small></div>`
-      : "";
     const optionalPhotosLink = driveUploadAvailable ? ` <span>${escapeHtml(form.optional)}</span>` : "";
     const directUploadLabel = driveUploadAvailable ? `<label for="propertyPhotos">${escapeHtml(form.photosUpload)}</label>` : "";
     const legal = getSupplementalContent(activeLanguage).legal;
@@ -2946,7 +2524,7 @@
     return `<main>${testTool}
       <section class="page-hero"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / ${escapeHtml(contact.breadcrumb)}</div><div class="eyebrow">${escapeHtml(contact.eyebrow)}</div><h1>${escapeHtml(contact.title)}</h1></div></section>
       <section class="section"><div class="wrap contact-grid"><div><h2>${escapeHtml(contact.heading)}</h2><p class="lead">${escapeHtml(contact.lead)}</p><div class="contact-item"><small>${escapeHtml(contact.serviceAreaLabel)}</small><strong>${escapeHtml(contact.serviceArea)}</strong></div><div class="contact-item"><small>${escapeHtml(contact.emailLabel)}</small><strong>${escapeHtml(CONTACT_EMAIL)}</strong></div><div class="contact-item"><small>WhatsApp</small><strong>+34 600 907 716</strong></div><div class="contact-item"><small>${escapeHtml(contact.hoursLabel)}</small><strong>${escapeHtml(contact.hours)}</strong></div></div>
-      <form class="contact-form" id="contactForm" novalidate>${offer}<h3>${escapeHtml(form.title)}</h3><p class="form-group-help">${escapeHtml(form.contactDetailsHelp)}</p>
+      <form class="contact-form" id="contactForm" novalidate><h3>${escapeHtml(form.title)}</h3><p class="form-group-help">${escapeHtml(form.contactDetailsHelp)}</p>
         <div class="field"><label for="contactRole">${escapeHtml(form.contactRole)}</label><select id="contactRole" name="contactRole" required>${renderOptions(form.roles, form.selectOption)}</select></div>
         <div class="field"><label for="name">${escapeHtml(form.fullName)}</label><input id="name" name="name" required autocomplete="name"></div>
         <div class="field"><label for="email">${escapeHtml(form.email)}</label><input id="email" name="email" type="email" required autocomplete="email"></div>
@@ -2999,7 +2577,7 @@
   function renderLegalPage(pageKey, locale) {
     const legal = getSupplementalContent(activeLanguage).legal;
     const page = legal && legal[pageKey];
-    if (!legal || !page) return renderHome(locale, getServices(locale));
+    if (!legal || !page) return renderHome(locale);
     const labels = getLegalLabels();
     const address = `${BUSINESS.address}, ${BUSINESS.postalCode} ${BUSINESS.city}, ${BUSINESS.country}`;
     const identity = [
@@ -3057,7 +2635,7 @@
     }).join("");
     const gallery = renderServiceGallery(definition, service, locale);
     const heroPhoto = imageUrl(definition.imageId, 1400, 850);
-    return `<main><section class="page-hero service-page-hero" style="--service-hero-background:url('${escapeHtml(heroPhoto)}')"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="servicios.html">${escapeHtml(locale.common.services)}</a> / ${escapeHtml(service.title)}</div><div class="service-hero-grid"><div class="service-hero-copy"><div class="eyebrow">${escapeHtml(service.tag)}</div><h1>${escapeHtml(service.title)}</h1><p class="lead">${escapeHtml(service.intro)}</p>${renderServicePrice(pricedService, locale, true)}</div><figure class="service-hero-media"><img src="${escapeHtml(heroPhoto)}" alt="${escapeHtml(service.imageAlt)}" width="1400" height="850" fetchpriority="high" decoding="async" style="object-position:${escapeHtml(definition.imagePosition)}"><span class="service-hero-icon" aria-hidden="true">${escapeHtml(definition.icon)}</span></figure></div></div></section>${gallery}<section class="section"><div class="wrap service-detail"><article class="prose">${renderServiceContent(service.content)}</article><aside class="side-panel"><div class="icon">${escapeHtml(definition.icon)}</div><h3>${escapeHtml(locale.common.includes)}</h3><ul>${benefits}</ul><a class="btn primary" style="margin-top:18px;width:100%;background:#e7c46a;color:#171717" href="contacto.html">${escapeHtml(locale.common.requestAssessment)}</a></aside></div></section>${renderCta(locale)}</main>`;
+    return `<main><section class="page-hero service-page-hero" style="--service-hero-background:url('${escapeHtml(heroPhoto)}')"><div class="wrap"><div class="breadcrumb"><a href="index.html">${escapeHtml(locale.common.home)}</a> / <a href="servicios.html">${escapeHtml(locale.common.services)}</a> / ${escapeHtml(service.title)}</div><div class="service-hero-grid"><div class="service-hero-copy"><div class="eyebrow">${escapeHtml(service.tag)}</div><h1>${escapeHtml(service.title)}</h1><p class="lead">${escapeHtml(service.intro)}</p>${renderServicePrice(pricedService, locale, true)}</div><figure class="service-hero-media"><img src="${escapeHtml(heroPhoto)}" alt="${escapeHtml(service.imageAlt)}" width="1400" height="850" fetchpriority="high" decoding="async" style="object-position:${escapeHtml(definition.imagePosition)}"><span class="service-hero-icon" aria-hidden="true">${escapeHtml(definition.icon)}</span></figure></div></div></section>${gallery}<section class="section"><div class="wrap service-detail"><article class="prose">${renderServiceContent(service.content)}</article><aside class="side-panel"><div class="icon">${escapeHtml(definition.icon)}</div><h3>${escapeHtml(locale.common.includes)}</h3><ul>${benefits}</ul><a class="btn primary" style="margin-top:18px;width:100%;background:#e7c46a;color:#171717" href="contacto.html">${escapeHtml(getPrimaryCta(locale, false))}</a></aside></div></section>${renderCta(locale)}</main>`;
   }
 
   function renderBrand() {
@@ -3067,6 +2645,9 @@
   function renderShell(content, currentPage, locale) {
     const experience = getExperienceContent(activeLanguage);
     const navLabels = Object.assign({
+      howWeWork: "Cómo trabajamos",
+      webDirect: "Web y reservas directas",
+      experiences: "Experiencias",
       profitability: "Rentabilidad",
       founder: "Fundador",
       legalHub: "Información legal y privacidad",
@@ -3085,16 +2666,16 @@
     const serviceLinks = services.map(function (service) {
       return `<a href="${escapeHtml(service.path)}"${actualPage === service.key ? " aria-current=\"page\"" : ""}>${escapeHtml(service.title)}</a>`;
     }).join("");
-    const nav = `<a href="index.html"${currentPage === "home" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.home)}</a><a href="sobre-hot-host.html"${currentPage === "about" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.about)}</a><div class="nav-dropdown nav-dropdown-services${currentPage === "services" ? " is-active" : ""}"><button class="nav-dropdown-trigger" type="button" data-nav-dropdown aria-expanded="false" aria-controls="servicesMenu">${escapeHtml(locale.shell.nav.services)}<span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu nav-services-menu" id="servicesMenu"><a href="servicios.html"${actualPage === "services" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.servicesOverview)}</a>${serviceLinks}</div></div><a href="rentabilidad.html"${currentPage === "profitability" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.profitability)}</a><a href="contacto.html"${currentPage === "contact" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.contact)}</a>`;
+    const mobileCta = `<a class="nav-mobile-cta" href="contacto.html"${currentPage === "contact" ? " aria-current=\"page\"" : ""}>${escapeHtml(getPrimaryCta(locale, false))}</a>`;
+    const nav = `<a href="index.html"${currentPage === "home" ? " aria-current=\"page\"" : ""}>${escapeHtml(locale.shell.nav.home)}</a><a href="sobre-hot-host.html#recorrido"${currentPage === "about" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.howWeWork)}</a><div class="nav-dropdown nav-dropdown-services${currentPage === "services" ? " is-active" : ""}"><button class="nav-dropdown-trigger" type="button" data-nav-dropdown aria-expanded="false" aria-controls="servicesMenu">${escapeHtml(locale.shell.nav.services)}<span aria-hidden="true">⌄</span></button><div class="nav-dropdown-menu nav-services-menu" id="servicesMenu"><a href="servicios.html"${actualPage === "services" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.servicesOverview)}</a>${serviceLinks}</div></div><a href="web-reservas-directas.html"${currentPage === "web-direct" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.webDirect)}</a><a href="experiencias.html"${currentPage === "experiences" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.experiences)}</a><a href="rentabilidad.html"${currentPage === "profitability" ? " aria-current=\"page\"" : ""}>${escapeHtml(navLabels.profitability)}</a>${mobileCta}`;
     const isDarkTheme = activeTheme === "dark";
     const themeLabel = isDarkTheme ? locale.common.enableLightMode : locale.common.enableDarkMode;
-    const navCta = currentPage === "contact"
-      ? ""
-      : isAuditOfferActive()
-        ? `<a class="nav-cta" href="contacto.html" aria-label="${escapeHtml(`${locale.shell.assess}. ${locale.common.offerTitle}. ${locale.common.offerDeadline}`)}"><span>${escapeHtml(locale.shell.assess)}</span><small>${escapeHtml(locale.common.navOffer)}</small></a>`
-        : `<a class="nav-cta" href="contacto.html"><span>${escapeHtml(locale.shell.assess)}</span></a>`;
+    const navCta = `<a class="nav-cta" href="contacto.html"${currentPage === "contact" ? " aria-current=\"page\"" : ""}><span>${escapeHtml(getPrimaryCta(locale, false))}</span></a>`;
+    const contactEmail = BUSINESS.email || CONTACT_EMAIL;
+    const contactPhone = BUSINESS.phone || "+34 600 907 716";
+    const contactPhoneHref = String(contactPhone).replace(/[^+\d]/g, "");
 
-    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher" data-language="${activeLanguage}"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p style="max-width:420px;color:#999;margin-top:18px">${escapeHtml(locale.shell.footerText)}</p></div><div><h3>${escapeHtml(locale.shell.explore)}</h3><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="rentabilidad.html">${escapeHtml(navLabels.profitability)}</a><a href="fundador.html">${escapeHtml(navLabels.founder)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></div><div><h3>${escapeHtml(locale.shell.services)}</h3><a href="${services[0].path}">${escapeHtml(services[0].title)}</a><a href="${services[1].path}">${escapeHtml(services[1].title)}</a><a href="${services[2].path}">${escapeHtml(services[2].title)}</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
+    document.body.innerHTML = `<header class="site-header"><nav class="wrap nav">${renderBrand()}<div class="nav-links">${nav}</div><div class="nav-controls"><button class="theme-toggle" id="themeToggle" type="button" aria-label="${escapeHtml(themeLabel)}" title="${escapeHtml(themeLabel)}" aria-pressed="${String(isDarkTheme)}"><span aria-hidden="true">${isDarkTheme ? "☀" : "☾"}</span></button><div class="language-switcher" data-language="${activeLanguage}"><select id="languageSelect" class="language-select" aria-label="${escapeHtml(locale.shell.languageLabel)}">${languageOptions}</select></div><button class="menu-btn" type="button" aria-label="${escapeHtml(locale.shell.openMenu)}" aria-expanded="false">☰</button></div>${navCta}</nav></header>${content}<footer class="site-footer"><div class="wrap"><div class="footer-grid"><div>${renderBrand()}<p class="footer-positioning">${escapeHtml(locale.shell.footerText)}</p></div><nav class="footer-navigation" aria-label="${escapeHtml(locale.shell.explore)}"><h3>${escapeHtml(locale.shell.explore)}</h3><a href="sobre-hot-host.html#recorrido">${escapeHtml(navLabels.howWeWork)}</a><a href="servicios.html">${escapeHtml(locale.shell.nav.services)}</a><a href="web-reservas-directas.html">${escapeHtml(navLabels.webDirect)}</a><a href="experiencias.html">${escapeHtml(navLabels.experiences)}</a><a href="rentabilidad.html">${escapeHtml(navLabels.profitability)}</a><a href="sobre-hot-host.html">${escapeHtml(locale.shell.nav.about)}</a><a href="contacto.html">${escapeHtml(locale.shell.nav.contact)}</a></nav><div class="footer-contact"><h3>${escapeHtml(locale.shell.nav.contact)}</h3><a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a><a href="tel:${escapeHtml(contactPhoneHref)}">${escapeHtml(contactPhone)}</a><a href="https://wa.me/${escapeHtml(contactPhoneHref.replace(/\D/g, ""))}" target="_blank" rel="noopener">WhatsApp</a></div></div><div class="copyright"><span>© 2026 Hot Host Hospitality</span><span>${escapeHtml(locale.shell.location)}</span></div></div></footer>${renderProcessDialog(locale)}`;
     document.querySelector(".language-switcher").innerHTML = `<button class="language-select" id="languageButton" type="button" aria-label="${escapeHtml(`${locale.shell.languageLabel}: ${LANGUAGE_NAMES[activeLanguage]}`)}" aria-haspopup="listbox" aria-expanded="false" aria-controls="languageMenu"><span class="language-option-flag" data-language="${activeLanguage}" aria-hidden="true"></span><span class="language-current-code">${activeLanguage.toUpperCase()}</span><span class="language-chevron" aria-hidden="true">⌄</span></button><div class="language-menu" id="languageMenu" role="listbox" aria-label="${escapeHtml(locale.shell.languageLabel)}" hidden>${languageMenuOptions}</div>`;
     const legal = getSupplementalContent(activeLanguage).legal;
     const copyright = document.querySelector(".copyright");
@@ -4255,554 +3836,6 @@
     });
   }
 
-  function setupEarningsCalculator(locale) {
-    const calculator = document.querySelector("[data-earnings-calculator]");
-    if (!calculator) return;
-    const comparison = locale.home.comparison;
-    const guideContent = getSupplementalContent(activeLanguage).comparison;
-    if (guideContent && !calculator.previousElementSibling?.matches("[data-earnings-guide]")) {
-      const guide = document.createElement("aside");
-      const steps = (guideContent.steps || []).map(function (step) {
-        return `<li><span aria-hidden="true">${escapeHtml(step[0])}</span><div><strong>${escapeHtml(step[1])}</strong><p>${escapeHtml(step[2])}</p></div></li>`;
-      }).join("");
-      guide.className = "earnings-guide";
-      guide.dataset.earningsGuide = "";
-      guide.setAttribute("aria-labelledby", "earningsGuideTitle");
-      guide.innerHTML = `<div><h3 id="earningsGuideTitle">${escapeHtml(guideContent.guideTitle)}</h3><p>${escapeHtml(guideContent.guideLead)}</p></div><ol>${steps}</ol><p class="earnings-guide-note">${escapeHtml(guideContent.calculatedLabel)}</p>`;
-      calculator.before(guide);
-    }
-    const inputsPanel = calculator.querySelector(".earnings-inputs");
-    const selectedModel = earningsCalculatorState.rentalModel === "tourist" ? "tourist" : "traditional";
-    earningsCalculatorState.rentalModel = selectedModel;
-    earningsCalculatorState.currency = SUPPORTED_CURRENCIES.includes(earningsCalculatorState.currency)
-      ? earningsCalculatorState.currency
-      : "EUR";
-    const currencyOptions = SUPPORTED_CURRENCIES.map(function (currency) {
-      const symbol = CURRENCY_SYMBOLS[currency];
-      const label = symbol === currency ? currency : `${symbol} ${currency}`;
-      return `<option value="${currency}">${escapeHtml(label)}</option>`;
-    }).join("");
-    inputsPanel.innerHTML = `<h3 id="earningsInputsTitle">${escapeHtml(comparison.inputsTitle)}</h3><label class="earnings-model-field" for="earningsRentalModel">${escapeHtml(comparison.modelLabel)}<select id="earningsRentalModel" data-earnings-model><option value="traditional">${escapeHtml(comparison.traditional)}</option><option value="tourist">${escapeHtml(comparison.tourist)}</option></select></label><div class="earnings-value-field"><label for="earningsPropertyValue" data-earnings-value-label></label><span class="earnings-control"><input id="earningsPropertyValue" data-earnings-value type="number" min="0" step="any" inputmode="decimal"><select class="earnings-currency" data-earnings-currency aria-label="${escapeHtml(comparison.currencyLabel)}">${currencyOptions}</select></span></div>`;
-
-    const modelSelect = inputsPanel.querySelector("[data-earnings-model]");
-    const valueLabel = inputsPanel.querySelector("[data-earnings-value-label]");
-    const valueInput = inputsPanel.querySelector("[data-earnings-value]");
-    const currencySelect = inputsPanel.querySelector("[data-earnings-currency]");
-    const integer = new Intl.NumberFormat(activeLanguage, { maximumFractionDigits: 0 });
-    let inputEdited = false;
-
-    function setOutput(name, value) {
-      const output = calculator.querySelector(`[data-earnings-output="${name}"]`);
-      if (output) output.textContent = value;
-    }
-
-    function getCurrencyRate() {
-      const rate = Number(exchangeRatesPerEur[earningsCalculatorState.currency]);
-      return Number.isFinite(rate) && rate > 0 ? rate : 1;
-    }
-
-    function toDisplayCurrency(eurValue) {
-      return eurValue * getCurrencyRate();
-    }
-
-    function formatInputValue(eurValue) {
-      return String(Number(toDisplayCurrency(eurValue).toFixed(2)));
-    }
-
-    function formatDifference(value, formatter) {
-      const sign = value >= 0 ? "+" : "−";
-      return `${sign}${formatter.format(toDisplayCurrency(Math.abs(value)))}`;
-    }
-
-    function syncValueConstraints() {
-      const isTourist = earningsCalculatorState.rentalModel === "tourist";
-      const key = isTourist ? "touristRate" : "traditionalRent";
-      const maximum = DEFAULT_EARNINGS[key] * MAX_EARNINGS_SCALE;
-      valueLabel.textContent = isTourist ? comparison.touristRate : comparison.traditionalRent;
-      valueInput.max = formatInputValue(maximum);
-    }
-
-    function syncValueInput() {
-      const key = earningsCalculatorState.rentalModel === "tourist" ? "touristRate" : "traditionalRent";
-      syncValueConstraints();
-      valueInput.value = formatInputValue(earningsCalculatorState[key]);
-    }
-
-    function updateHighlightedModel() {
-      calculator.dataset.rentalModel = earningsCalculatorState.rentalModel;
-      calculator.querySelectorAll("table tr").forEach(function (row) {
-        if (row.cells[1]) row.cells[1].classList.toggle("current-model-column", earningsCalculatorState.rentalModel === "traditional");
-        if (row.cells[2]) row.cells[2].classList.toggle("current-model-column", earningsCalculatorState.rentalModel === "tourist");
-      });
-    }
-
-    function updateSelectedModel() {
-      earningsCalculatorState.rentalModel = modelSelect.value === "tourist" ? "tourist" : "traditional";
-      updateHighlightedModel();
-      syncValueInput();
-    }
-
-    function updateComparison() {
-      earningsCalculatorState.touristOccupancy = MARKET_OCCUPANCY;
-      earningsCalculatorState.hotHostOccupancy = HOT_HOST_OCCUPANCY;
-      earningsCalculatorState.hotHostRate = earningsCalculatorState.touristRate * HOT_HOST_RATE_MULTIPLIER;
-      const traditionalAnnual = earningsCalculatorState.traditionalRent * 12;
-      const touristNights = 365 * MARKET_OCCUPANCY / 100;
-      const hotHostNights = 365 * HOT_HOST_OCCUPANCY / 100;
-      const touristAnnual = earningsCalculatorState.touristRate * touristNights;
-      const hotHostAnnual = earningsCalculatorState.hotHostRate * hotHostNights;
-      const currency = new Intl.NumberFormat(activeLanguage, {
-        style: "currency",
-        currency: earningsCalculatorState.currency,
-        maximumFractionDigits: 0
-      });
-
-      setOutput("traditionalMonthly", currency.format(toDisplayCurrency(traditionalAnnual / 12)));
-      setOutput("touristMonthly", currency.format(toDisplayCurrency(touristAnnual / 12)));
-      setOutput("hotHostMonthly", currency.format(toDisplayCurrency(hotHostAnnual / 12)));
-      setOutput("traditionalAnnual", currency.format(toDisplayCurrency(traditionalAnnual)));
-      setOutput("touristAnnual", currency.format(toDisplayCurrency(touristAnnual)));
-      setOutput("hotHostAnnual", currency.format(toDisplayCurrency(hotHostAnnual)));
-      setOutput("touristNights", integer.format(touristNights));
-      setOutput("hotHostNights", integer.format(hotHostNights));
-      setOutput("touristRate", currency.format(toDisplayCurrency(earningsCalculatorState.touristRate)));
-      setOutput("hotHostRate", currency.format(toDisplayCurrency(earningsCalculatorState.hotHostRate)));
-      setOutput("hotHostResult", currency.format(toDisplayCurrency(hotHostAnnual)));
-      setOutput("versusTraditional", formatDifference(hotHostAnnual - traditionalAnnual, currency));
-      setOutput("versusTourist", formatDifference(hotHostAnnual - touristAnnual, currency));
-    }
-
-    function updatePropertyScale() {
-      const isTourist = earningsCalculatorState.rentalModel === "tourist";
-      const key = isTourist ? "touristRate" : "traditionalRent";
-      const displayValue = Number(valueInput.value);
-      const maximumDisplay = DEFAULT_EARNINGS[key] * MAX_EARNINGS_SCALE * getCurrencyRate();
-      const clampedDisplay = Number.isFinite(displayValue)
-        ? Math.min(maximumDisplay, Math.max(0, displayValue))
-        : 0;
-      const activeValueEur = clampedDisplay / getCurrencyRate();
-      const propertyScale = activeValueEur / DEFAULT_EARNINGS[key];
-      earningsCalculatorState.traditionalRent = DEFAULT_EARNINGS.traditionalRent * propertyScale;
-      earningsCalculatorState.touristRate = DEFAULT_EARNINGS.touristRate * propertyScale;
-      if (clampedDisplay !== displayValue) valueInput.value = formatInputValue(activeValueEur);
-      updateComparison();
-    }
-
-    modelSelect.value = selectedModel;
-    currencySelect.value = earningsCalculatorState.currency;
-    modelSelect.addEventListener("change", function () {
-      inputEdited = false;
-      updateSelectedModel();
-      updateComparison();
-    });
-    valueInput.addEventListener("input", function () {
-      inputEdited = true;
-      updatePropertyScale();
-    });
-    currencySelect.addEventListener("change", function () {
-      inputEdited = false;
-      earningsCalculatorState.currency = SUPPORTED_CURRENCIES.includes(currencySelect.value)
-        ? currencySelect.value
-        : "EUR";
-      currencySelect.value = earningsCalculatorState.currency;
-      syncValueInput();
-      updateComparison();
-    });
-    updateSelectedModel();
-    updateComparison();
-    loadExchangeRates().then(function () {
-      if (!calculator.isConnected) return;
-      if (inputEdited) {
-        syncValueConstraints();
-        updatePropertyScale();
-      }
-      else {
-        syncValueInput();
-        updateComparison();
-      }
-    });
-  }
-
-  function setupProfitabilityCalculator() {
-    const calculator = document.querySelector("[data-profitability-calculator]");
-    if (!calculator) return;
-    const inputs = calculator.querySelectorAll("[data-profitability-input]");
-    const situationInput = calculator.querySelector('[data-profitability-input="situation"]');
-    const externalFeeField = calculator.querySelector('[data-profitability-field="externalFee"]');
-    const traditionalRentField = calculator.querySelector('[data-profitability-field="traditionalRent"]');
-    const missing = calculator.querySelector("[data-profitability-missing]");
-    const currency = new Intl.NumberFormat(activeLanguage, {
-      style: "currency",
-      currency: "EUR",
-      maximumFractionDigits: 0
-    });
-
-    function amount(value, available) {
-      return available ? currency.format(value) : "—";
-    }
-
-    function output(name, value) {
-      const node = calculator.querySelector(`[data-profitability-output="${name}"]`);
-      if (node) node.textContent = value;
-    }
-
-    function updateCurrentColumn() {
-      const currentColumns = {
-        traditional: 1,
-        "self-managed": 2,
-        external: 3
-      };
-      const activeColumn = currentColumns[profitabilityState.situation];
-      calculator.dataset.situation = profitabilityState.situation;
-      calculator.querySelectorAll("table tr").forEach(function (row) {
-        Array.from(row.children).forEach(function (cell, index) {
-          cell.classList.toggle("profitability-current-column", index === activeColumn);
-        });
-      });
-    }
-
-    function updateFieldVisibility() {
-      const isExternal = profitabilityState.situation === "external";
-      const isNewProperty = profitabilityState.situation === "new-property";
-      if (externalFeeField) externalFeeField.hidden = !isExternal;
-      if (traditionalRentField) traditionalRentField.hidden = isNewProperty;
-    }
-
-    function updateResults() {
-      const nightlyRate = Number(profitabilityState.nightlyRate);
-      const occupancy = Number(profitabilityState.occupancy);
-      const traditionalRent = Number(profitabilityState.traditionalRent);
-      const externalFeeRate = Math.min(100, Math.max(0, Number(profitabilityState.externalFee) || 0));
-      const hasShortTermData = nightlyRate > 0 && occupancy > 0;
-      const hasTraditionalData = profitabilityState.situation !== "new-property" && traditionalRent > 0;
-      const grossShortTerm = hasShortTermData ? nightlyRate * 365 * Math.min(100, occupancy) / 100 : 0;
-      const externalFee = grossShortTerm * externalFeeRate / 100;
-      const hotHostFee = grossShortTerm * HOT_HOST_MANAGEMENT_FEE;
-      const traditionalAnnual = traditionalRent * 12;
-
-      output("traditionalGross", amount(traditionalAnnual, hasTraditionalData));
-      output("traditionalFee", amount(0, hasTraditionalData));
-      output("traditionalNet", amount(traditionalAnnual, hasTraditionalData));
-      output("traditionalMonthly", amount(traditionalAnnual / 12, hasTraditionalData));
-      output("selfGross", amount(grossShortTerm, hasShortTermData));
-      output("selfFee", amount(0, hasShortTermData));
-      output("selfNet", amount(grossShortTerm, hasShortTermData));
-      output("selfMonthly", amount(grossShortTerm / 12, hasShortTermData));
-      output("externalGross", amount(grossShortTerm, hasShortTermData));
-      output("externalFee", amount(-externalFee, hasShortTermData));
-      output("externalNet", amount(grossShortTerm - externalFee, hasShortTermData));
-      output("externalMonthly", amount((grossShortTerm - externalFee) / 12, hasShortTermData));
-      output("hotHostGross", amount(grossShortTerm, hasShortTermData));
-      output("hotHostFee", amount(-hotHostFee, hasShortTermData));
-      output("hotHostNet", amount(grossShortTerm - hotHostFee, hasShortTermData));
-      output("hotHostMonthly", amount((grossShortTerm - hotHostFee) / 12, hasShortTermData));
-      if (missing) missing.hidden = hasShortTermData || hasTraditionalData;
-      updateCurrentColumn();
-    }
-
-    function syncInputValues() {
-      inputs.forEach(function (input) {
-        if (input.dataset.profitabilityInput === "situation") input.value = profitabilityState.situation;
-        else input.value = profitabilityState[input.dataset.profitabilityInput];
-      });
-    }
-
-    inputs.forEach(function (input) {
-      input.addEventListener("input", function () {
-        const key = input.dataset.profitabilityInput;
-        if (key === "situation") return;
-        profitabilityState[key] = input.value === "" ? "" : Number(input.value);
-        updateResults();
-      });
-      input.addEventListener("change", function () {
-        if (input.dataset.profitabilityInput !== "situation") return;
-        profitabilityState.situation = input.value;
-        updateFieldVisibility();
-        updateResults();
-      });
-    });
-
-    if (situationInput) situationInput.value = profitabilityState.situation;
-    syncInputValues();
-    updateFieldVisibility();
-    updateResults();
-  }
-
-  function setupProfitabilityComparison() {
-    const calculator = document.querySelector("[data-profitability-comparison]");
-    if (!calculator) return;
-    const page = getExperienceContent(activeLanguage).profitability || {};
-    const labels = Object.assign({
-      traditional: "Alquiler tradicional",
-      selfManaged: "Gestión propia",
-      external: "Tu gestora actual",
-      newProperty: "Escenario propio",
-      currencyLabel: "Seleccionar moneda",
-      estimatedDetail: "Estimación automática",
-      currentDetail: "Tus datos",
-      externalDetail: "Comisión editable",
-      traditionalOwnerTime: "Muy baja",
-      selfOwnerTime: "Alta",
-      externalOwnerTime: "Baja",
-      hotHostOwnerTime: "Muy baja",
-      traditionalPricing: "Fijo",
-      selfPricing: "Manual",
-      externalPricing: "Según tu gestora",
-      hotHostPricing: "Dinámica",
-      traditionalGuestCare: "Inquilino",
-      selfGuestCare: "Tú",
-      externalGuestCare: "Tu gestora",
-      hotHostGuestCare: "Hot Host",
-      traditionalNights: "No aplica",
-      traditionalRate: "No aplica",
-      traditionalOccupancy: "No aplica",
-      estimatedNote: "A partir de tu renta actual estimamos la tarifa y la ocupación de los escenarios turísticos. Una auditoría permite afinarlo con los datos reales de tu vivienda.",
-      directNote: "Usamos la tarifa y ocupación que indiques para tu modelo actual. La proyección Hot Host es orientativa y no incluye impuestos ni costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.",
-      noData: "Introduce los datos para ver la estimación.",
-      resultLabel: "Neto anual estimado con Hot Host",
-      versusTraditional: "frente al alquiler tradicional",
-      versusCurrent: "frente a tu gestión actual"
-    }, page);
-    Object.assign(labels, getProfitabilityComparisonTerms(locales[activeLanguage] || locales.es));
-    const inputs = Array.from(calculator.querySelectorAll("[data-profitability-input]"));
-    const currencyInputs = ["traditionalRent", "nightlyRate"].map(function (name) {
-      const amountInput = calculator.querySelector(`[data-profitability-input="${name}"]`);
-      const unit = amountInput && amountInput.nextElementSibling;
-      if (!unit || unit.tagName !== "SPAN") return null;
-      const currencySelect = document.createElement("select");
-      currencySelect.className = "earnings-currency";
-      currencySelect.dataset.profitabilityCurrency = "";
-      currencySelect.setAttribute("aria-label", labels.currencyLabel);
-      SUPPORTED_CURRENCIES.forEach(function (currencyCode) {
-        const option = document.createElement("option");
-        const symbol = CURRENCY_SYMBOLS[currencyCode];
-        option.value = currencyCode;
-        option.textContent = symbol === currencyCode ? currencyCode : `${symbol} ${currencyCode}`;
-        currencySelect.appendChild(option);
-      });
-      unit.replaceWith(currencySelect);
-      return currencySelect;
-    }).filter(function (input) { return input; });
-    const situationInput = calculator.querySelector('[data-profitability-input="situation"]');
-    const fields = {
-      traditionalRent: calculator.querySelector('[data-profitability-field="traditionalRent"]'),
-      nightlyRate: calculator.querySelector('[data-profitability-field="nightlyRate"]'),
-      occupancy: calculator.querySelector('[data-profitability-field="occupancy"]'),
-      externalFee: calculator.querySelector('[data-profitability-field="externalFee"]')
-    };
-    const note = calculator.querySelector("[data-profitability-note]");
-    const currentHeading = calculator.querySelector("[data-profitability-current-heading]");
-    const currentDetail = calculator.querySelector("[data-profitability-current-detail]");
-    const resultLabel = calculator.querySelector("[data-profitability-result-label]");
-    let currency = new Intl.NumberFormat(activeLanguage, {
-      style: "currency",
-      currency: profitabilityState.currency,
-      maximumFractionDigits: 0
-    });
-    const integer = new Intl.NumberFormat(activeLanguage, { maximumFractionDigits: 0 });
-    const validSituations = ["traditional", "self-managed", "external", "new-property"];
-
-    if (!validSituations.includes(profitabilityState.situation)) profitabilityState.situation = "traditional";
-    if (!SUPPORTED_CURRENCIES.includes(profitabilityState.currency)) profitabilityState.currency = "EUR";
-
-    function getCurrencyRate() {
-      const rate = Number(exchangeRatesPerEur[profitabilityState.currency]);
-      return Number.isFinite(rate) && rate > 0 ? rate : 1;
-    }
-
-    function toDisplayCurrency(eurValue) {
-      return eurValue * getCurrencyRate();
-    }
-
-    function formatInputValue(eurValue) {
-      return String(Number(toDisplayCurrency(eurValue).toFixed(2)));
-    }
-
-    function amount(value, available) {
-      return available ? currency.format(toDisplayCurrency(value)) : "—";
-    }
-
-    function setOutput(name, value) {
-      const output = calculator.querySelector(`[data-profitability-output="${name}"]`);
-      if (output) output.textContent = value;
-    }
-
-    function setFieldVisibility(field, isVisible) {
-      if (field) field.hidden = !isVisible;
-    }
-
-    function updateFieldVisibility() {
-      const situation = profitabilityState.situation;
-      const isTraditional = situation === "traditional";
-      const isExternal = situation === "external";
-      setFieldVisibility(fields.traditionalRent, isTraditional);
-      setFieldVisibility(fields.nightlyRate, !isTraditional);
-      setFieldVisibility(fields.occupancy, !isTraditional);
-      setFieldVisibility(fields.externalFee, isExternal);
-      if (note) note.textContent = isTraditional ? labels.estimatedNote : labels.directNote;
-    }
-
-    function updateCurrentColumn() {
-      const activeColumn = profitabilityState.situation === "traditional" ? 1 : 2;
-      calculator.dataset.situation = profitabilityState.situation;
-      calculator.querySelectorAll("table tr").forEach(function (row) {
-        Array.from(row.children).forEach(function (cell, index) {
-          cell.classList.toggle("current-model-column", index === activeColumn);
-        });
-      });
-    }
-
-    function updateResults() {
-      currency = new Intl.NumberFormat(activeLanguage, {
-        style: "currency",
-        currency: profitabilityState.currency,
-        maximumFractionDigits: 0
-      });
-      const situation = profitabilityState.situation;
-      const traditionalRent = Math.max(0, Number(profitabilityState.traditionalRent) || 0);
-      const enteredRate = Math.max(0, Number(profitabilityState.nightlyRate) || 0);
-      const enteredOccupancy = Math.min(100, Math.max(0, Number(profitabilityState.occupancy) || 0));
-      const externalFeeRate = Math.min(100, Math.max(0, Number(profitabilityState.externalFee) || 0));
-      const hasTraditional = situation === "traditional" && traditionalRent > 0;
-      const hasEnteredTouristData = situation !== "traditional" && enteredRate > 0 && enteredOccupancy > 0;
-      const currentAvailable = hasTraditional || hasEnteredTouristData;
-      const traditionalAnnual = traditionalRent * 12;
-      let currentRate = enteredRate;
-      let currentOccupancy = enteredOccupancy;
-      let currentHeadingLabel = labels.selfColumn;
-      let currentDetailLabel = labels.currentDetail;
-      let currentFee = 0;
-      let currentOwnerTime = labels.selfOwnerTime;
-      let currentPricing = labels.selfPricing;
-      let currentGuestCare = labels.selfGuestCare;
-
-      if (situation === "traditional") {
-        const scale = traditionalRent / DEFAULT_EARNINGS.traditionalRent;
-        currentRate = DEFAULT_EARNINGS.touristRate * scale;
-        currentOccupancy = MARKET_OCCUPANCY;
-        currentHeadingLabel = labels.selfColumn;
-        currentDetailLabel = labels.estimatedDetail;
-      } else if (situation === "external") {
-        currentHeadingLabel = labels.externalColumn;
-        currentDetailLabel = `${integer.format(externalFeeRate)}% · ${labels.externalDetail}`;
-        currentOwnerTime = labels.externalOwnerTime;
-        currentPricing = labels.externalPricing;
-        currentGuestCare = labels.externalGuestCare;
-      } else if (situation === "new-property") {
-        currentHeadingLabel = labels.newColumn;
-      }
-
-      const currentNights = 365 * currentOccupancy / 100;
-      const currentGross = currentRate * currentNights;
-      if (situation === "external") currentFee = currentGross * externalFeeRate / 100;
-      const currentNet = currentGross - currentFee;
-      const hotHostRate = currentRate * HOT_HOST_RATE_MULTIPLIER;
-      const hotHostOccupancy = Math.max(currentOccupancy, HOT_HOST_OCCUPANCY);
-      const hotHostNights = 365 * hotHostOccupancy / 100;
-      const hotHostGross = hotHostRate * hotHostNights;
-      const hotHostFee = hotHostGross * HOT_HOST_MANAGEMENT_FEE;
-      const hotHostNet = hotHostGross - hotHostFee;
-      const traditionalAvailable = hasTraditional;
-      const hotHostAvailable = currentAvailable;
-
-      if (currentHeading) currentHeading.textContent = currentHeadingLabel;
-      if (currentDetail) currentDetail.textContent = currentDetailLabel;
-      setOutput("traditionalGross", amount(traditionalAnnual, traditionalAvailable));
-      setOutput("traditionalFee", amount(0, traditionalAvailable));
-      setOutput("traditionalNet", amount(traditionalAnnual, traditionalAvailable));
-      setOutput("traditionalMonthly", amount(traditionalAnnual / 12, traditionalAvailable));
-      setOutput("traditionalNights", labels.traditionalNights);
-      setOutput("traditionalRate", labels.traditionalRate);
-      setOutput("traditionalOccupancy", labels.traditionalOccupancy);
-      setOutput("traditionalOwnerTime", labels.traditionalOwnerTime);
-      setOutput("traditionalPricing", labels.traditionalPricing);
-      setOutput("traditionalGuestCare", labels.traditionalGuestCare);
-      setOutput("currentGross", amount(currentGross, currentAvailable));
-      setOutput("currentFee", amount(currentFee > 0 ? -currentFee : 0, currentAvailable));
-      setOutput("currentNet", amount(currentNet, currentAvailable));
-      setOutput("currentMonthly", amount(currentNet / 12, currentAvailable));
-      setOutput("currentNights", currentAvailable ? integer.format(currentNights) : "—");
-      setOutput("currentRate", amount(currentRate, currentAvailable));
-      setOutput("currentOccupancy", currentAvailable ? `${integer.format(currentOccupancy)}%` : "—");
-      setOutput("currentOwnerTime", currentAvailable ? currentOwnerTime : "—");
-      setOutput("currentPricing", currentAvailable ? currentPricing : "—");
-      setOutput("currentGuestCare", currentAvailable ? currentGuestCare : "—");
-      setOutput("hotHostGross", amount(hotHostGross, hotHostAvailable));
-      setOutput("hotHostFee", amount(-hotHostFee, hotHostAvailable));
-      setOutput("hotHostNet", amount(hotHostNet, hotHostAvailable));
-      setOutput("hotHostMonthly", amount(hotHostNet / 12, hotHostAvailable));
-      setOutput("hotHostNights", hotHostAvailable ? integer.format(hotHostNights) : "—");
-      setOutput("hotHostRate", amount(hotHostRate, hotHostAvailable));
-      setOutput("hotHostOccupancy", hotHostAvailable ? `${integer.format(hotHostOccupancy)}%` : "—");
-      setOutput("hotHostOwnerTime", labels.hotHostOwnerTime);
-      setOutput("hotHostPricing", labels.hotHostPricing);
-      setOutput("hotHostGuestCare", labels.hotHostGuestCare);
-
-      const referenceAvailable = situation === "traditional" ? traditionalAvailable : currentAvailable;
-      const referenceNet = situation === "traditional" ? traditionalAnnual : currentNet;
-      if (resultLabel) resultLabel.textContent = labels.resultLabel;
-      setOutput("hotHostResult", amount(hotHostNet, hotHostAvailable));
-      if (hotHostAvailable && referenceAvailable) {
-        const difference = hotHostNet - referenceNet;
-        const sign = difference >= 0 ? "+" : "−";
-        setOutput("difference", `${sign}${amount(Math.abs(difference), true)}`);
-        setOutput("differenceLabel", situation === "traditional" ? labels.versusTraditional : labels.versusCurrent);
-      } else {
-        setOutput("difference", "—");
-        setOutput("differenceLabel", labels.noData);
-      }
-      updateCurrentColumn();
-    }
-
-    function syncInputValues() {
-      inputs.forEach(function (input) {
-        const key = input.dataset.profitabilityInput;
-        input.value = key === "traditionalRent" || key === "nightlyRate"
-          ? (profitabilityState[key] === "" ? "" : formatInputValue(profitabilityState[key]))
-          : profitabilityState[key];
-      });
-      currencyInputs.forEach(function (input) {
-        input.value = profitabilityState.currency;
-      });
-    }
-
-    inputs.forEach(function (input) {
-      input.addEventListener("input", function () {
-        const key = input.dataset.profitabilityInput;
-        if (key === "situation") return;
-        const value = Number(input.value);
-        profitabilityState[key] = input.value === ""
-          ? ""
-          : (key === "traditionalRent" || key === "nightlyRate" ? value / getCurrencyRate() : value);
-        updateResults();
-      });
-      input.addEventListener("change", function () {
-        if (input.dataset.profitabilityInput !== "situation") return;
-        profitabilityState.situation = validSituations.includes(input.value) ? input.value : "traditional";
-        updateFieldVisibility();
-        updateResults();
-      });
-    });
-
-    currencyInputs.forEach(function (input) {
-      input.addEventListener("change", function () {
-        profitabilityState.currency = SUPPORTED_CURRENCIES.includes(input.value) ? input.value : "EUR";
-        syncInputValues();
-        updateResults();
-      });
-    });
-
-    if (situationInput) situationInput.value = profitabilityState.situation;
-    syncInputValues();
-    updateFieldVisibility();
-    updateResults();
-    loadExchangeRates().then(function () {
-      if (!calculator.isConnected) return;
-      syncInputValues();
-      updateResults();
-    });
-  }
-
   function setupServiceCarousels(locale) {
     if (serviceCarouselResizeHandler) {
       window.removeEventListener("resize", serviceCarouselResizeHandler);
@@ -4962,48 +3995,6 @@
     revealElements.forEach(function (element) { revealObserver.observe(element); });
   }
 
-  function detachAuditPromptScrollHandler() {
-    if (auditPromptScrollHandler) {
-      window.removeEventListener("scroll", auditPromptScrollHandler);
-      auditPromptScrollHandler = null;
-    }
-  }
-
-  function resetAuditPromptVisit() {
-    detachAuditPromptScrollHandler();
-    const prompt = document.querySelector("[data-audit-prompt]");
-    if (prompt) prompt.remove();
-    auditPromptSeenInMemory = false;
-  }
-
-  function setupAuditScrollPrompt(locale, pageKey) {
-    detachAuditPromptScrollHandler();
-    if (pageKey !== "home" || auditPromptSeenInMemory || !isAuditOfferActive()) return;
-
-    auditPromptScrollHandler = function () {
-      if (window.scrollY < 56 || document.querySelector("[data-audit-prompt]")) return;
-      detachAuditPromptScrollHandler();
-      auditPromptSeenInMemory = true;
-
-      const prompt = document.createElement("aside");
-      prompt.className = "audit-scroll-prompt";
-      prompt.dataset.auditPrompt = "";
-      prompt.setAttribute("role", "region");
-      prompt.setAttribute("aria-labelledby", "auditPromptTitle");
-      prompt.setAttribute("aria-describedby", "auditPromptDescription");
-      prompt.innerHTML = `<button class="audit-prompt-close" type="button" aria-label="${escapeHtml(locale.home.auditPromptClose)}">×</button><div class="audit-prompt-brand"><img src="assets/logo-mark.svg" alt="" width="42" height="42"><span>${escapeHtml(locale.common.offerDeadline)}</span></div><div class="audit-prompt-kicker">${escapeHtml(locale.common.offerKicker)}</div><h2 id="auditPromptTitle">${escapeHtml(locale.common.offerTitle)}</h2><p id="auditPromptDescription">${escapeHtml(locale.home.auditPromptLead)}</p><a class="audit-prompt-action" href="contacto.html">${escapeHtml(locale.home.auditPromptButton)}</a>`;
-      document.body.appendChild(prompt);
-      window.requestAnimationFrame(function () { prompt.classList.add("visible"); });
-
-      prompt.querySelector(".audit-prompt-close").addEventListener("click", function () {
-        prompt.classList.remove("visible");
-        prompt.classList.add("closing");
-        window.setTimeout(function () { prompt.remove(); }, 240);
-      });
-    };
-    window.addEventListener("scroll", auditPromptScrollHandler, { passive: true });
-  }
-
   function setupCookieNotice() {
     if (document.body.dataset.page === "cookies" || document.querySelector("[data-cookie-notice]")) return;
     const legal = getSupplementalContent(activeLanguage).legal;
@@ -5121,7 +4112,7 @@
           jobTitle: BUSINESS.role,
           image: new URL("assets/yunior-bacallao-alonso-founder.png", SITE_URL).href
         },
-        areaServed: ["Europe", "North America", "South America"]
+        areaServed: "Worldwide"
       },
       {
         "@type": "WebSite",
@@ -5147,7 +4138,7 @@
         name: service.title,
         description: service.intro,
         provider: { "@id": organizationId },
-        areaServed: ["Europe", "North America", "South America"],
+        areaServed: "Worldwide",
         url: canonicalUrl
       });
     }
@@ -5164,19 +4155,21 @@
     const aboutMarketing = marketing.about || {};
     const founder = getSupplementalContent(activeLanguage).founder || {};
     const experience = getExperienceContent(activeLanguage);
-    const experiencePage = pageKey === "profitability"
-      ? experience.profitability
-      : pageKey === "founder"
-        ? experience.founderPage
-        : pageKey === "legal-hub"
-          ? experience.legalHub
-          : null;
+    const experiencePage = pageKey === "web-direct" || pageKey === "experiences"
+      ? getArchitecturePage(pageKey)
+      : pageKey === "profitability"
+        ? experience.profitability
+        : pageKey === "founder"
+          ? experience.founderPage
+          : pageKey === "legal-hub"
+            ? experience.legalHub
+            : null;
     const title = service
       ? `${service.title} · ${BUSINESS.brand}`
       : legalPage
         ? `${legalPage.title} · ${BUSINESS.brand}`
-        : experiencePage && experiencePage.title
-          ? `${experiencePage.title} · ${BUSINESS.brand}`
+        : experiencePage && (experiencePage.metaTitle || experiencePage.title)
+          ? `${experiencePage.metaTitle || experiencePage.title} · ${BUSINESS.brand}`
         : pageKey === "home" && homeMarketing.title
           ? `${homeMarketing.title.replace(/[.]+$/, "")} · ${BUSINESS.brand}`
         : (locale.meta.titles[pageKey] || locale.meta.titles.home);
@@ -5228,11 +4221,18 @@
     let content;
     let currentPage = pageKey;
 
-    if (pageKey === "home") content = renderHome(locale, services);
+    if (pageKey === "home") content = renderHome(locale);
     else if (pageKey === "services") content = renderServices(locale, services);
+    else if (pageKey === "web-direct") {
+      const page = getArchitecturePage(pageKey);
+      content = appendMainSections(renderWebDirectPage(locale), renderWebDirectExtras(page));
+    } else if (pageKey === "experiences") {
+      const page = getArchitecturePage(pageKey);
+      content = appendMainSections(renderExperiencesPage(locale), renderFaqSection(page, "experiences"));
+    }
     else if (pageKey === "about") content = renderAbout(locale);
     else if (pageKey === "founder") content = renderFounderPage(locale);
-    else if (pageKey === "profitability") content = renderProfitabilityComparison(locale);
+    else if (pageKey === "profitability") content = renderProfitabilityMethod(locale);
     else if (pageKey === "contact") content = renderContact(locale);
     else if (pageKey === "legal-hub") content = renderLegalHub(locale);
     else if (["legal", "privacy", "cookies"].includes(pageKey)) content = renderLegalPage(pageKey, locale);
@@ -5240,7 +4240,7 @@
       content = renderServicePage(pageKey, locale);
       currentPage = "services";
     } else {
-      content = renderHome(locale, services);
+      content = renderHome(locale);
       currentPage = "home";
     }
 
@@ -5251,27 +4251,14 @@
     setupContactForm(locale, formState);
     setupContactTestTool();
     setupProcessDialog();
-    setupEarningsCalculator(locale);
-    setupProfitabilityComparison();
     setupServiceCarousels(locale);
     setupCarousels(locale);
     setupRevealAnimations();
     setupScrollHeader();
-    setupAuditScrollPrompt(locale, pageKey);
     setupCookieNotice();
     setupLegalPreferenceControls();
     localizeInternalLinks();
   }
-
-  window.addEventListener("pagehide", function () {
-    if (document.body.dataset.page === "home") resetAuditPromptVisit();
-  });
-
-  window.addEventListener("pageshow", function (event) {
-    if (!event.persisted || document.body.dataset.page !== "home") return;
-    resetAuditPromptVisit();
-    setupAuditScrollPrompt(locales[activeLanguage] || locales.es, "home");
-  });
 
   renderApp(null);
 })();

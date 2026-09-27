@@ -36,10 +36,6 @@ window.HOT_HOST_LOCALES.pl = {
     ctaEyebrow: "Porozmawiajmy konkretnie, bez zobowiązań",
     ctaTitle: "Czy Twój obiekt mógłby zarabiać więcej, a wymagać od Ciebie znacznie mniej pracy?",
     ctaButton: "Poproś o audyt →",
-    offerKicker: "Oferta ograniczona czasowo",
-    offerTitle: "Bezpłatny audyt rentowności",
-    offerDeadline: "BEZPŁATNIE DO 30 WRZEŚNIA",
-    navOffer: "BEZPŁATNIE DO 30 WRZEŚNIA",
     carouselRole: "karuzela",
     previousImage: "Poprzednie zdjęcie",
     nextImage: "Następne zdjęcie",
@@ -60,12 +56,8 @@ window.HOT_HOST_LOCALES.pl = {
     lead: "Hot Host sprawia, że obiekty z potencjałem stają się bardziej rentowne, zapewniają niezapomniane pobyty i są łatwiejsze w prowadzeniu, niezależnie od lokalizacji. My dbamy o szczegóły, a Ty odzyskujesz czas i kontrolę.",
     discover: "Zobacz, jak działamy →",
     analyse: "Poproś o audyt",
-    auditPromptLead: "Dowiedz się, ile może zarabiać Twój obiekt dzięki przejrzystej analizie cen, obłożenia i możliwości. Bezpłatnie i bez zobowiązań.",
-    auditPromptButton: "Chcę bezpłatny audyt →",
-    auditPromptClose: "Zamknij tę ofertę",
     years: "Lat w branży hotelarskiej",
     support: "Obsługa gości",
-    starsLabel: "Pięć gwiazdek",
     experiences: "Doświadczenia, które pozostają w pamięci",
     logoAlt: "Logo Hot Host Hospitality z trzema literami H",
     heroPropertyAlts: [
@@ -73,7 +65,6 @@ window.HOT_HOST_LOCALES.pl = {
       "Współczesny dom pośród drzew, oświetlony o zmierzchu",
       "Współczesna biała willa z odkrytym basenem"
     ],
-    badge: "Standard premium z charakterem",
     servicesEyebrow: "Strategia, operacje i gościnność",
     servicesTitle: "Wszystko, czego obiekt potrzebuje, by naprawdę dobrze działać.",
     servicesLead: "Hot Host potrafiłby sprzedać lód Eskimosowi albo mleko krowie. Wolimy jednak lepiej sprzedawać Twój obiekt: strategicznie, z doskonałą obsługą i bez pustych obietnic.",
@@ -86,46 +77,7 @@ window.HOT_HOST_LOCALES.pl = {
       ["Projektowanie", "Określamy sposób działania, standardy i doświadczenie gości.", "Przekładamy diagnozę na standardy, komunikację, ceny, automatyzacje i doświadczenie spójne z tożsamością obiektu."],
       ["Realizacja", "Koordynujemy gości, kalendarze i dostawców.", "Wprowadzamy plan w życie i łączymy kalendarze, gości oraz dostawców tak, aby każde zadanie miało osobę odpowiedzialną i właściwy termin."],
       ["Optymalizacja", "Nieustannie mierzymy, wyciągamy wnioski i ulepszamy.", "Analizujemy wyniki, wychwytujemy odchylenia i korygujemy strategię. Wzmacniamy to, co działa, a resztę poprawiamy bez niepotrzebnego dramatu."]
-    ],
-    comparison: {
-      eyebrow: "Porównanie przychodów",
-      title: "Porównaj trzy sposoby zarabiania na swojej nieruchomości.",
-      lead: "Wybierz obecny model wynajmu i podaj tylko swoją aktualną cenę. Pozostałe założenia zostaną obliczone automatycznie.",
-      inputsTitle: "Twoja obecna sytuacja",
-      modelLabel: "Jak obecnie wynajmujesz nieruchomość?",
-      currencyLabel: "Wybierz walutę",
-      assumptionsTitle: "Obliczone założenia",
-      traditionalRent: "Miesięczny czynsz z najmu tradycyjnego",
-      touristRate: "Średnia stawka za noc w najmie turystycznym",
-      touristOccupancy: "Obłożenie rynkowe / w innej agencji",
-      hotHostRate: "Stawka Hot Host za noc",
-      hotHostOccupancy: "Obłożenie z Hot Host",
-      metric: "Wskaźnik",
-      traditional: "Najem tradycyjny",
-      tourist: "Inna agencja najmu turystycznego",
-      hotHost: "Z Hot Host",
-      monthlyIncome: "Miesięczny przychód brutto",
-      annualIncome: "Roczny przychód brutto",
-      occupiedNights: "Liczba zajętych nocy w roku",
-      averageRate: "Średnia stawka za noc",
-      ownerTime: "Zaangażowanie właściciela",
-      pricing: "Ustalanie cen",
-      guestCare: "Obsługa gości",
-      traditionalNights: "100% obłożenia",
-      traditionalRate: "Stały czynsz miesięczny",
-      ownerTimeHigh: "Niewielkie",
-      ownerTimeLow: "Minimalne",
-      pricingFixed: "Stały czynsz",
-      pricingManual: "Zarządzane przez agencję",
-      pricingDynamic: "Ceny dynamiczne",
-      guestCareTenant: "Najemca",
-      guestCareOwner: "Koordynowana przez agencję",
-      guestCareHotHost: "Hot Host",
-      resultLabel: "Szacowany roczny przychód brutto z Hot Host",
-      versusTraditional: "względem najmu tradycyjnego",
-      versusTourist: "względem innej agencji najmu turystycznego",
-      disclaimer: "Orientacyjny szacunek przychodu brutto opiera się na wprowadzonych danych i wewnętrznych kryteriach efektywności. Kwoty podano przed podatkami, kosztami i opłatami; nie stanowią one gwarancji."
-    }
+    ]
   },
   servicesPage: {
     eyebrow: "Rozwiązanie na każdy operacyjny ból głowy",
@@ -142,7 +94,7 @@ window.HOT_HOST_LOCALES.pl = {
   about: {
     breadcrumb: "O Hot Host",
     eyebrow: "Gościnność poznana od podszewki",
-    title: ["Prawdziwa gościnność.", "Standardy hotelowe ★★★★★"],
+    title: ["Prawdziwa gościnność.", "Standardy hotelowe"],
     lead: "Hot Host przenosi dyscyplinę świetnego hotelu do każdego obiektu, nie tracąc przy tym ludzkiego ciepła. Wiemy, że za każdą rezerwacją stoi gość, a za każdą nieruchomością właściciel, który po prostu chce spokojnie spać.",
     prose: [
       {
@@ -181,14 +133,6 @@ window.HOT_HOST_LOCALES.pl = {
       ["♡", "Gościnność", "Słuchamy, przewidujemy potrzeby i rozwiązujemy problemy z empatią.", "Gościnność oznacza dla nas uważność przed przyjazdem, podczas pobytu i po wyjeździe. Słuchamy nie tylko tego, o co gość prosi wprost, lecz także sygnałów, które pozwalają wcześniej rozpoznać jego potrzeby. Łączymy ciepło z konkretnym działaniem, aby każda osoba czuła się mile widziana, zaopiekowana i traktowana indywidualnie."],
       ["↗", "Rentowność", "Każda decyzja operacyjna powinna tworzyć trwałą wartość.", "Rentowność nie sprowadza się do najwyższej ceny za noc ani do pełnego kalendarza za wszelką cenę. Szukamy równowagi między przychodem, kosztami, jakością doświadczenia i ochroną nieruchomości. Każdą rekomendację oceniamy pod kątem mierzalnego efektu oraz wartości w dłuższej perspektywie, dzięki czemu wzrost jest zdrowy, uzasadniony i możliwy do utrzymania."],
       ["✦", "Charakter", "Doświadczenia z iskrą, ale bez zmieniania obiektu w cyrk.", "Charakter obiektu powinien być wyczuwalny na zdjęciach, w komunikacji, powitaniu i lokalnych rekomendacjach. Nie chodzi o kosztowne dekoracje ani efektowne sztuczki, lecz o kilka spójnych, autentycznych akcentów, które goście zapamiętają. Pomagamy wydobyć to, co wyjątkowe, i przekładamy tę osobowość na doświadczenie, które wyróżnia się bez przesady."]
-    ],
-    voicesEyebrow: "Głos naszych klientów",
-    voicesTitle: "Spokój, który naprawdę czuć.",
-    voicesLead: "Właściciele, którzy odzyskali czas, kontrolę i zaufanie do swojego obiektu.",
-    quotes: [
-      ["Odkąd zespół Hot Host przejął zarządzanie, nie żyję już z telefonem w dłoni. Obłożenie wzrosło, goście przyjeżdżają lepiej poinformowani, a nieruchomość znów jest inwestycją, nie drugim etatem.", "Laura Benítez", "Właścicielka dwóch apartamentów · Sewilla"],
-      ["Dopracowali szczegóły, o których nigdy wcześniej nie myśleliśmy: ton wiadomości, przebieg przyjazdu i rekomendacje dotyczące okolicy. Właśnie te elementy pojawiają się w naszych najnowszych opiniach, a różnicę czuć podczas każdego pobytu.", "Daniel Ferrer", "Gospodarz domu wakacyjnego · Walencja"],
-      ["W sobotę wieczorem pojawił się problem, który rozwiązali, zanim odczuł go gość. Otrzymaliśmy jasne informacje, rozwiązanie, a potem rzetelne dalsze wsparcie. Właśnie takiego spokoju szukaliśmy.", "Marta Rossi", "Międzynarodowa właścicielka nieruchomości · Madryt / Mediolan"]
     ]
   },
   contact: {
@@ -314,7 +258,7 @@ window.HOT_HOST_LOCALES.pl = {
       title: "Kompleksowe zarządzanie",
       imageAlt: "Lista kontrolna zarządzania operacyjnego rozłożona na biurku",
       summary: "Twój obiekt zarządzany od początku do końca z hotelarskim doświadczeniem, kontrolą operacyjną i przejrzystą komunikacją.",
-      price: ["18% przychodu z noclegów", "Min. 220 EUR/mies. · Guest Experience, Revenue Management i zdalna koordynacja operacyjna w cenie"],
+      price: ["Od 20% przychodów z noclegów", ""],
       tag: "Pełna kontrola, prawdziwy spokój",
       intro: "Centralizujemy obsługę obiektu, aby właściciel zachował pełny wgląd bez ciężaru codziennego zarządzania.",
       benefits: ["Konfiguracja i optymalizacja ogłoszeń", "Zarządzanie rezerwacjami i kalendarzem", "Komunikacja z gośćmi przed pobytem, w jego trakcie i po wyjeździe", "Koordynacja sprzątania, prania i utrzymania technicznego", "Monitorowanie operacji i raporty dla właściciela"],
@@ -409,7 +353,7 @@ window.HOT_HOST_LOCALES.pl = {
       title: "Audyt rentowności",
       imageAlt: "Wykresy, kalkulator i ołówek na biurku analityka",
       summary: "Analiza sprzedażowa i operacyjna, która wskazuje źródła strat, możliwości i najważniejsze obszary poprawy.",
-      price: ["249 EUR", "Bezpłatnie do 30 września"],
+      price: ["249 EUR", ""],
       tag: "Najpierw zrozumieć, potem ulepszać",
       intro: "Analizujemy obiekt jako produkt, działalność operacyjną i inwestycję, aby wskazać działania o największym potencjalnym wpływie.",
       benefits: ["Diagnoza ogłoszenia", "Analiza porównawcza konkurencji", "Przegląd kosztów i procesów", "Mapa możliwości", "Uporządkowany plan działań na 30–90 dni"],

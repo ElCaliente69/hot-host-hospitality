@@ -20,21 +20,9 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
           title: "Gestión profesional de alojamientos turísticos.",
           titleAccent: "Más rentabilidad. Menos carga para ti.",
           lead: "Gestionamos apartamentos turísticos, villas y alojamientos vacacionales con criterio hotelero: estrategia comercial, operación coordinada y atención al huésped para que tu propiedad rinda más sin ocupar tus días.",
-          servicesLead: "No gestionamos anuncios aislados: conectamos posicionamiento, precio, operación y experiencia del huésped para que cada estancia proteja la rentabilidad y la reputación de tu alojamiento."
+          servicesLead: "No gestionamos anuncios aislados: conectamos posicionamiento, precio, operación y experiencia del huésped para que cada estancia proteja la rentabilidad y la reputación de tu alojamiento.",
+          credibility: [["Más de 10 años", "Trayectoria del fundador en hospitalidad"], ["Un solo criterio", "Estrategia y operación conectadas"], ["Plan personalizado", "Alcance definido para cada propiedad"]]
         }
-      },
-      comparison: {
-        guideTitle: "Cómo usar este comparador",
-        guideLead: "No necesitas conocer todas las cifras. Parte de tu situación actual y la tabla traduce ese dato en tres escenarios comparables.",
-        steps: [
-          ["1", "Elige tu punto de partida", "Selecciona si hoy alquilas por meses o por noches."],
-          ["2", "Introduce una sola cifra", "Escribe tu renta mensual actual o tu tarifa media por noche y elige la moneda."],
-          ["3", "Compara el escenario", "La tabla calcula ingresos, noches, precio, dedicación y atención al huésped para cada modelo."],
-          ["4", "Lee el resultado con contexto", "El destacado final muestra una estimación anual; no es una promesa ni sustituye una auditoría." ]
-        ],
-        calculatedLabel: "La ocupación del mercado, la tarifa Hot Host y los demás valores se ajustan automáticamente a partir de tu dato.",
-        inputLabel: "Tu dato",
-        outputLabel: "Escenarios calculados"
       },
       founder: {
         eyebrow: "Fundador · Hospitalidad en primera línea",
@@ -117,7 +105,6 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     },
     en: {
       marketing: { home: { title: "Professional management for tourist accommodation.", titleAccent: "More revenue. Less on your plate.", lead: "We manage holiday apartments, villas and tourist accommodation with hotel expertise: commercial strategy, coordinated operations and guest care so your property earns more without taking over your day.", servicesLead: "We do not manage isolated listings. We connect positioning, pricing, operations and guest experience so every stay protects both revenue and reputation." } },
-      comparison: { guideTitle: "How to use this comparison", guideLead: "You do not need every figure. Start with your current situation and the table turns it into three comparable scenarios.", steps: [["1", "Choose your starting point", "Select whether you currently rent by the month or by the night."], ["2", "Enter one number", "Add your current monthly rent or average nightly rate and choose the currency."], ["3", "Compare the scenarios", "The table calculates income, nights, rate, owner time and guest care for each model."], ["4", "Read the result in context", "The final highlight is an annual estimate; it is not a promise or a replacement for an audit."]], calculatedLabel: "Market occupancy, the Hot Host rate and the other values are automatically scaled from your input.", inputLabel: "Your input", outputLabel: "Calculated scenarios" },
       founder: { eyebrow: "Founder · Hospitality on the front line", title: "Behind every process is someone who has stood on the other side of the front desk.", lead: "Hot Host grew out of a career in reception, food and beverage, guest care and real operations, not a theoretical presentation.", photoAlt: "Yunior Bacallao Alonso, CEO and founder of Hot Host Hospitality", signature: "Yunior Bacallao Alonso", role: "CEO and Founder of Hot Host Hospitality", quote: "Managing accommodation is not simply handing over keys. It is building trust, solving problems before they grow and giving every guest a good story to tell.", paragraphs: ["My career has developed over more than a decade in hospitality, across high-volume hotels, holiday resorts and urban properties. I have worked where a stay is truly decided: in front of the guest, in operations and in the details that leave no room for improvisation.", "I started in international hotels in Varadero, Cuba, working in entertainment, food and beverage, bar service, guest care and reception. Serving hundreds of guests every day taught me to handle check-ins, bookings, billing and incidents with speed, empathy and clear communication.", "I later continued in Seville, broadening my experience in urban hospitality, tourist rentals, booking platforms and pricing and occupancy optimisation. Hot Host is my way of bringing those professional standards to apartments, holiday homes and independent accommodation."] },
       legal: {
         nav: { legal: "Legal notice", privacy: "Privacy and data processing", cookies: "Cookies" }, updated: "Last updated: 27 July 2026.", backHome: "Back to home",
@@ -129,7 +116,6 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     },
     fr: {
       marketing: { home: { title: "Gestion professionnelle d'hébergements touristiques.", titleAccent: "Plus de rentabilité. Moins de charge pour vous.", lead: "Nous gérons appartements touristiques, villas et locations de vacances avec une vision hôtelière : stratégie commerciale, opérations coordonnées et attention aux voyageurs pour que votre bien rapporte davantage sans absorber vos journées.", servicesLead: "Nous ne gérons pas des annonces isolées. Nous relions positionnement, tarifs, opérations et expérience voyageur afin que chaque séjour protège rentabilité et réputation." } },
-      comparison: { guideTitle: "Comment utiliser ce comparateur", guideLead: "Vous n'avez pas besoin de connaître tous les chiffres. Partez de votre situation actuelle et le tableau la transforme en trois scénarios comparables.", steps: [["1", "Choisissez votre point de départ", "Indiquez si vous louez actuellement au mois ou à la nuit."], ["2", "Saisissez un seul chiffre", "Ajoutez votre loyer mensuel actuel ou votre tarif moyen par nuit et choisissez la devise."], ["3", "Comparez les scénarios", "Le tableau calcule revenus, nuits, prix, implication du propriétaire et accueil des voyageurs."], ["4", "Lisez le résultat avec recul", "La mise en avant finale est une estimation annuelle, pas une promesse ni un audit."]], calculatedLabel: "L'occupation du marché, le tarif Hot Host et les autres valeurs sont ajustés automatiquement à partir de votre donnée.", inputLabel: "Votre donnée", outputLabel: "Scénarios calculés" },
       founder: { eyebrow: "Fondateur · L'hospitalité sur le terrain", title: "Derrière chaque processus, il y a quelqu'un qui a vécu l'autre côté de la réception.", lead: "Hot Host est né d'une carrière en réception, restauration, relation client et opérations réelles, et non d'une présentation théorique.", photoAlt: "Yunior Bacallao Alonso, CEO et fondateur de Hot Host Hospitality", signature: "Yunior Bacallao Alonso", role: "CEO et fondateur de Hot Host Hospitality", quote: "Gérer un hébergement ne consiste pas seulement à remettre des clés. Il s'agit de créer de la confiance, de résoudre les problèmes avant qu'ils ne grandissent et d'offrir à chaque voyageur une belle histoire à raconter.", paragraphs: ["Mon parcours s'est construit pendant plus de dix ans dans l'hospitalité, entre hôtels à grand volume, resorts de vacances et établissements urbains. J'ai travaillé là où un séjour se décide réellement : face au voyageur, dans l'opération et dans les détails qui ne tolèrent pas l'improvisation.", "J'ai commencé dans des hôtels internationaux à Varadero, à Cuba, en passant par l'animation, la restauration, le bar, la relation client et la réception. Accueillir des centaines de voyageurs chaque jour m'a appris à gérer arrivées, réservations, facturation et incidents avec rapidité, empathie et clarté.", "J'ai ensuite poursuivi mon parcours à Séville, en développant mon expérience de l'hôtellerie urbaine, de la location touristique, des plateformes de réservation et de l'optimisation des tarifs et de l'occupation. Hot Host est ma manière de transférer ces standards aux appartements, maisons de vacances et hébergements indépendants."] },
       legal: {
         nav: { legal: "Mentions légales", privacy: "Confidentialité et traitement des données", cookies: "Cookies" }, updated: "Dernière mise à jour : 27 juillet 2026.", backHome: "Retour à l'accueil",
@@ -141,7 +127,6 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     },
     it: {
       marketing: { home: { title: "Gestione professionale di alloggi turistici.", titleAccent: "Più redditività. Meno carico per te.", lead: "Gestiamo appartamenti turistici, ville e case vacanza con criterio alberghiero: strategia commerciale, operazioni coordinate e cura degli ospiti perché la tua proprietà renda di più senza assorbire le tue giornate.", servicesLead: "Non gestiamo annunci isolati. Colleghiamo posizionamento, prezzi, operazioni ed esperienza dell'ospite affinché ogni soggiorno protegga redditività e reputazione." } },
-      comparison: { guideTitle: "Come usare questo confronto", guideLead: "Non devi conoscere tutti i numeri. Parti dalla situazione attuale e la tabella la trasforma in tre scenari comparabili.", steps: [["1", "Scegli il punto di partenza", "Indica se oggi affitti al mese o a notte."], ["2", "Inserisci un solo dato", "Aggiungi il canone mensile o la tariffa media per notte e scegli la valuta."], ["3", "Confronta gli scenari", "La tabella calcola ricavi, notti, tariffa, impegno del proprietario e cura dell'ospite."], ["4", "Leggi il risultato nel contesto", "Il riepilogo finale è una stima annuale, non una promessa né un audit."]], calculatedLabel: "L'occupazione di mercato, la tariffa Hot Host e gli altri valori vengono adeguati automaticamente dal tuo dato.", inputLabel: "Il tuo dato", outputLabel: "Scenari calcolati" },
       founder: { eyebrow: "Fondatore · Ospitalità sul campo", title: "Dietro ogni processo c'è qualcuno che è stato dall'altra parte del banco reception.", lead: "Hot Host nasce da una carriera in reception, ristorazione, relazione con gli ospiti e operazioni reali, non da una presentazione teorica.", photoAlt: "Yunior Bacallao Alonso, CEO e fondatore di Hot Host Hospitality", signature: "Yunior Bacallao Alonso", role: "CEO e fondatore di Hot Host Hospitality", quote: "Gestire un alloggio non significa soltanto consegnare le chiavi. Significa creare fiducia, risolvere i problemi prima che crescano e fare in modo che ogni ospite abbia una buona storia da raccontare.", paragraphs: ["La mia esperienza professionale si è costruita in oltre dieci anni nell'ospitalità, tra hotel ad alto volume, resort vacanzieri e strutture urbane. Ho lavorato dove un soggiorno viene realmente deciso: davanti all'ospite, nell'operatività e nei dettagli che non ammettono improvvisazione.", "Ho iniziato in hotel internazionali a Varadero, Cuba, tra animazione, ristorazione, bar, assistenza ospiti e reception. Accogliere centinaia di ospiti ogni giorno mi ha insegnato a gestire check-in, prenotazioni, fatturazione e imprevisti con rapidità, empatia e comunicazione chiara.", "Ho poi proseguito a Siviglia, ampliando l'esperienza nell'ospitalità urbana, negli affitti turistici, nelle piattaforme di prenotazione e nell'ottimizzazione di prezzi e occupazione. Hot Host è il mio modo di trasferire questi standard ad appartamenti, case vacanza e strutture indipendenti."] },
       legal: {
         nav: { legal: "Note legali", privacy: "Privacy e trattamento dati", cookies: "Cookie" }, updated: "Ultimo aggiornamento: 27 luglio 2026.", backHome: "Torna alla home",
@@ -153,7 +138,6 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     },
     de: {
       marketing: { home: { title: "Professionelles Management für Ferienunterkünfte.", titleAccent: "Mehr Ertrag. Weniger Aufwand für dich.", lead: "Wir betreuen Ferienwohnungen, Villen und touristische Unterkünfte mit Hotelkompetenz: Vertriebsstrategie, koordinierte Abläufe und Gästebetreuung, damit deine Immobilie mehr erwirtschaftet, ohne deinen Alltag zu bestimmen.", servicesLead: "Wir verwalten keine isolierten Inserate. Wir verbinden Positionierung, Preise, Abläufe und Gästeerlebnis, damit jeder Aufenthalt Ertrag und Reputation schützt." } },
-      comparison: { guideTitle: "So nutzt du diesen Vergleich", guideLead: "Du musst nicht alle Zahlen kennen. Starte mit deiner aktuellen Situation; die Tabelle macht daraus drei vergleichbare Szenarien.", steps: [["1", "Wähle deinen Ausgangspunkt", "Gib an, ob du aktuell monatlich oder pro Nacht vermietest."], ["2", "Trage eine Zahl ein", "Gib deine aktuelle Monatsmiete oder durchschnittliche Rate pro Nacht ein und wähle die Währung."], ["3", "Vergleiche die Szenarien", "Die Tabelle berechnet Einnahmen, Nächte, Rate, Eigentümeraufwand und Gästebetreuung."], ["4", "Ordne das Ergebnis ein", "Die Hervorhebung ist eine Jahresschätzung, keine Zusage und kein Ersatz für ein Audit."]], calculatedLabel: "Marktauslastung, Hot-Host-Rate und weitere Werte werden automatisch aus deiner Eingabe abgeleitet.", inputLabel: "Deine Angabe", outputLabel: "Berechnete Szenarien" },
       founder: { eyebrow: "Gründer · Gastfreundschaft aus der Praxis", title: "Hinter jedem Prozess steht jemand, der selbst am Empfang gestanden hat.", lead: "Hot Host entstand aus einer Laufbahn in Rezeption, Gastronomie, Gästebetreuung und realen Abläufen, nicht aus einer theoretischen Präsentation.", photoAlt: "Yunior Bacallao Alonso, CEO und Gründer von Hot Host Hospitality", signature: "Yunior Bacallao Alonso", role: "CEO und Gründer von Hot Host Hospitality", quote: "Eine Unterkunft zu führen bedeutet nicht nur, Schlüssel zu übergeben. Es bedeutet, Vertrauen zu schaffen, Probleme zu lösen, bevor sie größer werden, und jedem Gast eine gute Geschichte mitzugeben.", paragraphs: ["Meine berufliche Laufbahn umfasst mehr als ein Jahrzehnt in der Hotellerie, in großen Hotels, Ferienresorts und Stadthotels. Ich habe dort gearbeitet, wo ein Aufenthalt wirklich entschieden wird: vor dem Gast, im Betrieb und in den Details, die keine Improvisation erlauben.", "Begonnen habe ich in internationalen Hotels in Varadero, Kuba, in Animation, Restaurant, Bar, Gästebetreuung und Rezeption. Hunderte Gäste täglich zu betreuen lehrte mich, Check-ins, Buchungen, Abrechnung und Zwischenfälle schnell, empathisch und klar zu handhaben.", "Später setzte ich meinen Weg in Sevilla fort und vertiefte meine Erfahrung in Stadthotellerie, Ferienvermietung, Buchungsplattformen sowie Preis- und Auslastungsoptimierung. Hot Host bringt diese professionellen Standards in Apartments, Ferienhäuser und unabhängige Unterkünfte."] },
       legal: {
         nav: { legal: "Impressum", privacy: "Datenschutz und Datenverarbeitung", cookies: "Cookies" }, updated: "Letzte Aktualisierung: 27. Juli 2026.", backHome: "Zur Startseite",
@@ -165,7 +149,6 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     },
     pl: {
       marketing: { home: { title: "Profesjonalne zarządzanie obiektami turystycznymi.", titleAccent: "Większa rentowność. Mniej pracy dla Ciebie.", lead: "Zarządzamy apartamentami turystycznymi, willami i domami wakacyjnymi zgodnie ze standardami hotelowymi: strategia sprzedaży, skoordynowane operacje i opieka nad gośćmi, aby Twój obiekt zarabiał więcej bez pochłaniania całego dnia.", servicesLead: "Nie zarządzamy pojedynczymi ogłoszeniami. Łączymy pozycjonowanie, ceny, operacje i doświadczenie gościa, aby każdy pobyt chronił rentowność i reputację." } },
-      comparison: { guideTitle: "Jak korzystać z porównania", guideLead: "Nie musisz znać wszystkich liczb. Zacznij od obecnej sytuacji, a tabela zmieni ją w trzy porównywalne scenariusze.", steps: [["1", "Wybierz punkt wyjścia", "Wskaż, czy obecnie wynajmujesz miesięcznie czy na doby."], ["2", "Wpisz jedną liczbę", "Dodaj obecny czynsz miesięczny lub średnią stawkę za noc i wybierz walutę."], ["3", "Porównaj scenariusze", "Tabela oblicza przychody, noce, stawkę, zaangażowanie właściciela i obsługę gości."], ["4", "Czytaj wynik w kontekście", "Wynik końcowy to roczny szacunek, a nie obietnica ani pełny audyt."]], calculatedLabel: "Obłożenie rynku, stawka Hot Host i pozostałe wartości są automatycznie skalowane na podstawie Twojej danej.", inputLabel: "Twoja dana", outputLabel: "Obliczone scenariusze" },
       founder: { eyebrow: "Założyciel · Gościnność w praktyce", title: "Za każdym procesem stoi ktoś, kto sam pracował po drugiej stronie recepcji.", lead: "Hot Host powstał z doświadczenia w recepcji, gastronomii, obsłudze gości i prawdziwej operacji, a nie z teoretycznej prezentacji.", photoAlt: "Yunior Bacallao Alonso, CEO i założyciel Hot Host Hospitality", signature: "Yunior Bacallao Alonso", role: "CEO i założyciel Hot Host Hospitality", quote: "Zarządzanie obiektem to nie tylko przekazanie kluczy. To budowanie zaufania, rozwiązywanie problemów zanim urosną i sprawienie, aby każdy gość miał dobrą historię do opowiedzenia.", paragraphs: ["Moja kariera rozwijała się przez ponad dekadę w hotelarstwie: w hotelach o dużej skali, resortach wakacyjnych i obiektach miejskich. Pracowałem tam, gdzie naprawdę decyduje się o pobycie: przed gościem, w operacji i w szczegółach, które nie pozwalają na improwizację.", "Zaczynałem w międzynarodowych hotelach w Varadero na Kubie, pracując w animacji, gastronomii, barze, opiece nad gośćmi i recepcji. Obsługa setek gości dziennie nauczyła mnie prowadzić check-iny, rezerwacje, rozliczenia i incydenty szybko, empatycznie i jasno.", "Później kontynuowałem w Sewilli, rozwijając doświadczenie w hotelarstwie miejskim, najmie turystycznym, platformach rezerwacyjnych oraz optymalizacji cen i obłożenia. Hot Host przenosi te standardy do apartamentów, domów wakacyjnych i niezależnych obiektów."] },
       legal: {
         nav: { legal: "Informacje prawne", privacy: "Prywatność i przetwarzanie danych", cookies: "Pliki cookie" }, updated: "Ostatnia aktualizacja: 27 lipca 2026 r.", backHome: "Wróć do strony głównej",
@@ -177,7 +160,6 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     },
     nl: {
       marketing: { home: { title: "Professioneel beheer van toeristische accommodaties.", titleAccent: "Meer rendement. Minder werk voor u.", lead: "Wij beheren toeristische appartementen, villa's en vakantiewoningen met hotelkennis: commerciële strategie, gecoördineerde operatie en gastenzorg zodat uw accommodatie meer oplevert zonder uw dagen over te nemen.", servicesLead: "Wij beheren geen losse advertenties. We verbinden positionering, prijzen, operatie en gastervaring zodat elk verblijf rendement en reputatie beschermt." } },
-      comparison: { guideTitle: "Zo gebruikt u deze vergelijking", guideLead: "U hoeft niet alle cijfers te kennen. Begin met uw huidige situatie en de tabel vertaalt die naar drie vergelijkbare scenario's.", steps: [["1", "Kies uw uitgangspunt", "Geef aan of u nu per maand of per nacht verhuurt."], ["2", "Vul één bedrag in", "Voer uw huidige maandhuur of gemiddelde nachtprijs in en kies de valuta."], ["3", "Vergelijk de scenario's", "De tabel berekent inkomsten, nachten, prijs, tijd van de eigenaar en gastenservice."], ["4", "Lees de uitkomst in context", "De uitgelichte uitkomst is een jaarschatting, geen belofte of audit."]], calculatedLabel: "Marktbezetting, het Hot Host-tarief en andere waarden worden automatisch op uw invoer afgestemd.", inputLabel: "Uw invoer", outputLabel: "Berekende scenario's" },
       founder: { eyebrow: "Oprichter · Gastvrijheid uit de praktijk", title: "Achter elk proces staat iemand die zelf aan de andere kant van de receptiebalie heeft gestaan.", lead: "Hot Host is ontstaan uit een loopbaan in receptie, horeca, gastenzorg en echte operatie, niet uit een theoretische presentatie.", photoAlt: "Yunior Bacallao Alonso, CEO en oprichter van Hot Host Hospitality", signature: "Yunior Bacallao Alonso", role: "CEO en oprichter van Hot Host Hospitality", quote: "Een accommodatie beheren is niet alleen sleutels overhandigen. Het is vertrouwen creëren, problemen oplossen voordat ze groter worden en iedere gast een goed verhaal meegeven.", paragraphs: ["Mijn loopbaan is opgebouwd in meer dan tien jaar hospitality, in grootschalige hotels, vakantieresorts en stedelijke accommodaties. Ik werkte waar een verblijf echt wordt beslist: voor de gast, in de operatie en in de details die geen improvisatie toelaten.", "Ik begon in internationale hotels in Varadero, Cuba, met entertainment, restaurant, bar, gastenzorg en receptie. Dagelijks honderden gasten helpen leerde mij check-ins, reserveringen, facturering en incidenten snel, empathisch en helder te behandelen.", "Later vervolgde ik mijn weg in Sevilla, waar ik mijn ervaring met stedelijke hospitality, toeristische verhuur, boekingsplatforms en prijs- en bezettingsoptimalisatie uitbreidde. Hot Host brengt die professionele standaarden naar appartementen, vakantiewoningen en onafhankelijke accommodaties."] },
       legal: {
         nav: { legal: "Juridische informatie", privacy: "Privacy en gegevensverwerking", cookies: "Cookies" }, updated: "Laatst bijgewerkt: 27 juli 2026.", backHome: "Terug naar home",
@@ -189,7 +171,6 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     },
     pt: {
       marketing: { home: { title: "Gestão profissional de alojamentos turísticos.", titleAccent: "Mais rentabilidade. Menos carga para si.", lead: "Gerimos apartamentos turísticos, villas e casas de férias com critério hoteleiro: estratégia comercial, operações coordenadas e atenção ao hóspede para que a sua propriedade renda mais sem ocupar os seus dias.", servicesLead: "Não gerimos anúncios isolados. Ligamos posicionamento, preços, operações e experiência do hóspede para que cada estadia proteja a rentabilidade e a reputação." } },
-      comparison: { guideTitle: "Como utilizar este comparador", guideLead: "Não precisa de conhecer todos os números. Comece pela sua situação atual e a tabela transforma-a em três cenários comparáveis.", steps: [["1", "Escolha o ponto de partida", "Indique se atualmente arrenda ao mês ou por noite."], ["2", "Introduza um único valor", "Adicione a renda mensal atual ou a tarifa média por noite e escolha a moeda."], ["3", "Compare os cenários", "A tabela calcula receitas, noites, tarifa, dedicação do proprietário e apoio ao hóspede."], ["4", "Leia o resultado com contexto", "O destaque final é uma estimativa anual, não uma promessa nem uma auditoria."]], calculatedLabel: "A ocupação do mercado, a tarifa Hot Host e os restantes valores são ajustados automaticamente a partir do seu dado.", inputLabel: "O seu valor", outputLabel: "Cenários calculados" },
       founder: { eyebrow: "Fundador · Hospitalidade no terreno", title: "Por trás de cada processo está alguém que já esteve do outro lado da receção.", lead: "A Hot Host nasceu de uma carreira em receção, restauração, apoio ao hóspede e operações reais, não de uma apresentação teórica.", photoAlt: "Yunior Bacallao Alonso, CEO e fundador da Hot Host Hospitality", signature: "Yunior Bacallao Alonso", role: "CEO e fundador da Hot Host Hospitality", quote: "Gerir um alojamento não é apenas entregar chaves. É criar confiança, resolver problemas antes que cresçam e fazer com que cada hóspede tenha uma boa história para contar.", paragraphs: ["O meu percurso profissional foi construído ao longo de mais de uma década na hospitalidade, entre hotéis de grande volume, resorts de férias e estabelecimentos urbanos. Trabalhei onde uma estadia é verdadeiramente decidida: perante o hóspede, na operação e nos detalhes que não permitem improviso.", "Comecei em hotéis internacionais em Varadero, Cuba, passando por animação turística, restauração, bar, apoio ao hóspede e receção. Atender centenas de hóspedes todos os dias ensinou-me a gerir check-ins, reservas, faturação e incidentes com rapidez, empatia e comunicação clara.", "Mais tarde continuei o meu percurso em Sevilha, alargando a experiência em hotelaria urbana, arrendamento turístico, plataformas de reserva e otimização de preços e ocupação. A Hot Host é a minha forma de levar estes padrões profissionais a apartamentos, casas de férias e alojamentos independentes."] },
       legal: {
         nav: { legal: "Aviso legal", privacy: "Privacidade e tratamento de dados", cookies: "Cookies" }, updated: "Última atualização: 27 de julho de 2026.", backHome: "Voltar ao início",
@@ -201,7 +182,6 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     },
     el: {
       marketing: { home: { title: "Επαγγελματική διαχείριση τουριστικών καταλυμάτων.", titleAccent: "Μεγαλύτερη απόδοση. Λιγότερο βάρος για εσάς.", lead: "Διαχειριζόμαστε τουριστικά διαμερίσματα, βίλες και εξοχικές κατοικίες με ξενοδοχειακά κριτήρια: εμπορική στρατηγική, συντονισμένη λειτουργία και φροντίδα επισκεπτών ώστε το ακίνητό σας να αποδίδει περισσότερο χωρίς να καταλαμβάνει την ημέρα σας.", servicesLead: "Δεν διαχειριζόμαστε μεμονωμένες καταχωρίσεις. Συνδέουμε τοποθέτηση, τιμές, λειτουργία και εμπειρία επισκέπτη, ώστε κάθε διαμονή να προστατεύει την απόδοση και τη φήμη." } },
-      comparison: { guideTitle: "Πώς να χρησιμοποιήσετε αυτή τη σύγκριση", guideLead: "Δεν χρειάζεται να γνωρίζετε όλους τους αριθμούς. Ξεκινήστε από τη σημερινή σας κατάσταση και ο πίνακας τη μετατρέπει σε τρία συγκρίσιμα σενάρια.", steps: [["1", "Επιλέξτε αφετηρία", "Δηλώστε αν σήμερα νοικιάζετε ανά μήνα ή ανά διανυκτέρευση."], ["2", "Εισαγάγετε έναν αριθμό", "Προσθέστε το σημερινό μηνιαίο μίσθωμα ή τη μέση τιμή ανά νύχτα και επιλέξτε νόμισμα."], ["3", "Συγκρίνετε σενάρια", "Ο πίνακας υπολογίζει έσοδα, νύχτες, τιμή, χρόνο ιδιοκτήτη και φροντίδα επισκεπτών."], ["4", "Διαβάστε το αποτέλεσμα στο πλαίσιο", "Το τελικό αποτέλεσμα είναι ετήσια εκτίμηση, όχι υπόσχεση ή πλήρης έλεγχος."]], calculatedLabel: "Η πληρότητα της αγοράς, η τιμή Hot Host και οι άλλες τιμές προσαρμόζονται αυτόματα από το στοιχείο σας.", inputLabel: "Το στοιχείο σας", outputLabel: "Υπολογισμένα σενάρια" },
       founder: { eyebrow: "Ιδρυτής · Φιλοξενία στην πράξη", title: "Πίσω από κάθε διαδικασία βρίσκεται κάποιος που έχει σταθεί και ο ίδιος στην άλλη πλευρά της ρεσεψιόν.", lead: "Η Hot Host γεννήθηκε από εμπειρία σε ρεσεψιόν, εστίαση, φροντίδα επισκεπτών και πραγματική λειτουργία, όχι από θεωρητική παρουσίαση.", photoAlt: "Yunior Bacallao Alonso, CEO και ιδρυτής της Hot Host Hospitality", signature: "Yunior Bacallao Alonso", role: "CEO και ιδρυτής της Hot Host Hospitality", quote: "Η διαχείριση ενός καταλύματος δεν είναι μόνο η παράδοση κλειδιών. Είναι η δημιουργία εμπιστοσύνης, η επίλυση προβλημάτων πριν μεγαλώσουν και το να έχει κάθε επισκέπτης μια καλή ιστορία να διηγηθεί.", paragraphs: ["Η επαγγελματική μου πορεία χτίστηκε σε περισσότερο από μια δεκαετία στη φιλοξενία, σε μεγάλα ξενοδοχεία, θέρετρα διακοπών και αστικά καταλύματα. Εργάστηκα εκεί όπου πραγματικά αποφασίζεται μια διαμονή: μπροστά στον επισκέπτη, στη λειτουργία και στις λεπτομέρειες που δεν επιτρέπουν αυτοσχεδιασμό.", "Ξεκίνησα σε διεθνή ξενοδοχεία στο Βαραδέρο της Κούβας, περνώντας από ψυχαγωγία, εστίαση, μπαρ, εξυπηρέτηση επισκεπτών και ρεσεψιόν. Η εξυπηρέτηση εκατοντάδων επισκεπτών καθημερινά με έμαθε να διαχειρίζομαι check-in, κρατήσεις, χρεώσεις και περιστατικά με ταχύτητα, ενσυναίσθηση και σαφή επικοινωνία.", "Αργότερα συνέχισα στη Σεβίλλη, διευρύνοντας την εμπειρία μου στην αστική φιλοξενία, την τουριστική μίσθωση, τις πλατφόρμες κρατήσεων και τη βελτιστοποίηση τιμών και πληρότητας. Η Hot Host μεταφέρει αυτά τα επαγγελματικά πρότυπα σε διαμερίσματα, εξοχικές κατοικίες και ανεξάρτητα καταλύματα."] },
       legal: {
         nav: { legal: "Νομική ενημέρωση", privacy: "Απόρρητο και επεξεργασία δεδομένων", cookies: "Cookies" }, updated: "Τελευταία ενημέρωση: 27 Ιουλίου 2026.", backHome: "Επιστροφή στην αρχική",
@@ -273,7 +253,7 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
   });
 })();
 
-/* Content introduced with the profitability, founder and legal-information routes. */
+/* Shared content for navigation and standalone commercial, founder and legal routes. */
 (function () {
   const spanishJourney = [
     ["Diagnosticar", "Antes de mover una coma, entendemos la vivienda, el objetivo y el punto de partida.", "Revisamos el alojamiento, su mercado y los datos que ya existen. Sin promesas de humo: primero vemos qué hay que proteger y qué se puede mejorar."],
@@ -296,21 +276,147 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     ["Retain", "We close every stay with an experience worth recommending.", "We listen, ask for reviews and use what we learn to make the next booking stronger."]
   ];
   const spanish = {
-    nav: { profitability: "Rentabilidad", founder: "Fundador", legalHub: "Información legal y privacidad", overview: "Ver página principal", servicesOverview: "Ver todos los servicios", legalOverview: "Ver información legal" },
+    nav: { howWeWork: "Cómo trabajamos", webDirect: "Web y reservas directas", experiences: "Experiencias", profitability: "Rentabilidad", founder: "Fundador", legalHub: "Información legal y privacidad", overview: "Ver página principal", servicesOverview: "Ver todos los servicios", legalOverview: "Ver información legal" },
+    offerModel: {
+      eyebrow: "Un modelo más completo",
+      title: "La propiedad no necesita más tareas separadas. Necesita una estrategia conectada.",
+      lead: "Conectamos gestión, presencia digital y oportunidades para la estancia dentro de un alcance definido para cada alojamiento.",
+      pillars: [
+        {
+          title: "Gestión y operación",
+          text: "Conectamos estrategia comercial y ejecución diaria para que precios, anuncios, atención al huésped, proveedores y estándares trabajen con el mismo criterio.",
+          items: ["Posicionamiento, tarifas y canales", "Comunicación y experiencia del huésped", "Coordinación operativa y seguimiento"],
+          action: "Ver gestión y servicios",
+          path: "servicios.html",
+          imageAlt: "Equipo revisando la gestión y operación de un alojamiento"
+        },
+        {
+          title: "Web propia y reserva directa",
+          text: "Creamos la identidad y la web individual de la propiedad, con contenido y un recorrido preparado para recibir reservas directas mediante la tecnología acordada.",
+          items: ["Nombre, narrativa, textos y fotografías", "Dominio, web y perfiles digitales", "Motor, pagos e integraciones según propuesta"],
+          action: "Ver Web y reservas directas",
+          path: "web-reservas-directas.html",
+          imageAlt: "Análisis de una web de alojamiento y su recorrido de reserva"
+        },
+        {
+          title: "Experiencias y oportunidades",
+          text: "Diseñamos servicios para la estancia y, cuando es viable, coordinamos y comercializamos experiencias externas para los huéspedes en los canales acordados.",
+          items: ["Oferta adaptada al destino y al huésped", "Promoción antes y durante la estancia", "Atribución y participación del propietario por escrito"],
+          action: "Entender el modelo",
+          path: "experiencias.html",
+          imageAlt: "Viajero descubriendo propuestas vinculadas a su estancia"
+        }
+      ]
+    },
+    homeMethod: {
+      eyebrow: "Método Hot Host",
+      title: "Del diagnóstico al seguimiento, en cinco pasos.",
+      lead: "Cada etapa prepara la siguiente para que el alcance, los responsables y las decisiones estén claros antes de ejecutar.",
+      steps: [
+        ["Entender", "Revisamos la propiedad, sus objetivos, su situación actual y sus limitaciones."],
+        ["Diseñar", "Definimos prioridades, alcance, presencia digital y oportunidades que tengan sentido para el caso."],
+        ["Preparar", "Creamos procesos, materiales, responsables y criterios de seguimiento."],
+        ["Ejecutar", "Coordinamos el trabajo acordado y mantenemos información clara para el propietario."],
+        ["Revisar", "Analizamos resultados y ajustamos decisiones con datos y contexto."]
+      ]
+    },
+    homeTrust: {
+      eyebrow: "Atención directa y alcance controlado",
+      title: "Tu propiedad no debe convertirse en un número dentro de una cartera.",
+      lead: "Hot Host trabaja con atención directa, diagnóstico detallado y estándares adaptados. Cada incorporación se valora individualmente para asegurar criterio, seguimiento y una ejecución responsable.",
+      note: "Preferimos un alcance claro y bien ejecutado a una lista interminable de promesas.",
+      commitmentsEyebrow: "Compromisos de trabajo",
+      commitmentsTitle: "Lo que puedes esperar al trabajar con Hot Host.",
+      commitments: [
+        ["Claridad", "Sabrás qué hacemos, qué necesitamos de ti y cómo se revisará cada decisión."],
+        ["Responsabilidad", "Cada tarea incluida tendrá un responsable, un criterio y un seguimiento."],
+        ["Personalización", "No aplicaremos el mismo modelo a propiedades con objetivos, ubicaciones y operaciones diferentes."]
+      ]
+    },
+    homeClosing: {
+      eyebrow: "Hablemos claro, sin compromiso",
+      title: "Antes de proponerte un servicio, necesitamos entender tu propiedad.",
+      text: "Cuéntanos lo esencial. Revisaremos el caso y te diremos con honestidad dónde vemos oportunidades, qué alcance tendría sentido y si Hot Host es el socio adecuado."
+    },
+    caseExample: {
+      eyebrow: "Caso tipo · Aplicación orientativa",
+      title: "De vender noches a presentar una estancia completa.",
+      lead: "Una vivienda urbana de dos dormitorios se comercializa solo mediante plataformas, no tiene identidad propia y responde una a una las mismas preguntas sobre llegada, servicios y actividades.",
+      steps: [
+        ["Construimos la base digital", "Definimos posicionamiento, nombre, mensajes y una web propia conectada con la solución de reserva directa compatible que se acuerde."],
+        ["Diseñamos la estancia", "Ordenamos la comunicación y estudiamos servicios dentro o fuera del alojamiento que encajen con el destino, el perfil del huésped y la capacidad operativa."],
+        ["Comercializamos las opciones", "Presentamos las propuestas relevantes en la web, el recorrido previo a la llegada y los puntos de contacto definidos, sin convertir la estancia en un catálogo genérico."],
+        ["Distribuimos responsabilidad y valor", "El proveedor presta el servicio, Hot Host coordina o comercializa el alcance acordado y el propietario participa en las compras elegibles atribuidas a su alojamiento según su propuesta."]
+      ],
+      valueTitle: "Qué se busca con este modelo",
+      valueText: "Una propiedad más reconocible, un canal directo propio, decisiones operativas conectadas y nuevas oportunidades de ingreso sin publicar promesas ni porcentajes universales.",
+      note: "Ejemplo orientativo. Tecnología, proveedores, viabilidad, costes, atribución, cancelaciones y participación se definirían por escrito para esa propiedad.",
+      imageAlt: "Vivienda urbana utilizada para ilustrar un caso tipo de desarrollo integral"
+    },
     journeyTitle: "Un recorrido que no deja cabos sueltos.",
     journeyLead: "Ocho etapas conectadas para cuidar la rentabilidad, la operación y la experiencia sin improvisar por el camino.",
     journey: spanishJourney,
     prices: {
-      "gestion-integral": ["Desde el 20%", "de los ingresos"],
+      "gestion-integral": ["Desde el 20%", "de los ingresos del alojamiento"],
       "guest-experience": ["190 € inicial", "+ 5–15 € por reserva"],
-      "revenue-management": ["129 € inicial", "(incluye 3 meses de servicio) + 33 €/mes, o 1% por reserva"],
-      "check-in-operaciones": ["Desde el 3%", "por estancia"],
+      "revenue-management": ["129 € inicial", "incluye 3 meses de servicio; después 33 €/mes o 1% del importe bruto de cada reserva"],
+      "check-in-operaciones": ["Personalizable", "según modalidad, ubicación, horario y alcance operativo"],
       "limpieza-lavanderia": ["A medida", "desde 20 € por estancia"],
-      "fotografia-profesional": ["A medida", "desde 245 €"],
-      "auditoria-rentabilidad": ["149 €", "Gratis hasta el 30 de septiembre"]
+      "fotografia-profesional": ["295 €", "por sesión fotográfica · Grandes propiedades desde 390 €"],
+      "auditoria-rentabilidad": ["249 €", "Gratis", "Hasta el 30 de octubre"]
     },
     profitability: {
-      breadcrumb: "Rentabilidad", eyebrow: "Decide con números claros", title: "Tu alojamiento, visto desde el neto.", lead: "Compara modelos sin impuestos ni costes variables: solo ingresos, gestión y lo que queda para ti.", situation: "¿Cuál es tu punto de partida?", traditional: "Alquilo de forma tradicional", selfManaged: "Ya me gestiono por mi cuenta", external: "Trabajo con una gestora externa", newProperty: "Aún no he alquilado", monthlyRent: "Renta mensual actual", nightlyRate: "Tarifa media por noche", occupancy: "Ocupación estimada", externalFee: "Comisión de la gestora externa", inputsTitle: "Tus datos", gross: "Ingresos brutos anuales", management: "Coste de gestión", net: "Neto anual para ti", monthlyNet: "Neto mensual para ti", traditionalColumn: "Alquiler tradicional", selfColumn: "Gestión propia", externalColumn: "Gestora externa", hotHostColumn: "Hot Host", traditionalDetail: "Sin gestión turística", selfDetail: "Tu tiempo, tus operaciones", externalDetail: "Comisión editable", hotHostDetail: "20% de ingresos", note: "Estimación orientativa antes de impuestos y de costes variables como limpieza, lavandería, suministros, mantenimiento o plataformas.", missingValue: "Introduce los datos para ver esta estimación.", requestAudit: "Solicitar auditoría"
+      breadcrumb: "Rentabilidad", eyebrow: "Decidir con datos reales", title: "La rentabilidad no se adivina. Se analiza propiedad por propiedad.", lead: "Revisamos ingresos, tarifas, ocupación, disponibilidad, costes, reputación, operación y posicionamiento para identificar oportunidades y construir escenarios realistas.", methodEyebrow: "Análisis individual", methodTitle: "Tres bloques para entender qué puede mejorar y qué conviene proteger.", methodLead: "No aplicamos una proyección automática: revisamos la situación real antes de proponer cambios.", stages: [["Situación y mercado", "Revisamos ingresos, comercialización, demanda, competencia, eventos, temporada, contenido y reputación."], ["Operación y oportunidades", "Ordenamos costes, tiempos, incidencias, proveedores, precios, distribución, web, reserva directa y presencia digital."], ["Escenarios y plan", "Ordenamos opciones conservadoras, prioridades y próximos pasos sin prometer una cifra concreta."]], transparencyTitle: "Del análisis a un plan de acción claro.", transparencyText: "Presentamos los datos revisados, las oportunidades detectadas y los próximos pasos adaptados a lo que el propietario decida ejecutar. No es una garantía de ingresos.", requestAudit: "Analizar mi propiedad →"
+    },
+    webDirectPage: {
+      breadcrumb: "Web y reservas directas",
+      metaTitle: "Web y reservas directas",
+      eyebrow: "Marca, web y reserva directa",
+      title: "Creamos la web propia del alojamiento y conectamos su recorrido de reserva.",
+      lead: "Definimos identidad, contenido y estructura digital para presentar mejor el alojamiento y recibir reservas directas cuando el alcance incluye la tecnología y las integraciones necesarias.",
+      secondaryAction: "Ver servicios",
+      detailEyebrow: "Qué hacemos",
+      detailTitle: "De una propiedad dispersa entre plataformas a una presencia digital coherente.",
+      detailParagraphs: ["La web corporativa de Hot Host sigue dirigida a propietarios. Para cada alojamiento contratado creamos una web independiente, adaptada a su identidad y preparada para el recorrido de reserva acordado.", "No instalamos una solución universal. Primero revisamos objetivos, sistemas actuales, disponibilidad, pagos, contenido y capacidad de mantenimiento."],
+      deliverables: [["Identidad y mensaje", "Definimos o ajustamos nombre, posicionamiento, narrativa, tono, textos y selección visual."], ["Web propia", "Diseñamos una estructura orientada a conversión que explica el alojamiento, sus condiciones y su propuesta de estancia."], ["Reserva directa", "Conectamos disponibilidad, motor, calendario, pagos o sistemas compatibles únicamente cuando están incluidos y validados."], ["Presencia y contenido", "Alineamos perfiles, fotografías, contenido inicial y medición con el nivel de servicio contratado."]],
+      scopeEyebrow: "Alcance definido por escrito",
+      scopeTitle: "La tecnología, los costes y la titularidad se concretan antes de construir.",
+      scopeText: "La propuesta de cada propiedad especificará qué crea Hot Host, qué proveedor interviene y qué debe mantener cada parte.",
+      scopeItems: ["Dominio, hosting, accesos, titularidad y portabilidad", "Motor de reservas, licencias, PMS, channel manager o calendarios", "Pasarela de pago, cobro, comisiones y costes recurrentes", "Páginas, idiomas, perfiles, contenido y frecuencia de actualización", "Mantenimiento, soporte, copias de seguridad y medición", "Sin garantía de seguidores, alcance, reservas ni resultados publicitarios"],
+      levelsEyebrow: "Alcance escalable",
+      levelsTitle: "Tres niveles para ordenar el alcance. Ningún paquete cerrado.",
+      levelsLead: "La propuesta concreta páginas, perfiles, integraciones, frecuencia y responsabilidades según lo que la propiedad pueda mantener y aprovechar.",
+      levelsProposalLabel: "Se define en propuesta",
+      levels: [["Lanzamiento digital", "Identidad, dominio, web y reserva directa", "Alcance técnico, páginas, perfiles y contenido inicial"], ["Crecimiento", "Contenido, medición y optimización periódica", "Frecuencia, formatos, analítica y revisiones"], ["Desarrollo avanzado", "Campañas, integraciones y evolución continua", "Vídeo, medios, integraciones y objetivos"]],
+      faqEyebrow: "Preguntas frecuentes",
+      faqTitle: "Lo que conviene definir antes de construir.",
+      faqs: [["¿La web permite reservar directamente?", "Sí, cuando el alcance contratado incluye el motor y las integraciones necesarias. La solución concreta se define para cada propiedad."], ["¿Puede conectarse con el calendario actual?", "Depende del PMS, channel manager o sistema utilizado. La compatibilidad se revisa antes de cerrar la propuesta."], ["¿Las redes sociales están siempre incluidas?", "La creación u optimización inicial puede formar parte del alcance. La frecuencia de contenido y la gestión continuada dependen del plan contratado."], ["¿A quién pertenecen el dominio y los datos?", "Titularidad, accesos, alojamiento, licencias y portabilidad se definirán expresamente en la propuesta y el contrato."]],
+      detailImageAlt: "Diseño interior que inspira la identidad visual de una web de alojamiento"
+    },
+    experiencesPage: {
+      breadcrumb: "Experiencias",
+      metaTitle: "Experiencias y servicios personalizados",
+      eyebrow: "Más valor en cada estancia",
+      title: "Una buena experiencia no es un catálogo. Es un recorrido bien pensado.",
+      lead: "Diseñamos y comercializamos servicios dentro o fuera del alojamiento, coordinamos un modelo viable y presentamos cada propuesta en el momento adecuado de la estancia.",
+      secondaryAction: "Ver caso tipo",
+      principleEyebrow: "La regla",
+      principleTitle: "Lugar, huésped y operación deben encajar.",
+      principleText: "Si una idea no aporta valor real o no puede ejecutarse bien, no se incorpora a la propuesta.",
+      coordinatesLabel: "Tres filtros antes de diseñar",
+      coordinates: [["El lugar", "Qué tiene sentido aquí."], ["El huésped", "Qué le resulta realmente útil."], ["La operación", "Quién puede cumplirlo bien."]],
+      detailEyebrow: "El recorrido",
+      detailTitle: "Cuatro decisiones convierten una idea en una propuesta ejecutable.",
+      detailParagraphs: ["Primero entendemos el alojamiento, el destino, el huésped y la operación. Después decidimos qué experiencias o servicios tienen sentido, quién puede prestarlos y cómo deben comunicarse.", "Hot Host puede diseñar, coordinar o comercializar el alcance acordado. La prestación puede corresponder a la propiedad, a Hot Host o a un proveedor externo identificado antes de activar la oferta."],
+      deliverables: [["Detectar el encaje", "Analizamos ubicación, estacionalidad, duración de estancia, perfil del huésped y demanda observable."], ["Diseñar la oferta", "Definimos qué se ofrece, para quién, en qué momento y cómo mejora la experiencia sin añadir fricción."], ["Coordinar la prestación", "Aclaramos disponibilidad, calidad, soporte, cambios, cancelaciones y responsabilidad de cada parte."], ["Comercializar y revisar", "Presentamos las opciones en web, contenido y comunicación al huésped; medimos atribución y revisamos el funcionamiento."]],
+      scopeEyebrow: "Participación del propietario",
+      scopeTitle: "Una participación definida para cada propiedad.",
+      scopeText: "El propietario puede participar en las compras elegibles originadas por huéspedes vinculados a su alojamiento, incluso cuando el servicio se realice fuera. La forma de participación, los servicios incluidos, la atribución, las cancelaciones y la liquidación se acuerdan individualmente antes de activar la propuesta.",
+      scopeItems: ["Servicios elegibles y propiedad correctamente identificados", "Proveedor, prestación, soporte y estándar de calidad definidos", "Canales de promoción y tratamiento de datos acordados", "Regla y periodo de atribución documentados", "Participación, impuestos, cancelaciones y liquidación pactados", "Activación solo después de validar viabilidad y responsabilidades"],
+      faqEyebrow: "Preguntas frecuentes",
+      faqTitle: "Un modelo personalizado también necesita respuestas claras.",
+      faqs: [["¿Todas las propiedades ofrecerán lo mismo?", "No. Cada propuesta se diseña según la propiedad, el destino, el huésped y los acuerdos disponibles."], ["¿El servicio tiene que ocurrir dentro del alojamiento?", "No. Puede ocurrir dentro o fuera, siempre que forme parte del alcance acordado y la compra pueda atribuirse correctamente."], ["¿Qué porcentaje recibe el propietario?", "Se negocia individualmente porque depende del servicio, la forma de prestación, los costes, la responsabilidad operativa y los acuerdos aplicables."], ["¿Cuándo se empieza a ofrecer?", "Solo después de definir proveedores, operación, atención, atribución y condiciones económicas por escrito."]],
+      detailImageAlt: "Interior preparado para diseñar servicios y experiencias vinculados a la estancia"
     },
     founderPage: { breadcrumb: "Fundador", title: "La hospitalidad se aprende en primera línea.", intro: "Conoce el recorrido de Yunior Bacallao Alonso y el criterio operativo detrás de Hot Host.", ctaEyebrow: "Hablemos de tu alojamiento", ctaTitle: "Una buena gestión empieza por entender bien el lugar." },
     legalHub: { breadcrumb: "Información legal y privacidad", eyebrow: "Transparencia", title: "Información legal y privacidad", lead: "Accede a las condiciones legales, al tratamiento de datos y a las preferencias de esta web.", open: "Ver información" }
@@ -323,15 +429,13 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
     prices: {
       "gestion-integral": ["From 20%", "of revenue"],
       "guest-experience": ["€190 setup", "+ €5–15 per booking"],
-      "revenue-management": ["€129 setup", "includes 3 months of service + €33/month, or 1% per booking"],
-      "check-in-operaciones": ["From 3%", "per stay"],
+      "revenue-management": ["€129 setup", "includes 3 months; then €33/month or 1% of each booking's gross amount"],
+      "check-in-operaciones": ["Tailored", "based on format, location, schedule and operational scope"],
       "limpieza-lavanderia": ["Tailored", "from €20 per stay"],
-      "fotografia-profesional": ["Tailored", "from €245"],
-      "auditoria-rentabilidad": ["€149", "Free until 30 September"]
+      "fotografia-profesional": ["€295", "per photo session · Large properties from €390"],
+      "auditoria-rentabilidad": ["€249", "Free", "Until 30 October"]
     },
-    profitability: {
-      breadcrumb: "Profitability", eyebrow: "Decide with clear numbers", title: "Your property, viewed from net income.", lead: "Compare models before tax and variable costs: just income, management and what remains for you.", situation: "What is your starting point?", traditional: "I rent traditionally", selfManaged: "I manage it myself", external: "I work with an external manager", newProperty: "I have not rented it yet", monthlyRent: "Current monthly rent", nightlyRate: "Average nightly rate", occupancy: "Expected occupancy", externalFee: "External manager commission", inputsTitle: "Your figures", gross: "Annual gross income", management: "Management cost", net: "Your annual net income", monthlyNet: "Your monthly net income", traditionalColumn: "Traditional rental", selfColumn: "Self-management", externalColumn: "External manager", hotHostColumn: "Hot Host", traditionalDetail: "No holiday management", selfDetail: "Your time, your operations", externalDetail: "Editable commission", hotHostDetail: "20% of revenue", note: "Indicative estimate before taxes and variable costs such as cleaning, linen, utilities, maintenance or platforms.", missingValue: "Enter your figures to see this estimate.", requestAudit: "Request an audit"
-    },
+    profitability: spanish.profitability,
     founderPage: { breadcrumb: "Founder", title: "Hospitality is learned on the front line.", intro: "Meet Yunior Bacallao Alonso and the operational judgement behind Hot Host.", ctaEyebrow: "Let's discuss your property", ctaTitle: "Good management starts by understanding the place." },
     legalHub: { breadcrumb: "Legal information and privacy", eyebrow: "Transparency", title: "Legal information and privacy", lead: "Access the legal terms, data processing information and website preferences.", open: "View information" }
   };
@@ -373,11 +477,11 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
   const narratives = {
     es: {
       home: {
-        eyebrow: "Cuando el alojamiento funciona, tú no apagas fuegos",
+        eyebrow: "Gestión, web propia y hospitalidad",
         title: "Tu propiedad puede rendir más.",
         titleAccent: "Sin convertirse en otro trabajo.",
-        lead: "La ocupación irregular, los precios sin estrategia y una operación fragmentada reducen el margen y consumen tiempo. Hot Host conecta comercialización, atención al huésped y operación para convertir ese desgaste en una gestión medible y responsable.",
-        servicesLead: "Cada servicio resuelve una parte concreta del mismo problema: vender mejor, operar sin fricción y conseguir que una buena estancia impulse la siguiente reserva.",
+        lead: "Hot Host conecta estrategia, operación y experiencia del huésped. Desarrollamos la presencia digital del alojamiento, creamos su web propia para reservas directas y estudiamos oportunidades adicionales de valor adaptadas a cada propiedad.",
+        servicesLead: "Gestionamos el alojamiento, construimos su canal propio y desarrollamos nuevas oportunidades para la estancia dentro de una estrategia conectada.",
         story: [
           { label: "El problema", title: "Más reservas no arreglan una operación desordenada.", text: "Un calendario lleno puede seguir perdiendo margen entre precios reactivos, mensajes tardíos, proveedores descoordinados e incidencias que siempre vuelven al propietario." },
           { label: "La solución", title: "Una estrategia conecta lo comercial con lo operativo.", text: "Alineamos posicionamiento, tarifas, comunicación y ejecución diaria para que cada decisión tenga contexto, responsable y seguimiento." },
@@ -388,10 +492,13 @@ window.HOT_HOST_SITE_CONTENT = Object.freeze({
         eyebrow: "Criterio hotelero aplicado a propiedades independientes",
         title: ["No gestionamos anuncios.", "Resolvemos la operación completa."],
         lead: "Hot Host nace para cerrar la distancia entre prometer una buena estancia y ejecutarla cada día: experiencia real de hospitalidad, procesos claros y responsabilidad visible para el propietario.",
+        commitmentsEyebrow: "Atención directa y alcance controlado",
+        commitmentsTitle: "Tu propiedad no debe convertirse en un número dentro de una cartera.",
+        commitmentsLead: "Cada incorporación se valora individualmente para asegurar criterio, seguimiento y una ejecución responsable.",
+        commitments: [["Claridad y responsabilidad", "Definiremos qué hacemos, qué necesitamos de ti, quién responde por cada tarea y cómo se revisará cada decisión."], ["Alcance personalizado", "Adaptaremos servicios, prioridades y seguimiento a los objetivos, la ubicación y la operación real de la propiedad."]],
         story: [
           { label: "El problema", title: "El propietario suele quedar atrapado entre demasiados interlocutores.", text: "Agencia, limpieza, huéspedes, precios y mantenimiento toman decisiones separadas; cuando algo falla, la carga y la incertidumbre regresan a quien quería delegar." },
-          { label: "Nuestra respuesta", title: "Unimos criterio humano, disciplina operativa y datos.", text: "La experiencia en recepción y operación hotelera se convierte en estándares, prioridades y decisiones comerciales adaptadas a cada propiedad." },
-          { label: "El valor añadido", title: "No solo hacemos tareas: respondemos por el conjunto.", text: "El propietario conserva visibilidad sin perseguir cada detalle, y el huésped recibe una experiencia coherente desde la búsqueda hasta después del check-out." }
+          { label: "Nuestra respuesta", title: "Unimos criterio humano, disciplina operativa y datos.", text: "Convertimos experiencia real en estándares, prioridades y decisiones conectadas. No solo hacemos tareas: respondemos por el conjunto para que el propietario conserve visibilidad y el huésped reciba una experiencia coherente." }
         ]
       }
     },
